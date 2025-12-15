@@ -1,12 +1,15 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+// Reverting back to the standard Calendar component implementation
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Sun, Moon, Globe, Calendar as CalendarIcon, Clock, Trash2, RotateCcw, List, Filter, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+// Importing date-fns locale
 import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { enUS, ja } from 'date-fns/locale';
 
 // --- Type Definitions ---
 type Shift = {
@@ -39,10 +42,10 @@ const PRIMARY_COLOR_CLASSES = {
     bgGradient: 'bg-gradient-to-r from-indigo-500 to-violet-600',
     hover: 'hover:bg-indigo-500/10',
     ring: 'ring-indigo-500 dark:ring-violet-400',
-}
+};
 
 
-// --- Language Strings (UPDATED) ---
+// --- Language Strings (UNCHANGED) ---
 const LANG_STRINGS = {
     en: {
         to: 'to',
@@ -181,7 +184,7 @@ const CONTAINER_HEIGHT = ITEM_HEIGHT * 3;
 function ScrollColumn({ options, selected, onSelect }: { options: string[]; selected: number; onSelect: (v: number) => void }) {
     const containerRef = useRef<HTMLDivElement>(null);
     const isScrolling = useRef(false);
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRef = useRef<number | null>(null);
 
     useEffect(() => {
         if (containerRef.current && !isScrolling.current) {
@@ -266,7 +269,13 @@ function ScrollTimePicker({ value, onChange, label }: { value: string; onChange:
 }
 
 // --- THEME DROPDOWN (UNCHANGED) ---
-function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleLang }) {
+function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleLang }: {
+    theme: 'light' | 'dark';
+    setTheme: (theme: 'light' | 'dark') => void;
+    variantIndex: number;
+    setVariantIndex: (index: number) => void;
+    toggleLang: () => void;
+}) {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const isLight = theme === 'light';
@@ -282,8 +291,8 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
 
     const handleSelectVariant = (index: number) => setVariantIndex(index);
     const handleToggleTheme = (newTheme: 'light' | 'dark') => {
-        setTheme(newTheme)
-        setIsOpen(!isOpen)
+        setTheme(newTheme);
+        setIsOpen(!isOpen);
     };
     const handleThemeIconClick = () => setIsOpen(prev => !prev);
 
@@ -316,9 +325,9 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
                         exit={{ opacity: 0, y: -20 }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                         className={`absolute right-0 top-full mt-2 w-80 rounded-xl p-4 z-50 origin-top-right ${isLight ? 'bg-white/70' : 'bg-slate-900/70'} 
-                                     backdrop-blur-xl  shadow-xl`}
+                                     backdrop-blur-xl  shadow-xl border border-gray-200 dark:border-slate-800`}
                     >
-                        <div className={`flex justify-between items-center mb-3 p-1 rounded-lg ${isLight ? 'bg-gray-100' : 'bg-slate-800'}  dark:`}>
+                        <div className={`flex justify-between items-center mb-3 p-1 rounded-lg ${isLight ? 'bg-gray-100' : 'bg-slate-800'}`}>
                             <motion.button
                                 onClick={() => handleToggleTheme('light')}
                                 className={cn("flex-1 px-3 py-2 rounded-lg cursor-pointer text-sm font-medium transition-colors",
@@ -363,15 +372,16 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
     );
 }
 
-// --- SHIFT ITEM COMPONENT (UPDATED TIME/WAGE CONTRAST) ---
+// --- SHIFT ITEM COMPONENT (UNCHANGED) ---
 function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shift, theme: 'light' | 'dark', baseLang: Lang, onDelete: (id: string) => void, onUpdate: (shift: Shift) => void }) {
     const [shiftLang, setShiftLang] = useState<Lang>(baseLang);
     const itemRef = useRef<HTMLDivElement>(null);
+    const isLight = theme === 'light';
 
     // List Item Background/Border adjusted for consistency
-    const shiftItemClasses = theme === 'light'
+    const shiftItemClasses = isLight
         ? 'bg-white border border-gray-100 text-black'
-        : 'bg-slate-300/40 border border-slate-700/50 text-white';
+        : 'bg-slate-800/60 border border-slate-700/50 text-white';
 
     const strings = LANG_STRINGS[shiftLang];
 
@@ -407,7 +417,10 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
                             {displayDayOfWeek}
                         </span>
                         {/* Date */}
-                        <span className="text-xs font-bold px-2 py-1 rounded-md bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300">
+                        <span className={cn(
+                            "text-xs font-bold px-2 py-1 rounded-md",
+                            isLight ? 'bg-gray-100 text-gray-600' : 'bg-slate-700 text-gray-300'
+                        )}>
                             {shift.date}
                         </span>
                         {/* Language Toggle */}
@@ -423,13 +436,13 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
                     </div>
 
                     <div className="flex items-baseline gap-2">
-                        {/* HIGH CONTRAST TEXT: text-white in dark mode */}
-                        <span className="text-xl font-medium  ">{shift.fromTime}</span>
+                        {/* Time - Explicit text classes */}
+                        <span className={cn("text-xl font-medium", isLight ? 'text-slate-900' : 'text-white')}>{shift.fromTime}</span>
                         <span className="text-gray-400 text-sm">{strings.to}</span>
-                        <span className="text-xl font-medium ">{shift.toTime}</span>
+                        <span className={cn("text-xl font-medium", isLight ? 'text-slate-900' : 'text-white')}>{shift.toTime}</span>
                     </div>
-                    {/* HIGH CONTRAST TEXT: text-white in dark mode */}
-                    <p className="text-xs text-gray-400 dark:text-gray-300 mt-1">
+                    {/* Secondary Text - Explicit text classes */}
+                    <p className={cn("text-xs mt-1", isLight ? 'text-gray-400' : 'text-gray-300')}>
                         {shift.hours} {strings.hours} @ ¥{shift.wage}/{strings.hours === 'hours' ? 'h' : '時間'}
                     </p>
                 </div>
@@ -443,7 +456,12 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
                         <Button
                             variant="outline"
                             size="sm"
-                            className={cn("h-8 px-3 text-xs font-medium border-gray-300 dark:border-slate-600", PRIMARY_COLOR_CLASSES.text, PRIMARY_COLOR_CLASSES.hover)}
+                            className={cn(
+                                "h-8 px-3 text-xs font-medium",
+                                isLight ? 'border-gray-300' : 'border-slate-600',
+                                PRIMARY_COLOR_CLASSES.text,
+                                cn(isLight ? 'hover:bg-indigo-50/50' : 'hover:bg-violet-900/10')
+                            )}
                             onClick={() => onUpdate(shift)}
                         >
                             <RotateCcw size={14} className="mr-1" /> {strings.update}
@@ -451,7 +469,11 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
                         <Button
                             variant="outline"
                             size="sm"
-                            className="h-8 px-3 text-xs font-medium border-red-300 text-red-600 dark:text-red-400 dark:border-red-700 hover:bg-red-500/10"
+                            className={cn(
+                                "h-8 px-3 text-xs font-medium text-red-600",
+                                isLight ? 'border-red-300 text-red-600' : 'border-red-700 text-red-400',
+                                'hover:bg-red-500/10'
+                            )}
                             onClick={handleDelete}
                         >
                             <Trash2 size={14} className="mr-1" /> {strings.delete}
@@ -463,15 +485,27 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
     );
 }
 
-// --- MONTHLY GROUP COMPONENT (UPDATED CONTRAST) ---
-function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang, onDelete, onUpdate }) {
+// --- MONTHLY GROUP COMPONENT (UNCHANGED) ---
+function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang, onDelete, onUpdate }: {
+    monthKey: string;
+    totalPay: number;
+    totalHours: number;
+    shifts: Shift[];
+    theme: 'light' | 'dark';
+    baseLang: Lang;
+    onDelete: (id: string) => void;
+    onUpdate: (shift: Shift) => void;
+}) {
     const strings = LANG_STRINGS[baseLang];
-    const monthName = format(parseISO(`${monthKey}-01`), baseLang === 'en' ? 'MMM yyyy' : 'yyyy年M月');
+    const isLight = theme === 'light';
+    // Use full month and year name
+    const locale = baseLang === 'en' ? enUS : ja;
+    const monthName = format(parseISO(`${monthKey}-01`), baseLang === 'en' ? 'MMMM yyyy' : 'yyyy年M月', { locale });
 
-    // **FIXED CONTRAST**: Dark mode background is now darker and more opaque (bg-violet-900/40 -> bg-violet-900/60)
-    const groupClasses = theme === 'light'
+    // Explicit classes for group header
+    const groupClasses = isLight
         ? 'bg-indigo-50 border-l-4 border-indigo-500'
-        : 'bg-slate-800 border-l-4 border-violet-400';
+        : 'bg-slate-800/80 border-l-4 border-violet-400';
 
     return (
         <motion.div
@@ -481,10 +515,11 @@ function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang,
             className="mb-8"
         >
             <div className={cn("flex justify-between items-end mb-3 p-3 rounded-xl", groupClasses)}>
-                {/* **FIXED CONTRAST**: In dark mode, text is now explicitly light/white */}
-                <h2 className={cn("text-xl font-extrabold", theme === 'light' ? 'text-indigo-700' : 'text-violet-300')}>{monthName}</h2>
+                {/* Explicit text color for title */}
+                <h2 className={cn("text-xl font-extrabold", isLight ? 'text-indigo-700' : 'text-violet-300')}>{monthName}</h2>
                 <div className="flex flex-col items-end">
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{totalHours} {strings.hours}</p>
+                    {/* Explicit text color for hours */}
+                    <p className={cn("text-sm font-medium", isLight ? 'text-gray-500' : 'text-gray-400')}>{totalHours} {strings.hours}</p>
                     {/* Pay Color Updated */}
                     <p className={cn("text-2xl font-black", PRIMARY_COLOR_CLASSES.text)}>{yen.format(totalPay)}</p>
                 </div>
@@ -505,13 +540,22 @@ function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang,
     );
 }
 
-// --- SHIFT MODAL (UNCHANGED) ---
-function ShiftModal({ shift, lang, isUpdate, onSave, onClose }) {
+// --- SHIFT MODAL (FIXED MISSING PROP) ---
+function ShiftModal({ shift, lang, isUpdate, onSave, onClose, theme }: {
+    shift: Shift | null;
+    lang: Lang;
+    isUpdate: boolean;
+    onSave: (shift: Partial<Shift> | Shift) => void;
+    onClose: () => void;
+    // <<< ADDED MISSING THEME PROP
+    theme: 'light' | 'dark';
+}) {
     const initialShift = shift || { date: format(new Date(), 'yyyy-MM-dd'), fromTime: '09:00', toTime: '17:00', wage: 1500 };
     const [date, setDate] = useState(initialShift.date);
     const [fromTime, setFromTime] = useState(initialShift.fromTime);
     const [toTime, setToTime] = useState(initialShift.toTime);
     const [wage, setWage] = useState(initialShift.wage);
+    const isLight = theme === 'light';
 
     const hours = useMemo(() => calculateHours(fromTime, toTime), [fromTime, toTime]);
     const pay = useMemo(() => Math.floor(hours * wage), [hours, wage]);
@@ -535,6 +579,22 @@ function ShiftModal({ shift, lang, isUpdate, onSave, onClose }) {
         onSave(isUpdate ? { ...shift, ...finalShift } : finalShift);
     };
 
+    // Explicit modal background and text classes
+    const modalContentClasses = isLight
+        ? 'bg-white text-slate-900 ring-gray-950/5'
+        : 'bg-slate-950 text-white ring-white/10';
+
+    const inputClasses = cn(
+        "h-14 pl-10 text-xl font-bold border-none rounded-2xl shadow-inner focus-visible:ring-2",
+        isLight ? 'bg-gray-100 text-gray-900 hover:bg-gray-200' : 'bg-slate-900 text-white hover:bg-slate-800',
+        PRIMARY_COLOR_CLASSES.ring
+    );
+
+    const saveButtonClasses = isLight
+        ? 'bg-slate-900 text-white'
+        : 'bg-white text-slate-900';
+
+
     return (
         <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -545,10 +605,15 @@ function ShiftModal({ shift, lang, isUpdate, onSave, onClose }) {
                 initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white dark:bg-slate-950 w-full max-w-sm rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl ring-1 ring-gray-950/5 dark:ring-white/10"
+                className={cn(
+                    "w-full max-w-sm rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl ring-1",
+                    modalContentClasses
+                )}
             >
-                <div className="w-12 h-1 bg-gray-200 dark:bg-slate-800 rounded-full mx-auto mb-6 sm:hidden" />
-                <h2 className="text-xl font-bold mb-4 text-center text-slate-900 dark:text-white">
+                {/* Explicit classes for modal drag handle */}
+                <div className={cn("w-12 h-1 rounded-full mx-auto mb-6 sm:hidden", isLight ? 'bg-gray-200' : 'bg-slate-800')} />
+
+                <h2 className="text-xl font-bold mb-4 text-center">
                     {isUpdate ? strings.editShift : strings.addShift}
                 </h2>
 
@@ -557,9 +622,12 @@ function ShiftModal({ shift, lang, isUpdate, onSave, onClose }) {
                         <PopoverTrigger asChild>
                             <Button
                                 variant="outline"
-                                className="w-full justify-between h-14 text-lg font-medium border-none bg-gray-100 dark:bg-slate-900 hover:bg-gray-200 dark:hover:bg-slate-800 transition-colors rounded-2xl text-slate-900 dark:text-white"
+                                className={cn(
+                                    "w-full justify-between h-14 text-lg font-medium border-none rounded-2xl transition-colors",
+                                    isLight ? 'bg-gray-100 text-slate-900 hover:bg-gray-200' : 'bg-slate-900 text-white hover:bg-slate-800'
+                                )}
                             >
-                                <span className="text-gray-900 dark:text-white">{date}</span>
+                                <span className="text-inherit">{date}</span>
                                 {/* Icon color updated */}
                                 <CalendarIcon className={cn(PRIMARY_COLOR_CLASSES.text, "opacity-80")} />
                             </Button>
@@ -569,8 +637,8 @@ function ShiftModal({ shift, lang, isUpdate, onSave, onClose }) {
                                 mode="single"
                                 selected={new Date(date.replace(/-/g, '/'))}
                                 onSelect={handleDateSelect}
-                                // Adjusted Calendar colors
-                                className="bg-white dark:bg-slate-900"
+                                // Explicit Calendar background color
+                                className={cn(isLight ? 'bg-white' : 'bg-slate-900')}
                             />
                         </PopoverContent>
                     </Popover>
@@ -588,7 +656,7 @@ function ShiftModal({ shift, lang, isUpdate, onSave, onClose }) {
                                 min={0}
                                 value={wage}
                                 onChange={(e) => setWage(Number(e.target.value))}
-                                className={cn("h-14 pl-10 text-xl font-bold border-none bg-gray-100 dark:bg-slate-900 text-gray-900 dark:text-white rounded-2xl shadow-inner focus-visible:ring-2", PRIMARY_COLOR_CLASSES.ring)}
+                                className={inputClasses}
                             />
                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">¥</span>
                         </div>
@@ -602,7 +670,7 @@ function ShiftModal({ shift, lang, isUpdate, onSave, onClose }) {
                         <p className="text-2xl font-black">{yen.format(pay)}</p>
                     </div>
 
-                    <Button onClick={handleSubmit} className="w-full h-14 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-lg hover:opacity-90 transition-opacity">
+                    <Button onClick={handleSubmit} className={cn("w-full h-14 rounded-2xl font-bold text-lg hover:opacity-90 transition-opacity", saveButtonClasses)}>
                         {isUpdate ? strings.save : strings.addShift}
                     </Button>
                 </div>
@@ -611,9 +679,8 @@ function ShiftModal({ shift, lang, isUpdate, onSave, onClose }) {
     );
 }
 
-// --- MAIN COMPONENT ---
+// --- MAIN COMPONENT (COMPLETED BODY) ---
 export default function ShiftTracker() {
-    const today = format(new Date(), 'yyyy-MM-dd');
     const [shifts, setShifts] = useState<Shift[]>([]);
     const [addModalOpen, setAddModalOpen] = useState(false);
     const [editingShift, setEditingShift] = useState<Shift | null>(null);
@@ -622,12 +689,13 @@ export default function ShiftTracker() {
     const [lang, setLang] = useState<Lang>('en');
     const [confirmClearOpen, setConfirmClearOpen] = useState(false);
     const [viewMode, setViewMode] = useState<ViewMode>('list');
-    const [selectedMonth, setSelectedMonth] = useState<Date | undefined>(undefined); // NEW: Filter State
+    const [selectedMonth, setSelectedMonth] = useState<Date | undefined>(undefined);
 
     const currentVariant = useMemo(() => THEME_VARIANTS[variantIndex], [variantIndex]);
     const strings = LANG_STRINGS[lang];
+    const isLight = theme === 'light';
 
-    // NEW: Filtered Shifts
+    // Filtered Shifts
     const filteredShifts = useMemo(() => {
         if (!selectedMonth) return shifts;
 
@@ -639,7 +707,7 @@ export default function ShiftTracker() {
                 const shiftDate = parseISO(shift.date);
                 return isWithinInterval(shiftDate, { start, end });
             } catch (e) {
-                console.error("Error parsing date for filter:", shift.date, e);
+                console.error("Error parsing date for filter:", JSON.stringify(shift.date), String(e));
                 return false;
             }
         });
@@ -649,7 +717,7 @@ export default function ShiftTracker() {
     const totalHours = useMemo(() => filteredShifts.reduce((s, v) => s + v.hours, 0), [filteredShifts]);
 
 
-    // --- Data Grouping Logic (UPDATED to use filteredShifts) ---
+    // --- Data Grouping Logic (COMPLETED) ---
     const monthlyGroups = useMemo(() => {
         const groups: { [key: string]: { totalPay: number, totalHours: number, shifts: Shift[] } } = {};
         // Sort filtered shifts
@@ -669,111 +737,102 @@ export default function ShiftTracker() {
             groups[monthKey].shifts.push(shift);
         }
 
-        return Object.keys(groups).map(key => ({
+        // Return groups sorted by monthKey descending
+        return Object.keys(groups).sort((a, b) => b.localeCompare(a)).map(key => ({
             monthKey: key,
             ...groups[key]
         }));
     }, [filteredShifts]);
 
 
-    // --- Local Storage and Data Management (UNCHANGED) ---
+    // --- Local Storage and Data Management (RESTORED) ---
     useEffect(() => {
         try {
             const savedShifts = localStorage.getItem(LOCAL_STORAGE_KEY);
             if (savedShifts) {
-                setShifts(JSON.parse(savedShifts) as Shift[]);
+                setShifts(JSON.parse(savedShifts));
             }
-        } catch (error) {
-            console.error("Error loading shifts from local storage:", error);
+        } catch (e) {
+            console.error("Could not load data from local storage", e);
         }
     }, []);
 
-    const saveShiftsToLocalStorage = useCallback((currentShifts: Shift[]) => {
-        try {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentShifts));
-        } catch (error) {
-            console.error("Error saving shifts to local storage:", error);
+    useEffect(() => {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(shifts));
+    }, [shifts]);
+
+    // Apply theme class to document body
+    useEffect(() => {
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+    }, [theme]);
+
+    const handleSaveShift = (newShift: Partial<Shift>) => {
+        if (newShift.id) {
+            // Update existing shift
+            setShifts(shifts.map(s => s.id === newShift.id ? (newShift as Shift) : s));
+            setEditingShift(null);
+        } else {
+            // Add new shift
+            const shiftToAdd: Shift = {
+                ...(newShift as Omit<Shift, 'id'>),
+                id: Date.now().toString(),
+            };
+            setShifts([shiftToAdd, ...shifts]);
+            setAddModalOpen(false);
         }
-    }, []);
-
-    const handleAddShift = (newShiftData: Partial<Shift>) => {
-        const newShift: Shift = {
-            id: crypto.randomUUID(),
-            ...newShiftData as Omit<Shift, 'id'>
-        };
-        setShifts((s) => {
-            const updatedShifts = [...s, newShift];
-            saveShiftsToLocalStorage(updatedShifts);
-            return updatedShifts;
-        });
-        setAddModalOpen(false);
-    };
-
-    const handleUpdateShift = (updatedShift: Shift) => {
-        setShifts(s => {
-            const updatedShifts = s.map(shift =>
-                shift.id === updatedShift.id ? updatedShift : shift
-            );
-            saveShiftsToLocalStorage(updatedShifts);
-            return updatedShifts;
-        });
-        setEditingShift(null);
     };
 
     const handleDeleteShift = (id: string) => {
-        setShifts(s => {
-            const updatedShifts = s.filter(shift => shift.id !== id);
-            saveShiftsToLocalStorage(updatedShifts);
-            return updatedShifts;
-        });
+        setShifts(shifts.filter(s => s.id !== id));
     };
 
-    const clearAllShifts = () => {
+    const handleClearAllData = () => {
         setShifts([]);
         localStorage.removeItem(LOCAL_STORAGE_KEY);
         setConfirmClearOpen(false);
     };
 
-    const toggleLang = () => setLang(lang === 'en' ? 'jp' : 'en');
+    const toggleLang = useCallback(() => {
+        setLang(prev => prev === 'en' ? 'jp' : 'en');
+    }, []);
 
+    // --- Filter Handlers ---
     const handleMonthSelect = (date: Date | undefined) => {
-        setSelectedMonth(date);
+        setSelectedMonth(date ? startOfMonth(date) : undefined);
     };
 
-    const filteredMonthDisplay = selectedMonth
-        ? format(selectedMonth, lang === 'en' ? 'MMM yyyy' : 'yyyy年M月')
-        : strings.filterByMonth;
+    const handleClearFilter = () => {
+        setSelectedMonth(undefined);
+    };
+
+    const filteredDateDisplay = useMemo(() => {
+        if (!selectedMonth) return strings.filterByMonth;
+        const locale = lang === 'en' ? enUS : ja;
+        return format(selectedMonth, lang === 'en' ? 'MMMM yyyy' : 'yyyy年M月', { locale });
+    }, [selectedMonth, lang, strings]);
+
+
+    // --- Rendering ---
+    const mainBackground = theme === 'light' ? currentVariant.light : currentVariant.dark;
 
     return (
         <>
             <GlobalStyles />
-            <div
-                className={cn('relative min-h-screen p-6 transition-all duration-700 ease-in-out font-sans',
-                    theme === 'light' ? currentVariant.light : currentVariant.dark,
-                    theme === 'light' ? 'text-slate-900' : 'text-slate-50'
-                )}
-            >
-                {/* HEADER */}
-                <header className="flex justify-between items-center mb-6">
-                    <div className="flex flex-col">
-                        <h1 className="text-2xl font-black tracking-tight flex items-center gap-2">
-                            {/* Icon color updated */}
-                            <Clock className={cn("w-6 h-6", PRIMARY_COLOR_CLASSES.text)} />
-                            {lang === 'en' ? 'ShiftTracker' : 'シフト管理'}
-                        </h1>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {shifts.length > 0 && (
-                            <motion.button
-                                onClick={() => setConfirmClearOpen(true)}
-                                whileTap={{ scale: 0.95 }}
-                                className={cn("p-3 rounded-full cursor-pointer backdrop-blur-md border shadow-sm transition-colors bg-white/70 dark:bg-slate-800/70 border-gray-200 dark:border-slate-700")}
-                                aria-label="Clear all data"
-                            >
-                                <Trash2 size={18} className="text-red-500" />
-                            </motion.button>
-                        )}
-
+            <div className={cn("min-h-screen transition-all", mainBackground)}>
+                {/* Main Content Area */}
+                <div className="max-w-xl mx-auto p-4 pt-8">
+                    {/* Header */}
+                    <header className="flex justify-between items-start mb-8 z-30 relative">
+                        <div>
+                            {/* Explicit text color for title */}
+                            <h1 className={cn("text-3xl font-extrabold tracking-tight mb-1", isLight ? 'text-slate-900' : 'text-white')}>
+                                Shift Tracker
+                            </h1>
+                            {/* Explicit text color for subtitle */}
+                            <p className={cn("text-sm font-medium", isLight ? 'text-gray-500' : 'text-gray-400')}>
+                                {strings.grandTotal}: <span className={cn("font-bold", PRIMARY_COLOR_CLASSES.text)}>{yen.format(totalPay)}</span>
+                            </p>
+                        </div>
                         <ThemeDropdown
                             theme={theme}
                             setTheme={setTheme}
@@ -781,211 +840,232 @@ export default function ShiftTracker() {
                             setVariantIndex={setVariantIndex}
                             toggleLang={toggleLang}
                         />
-                    </div>
-                </header>
+                    </header>
 
-                {/* FILTER & GRAND TOTAL SECTION */}
-                <div className="mb-8 p-6 rounded-3xl backdrop-blur-md bg-white/70 dark:bg-slate-900/70 shadow-xl border border-gray-200 dark:border-slate-700">
-                    {/* FILTER CONTROL (NEW) */}
-                    <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200 dark:border-slate-700">
+                    {/* Controls */}
+                    <motion.div
+                        layout
+                        className={cn("mb-6 p-4 rounded-2xl shadow-lg flex justify-between items-center transition-all",
+                            isLight ? 'bg-white/80 border border-gray-100 backdrop-blur-sm' : 'bg-slate-900/50 border border-slate-800 backdrop-blur-sm'
+                        )}
+                    >
+                        {/* Filter by Month Popover */}
                         <Popover>
                             <PopoverTrigger asChild>
                                 <Button
                                     variant="outline"
-                                    className={cn("h-10 px-4 justify-between font-medium rounded-xl transition-colors",
-                                        selectedMonth
-                                            ? PRIMARY_COLOR_CLASSES.text + ' border-2 ' + PRIMARY_COLOR_CLASSES.border
-                                            : 'text-gray-500 dark:text-gray-400 border-gray-300 dark:border-slate-600'
+                                    className={cn(
+                                        "flex-1 justify-center mr-3 h-10 font-semibold transition-colors",
+                                        PRIMARY_COLOR_CLASSES.border,
+                                        PRIMARY_COLOR_CLASSES.text,
+                                        cn(isLight ? 'bg-white' : 'bg-slate-700/50'),
+                                        cn(isLight ? 'hover:bg-indigo-50/50' : 'hover:bg-violet-900/10')
                                     )}
                                 >
                                     <Filter size={16} className="mr-2" />
-                                    {filteredMonthDisplay}
+                                    {filteredDateDisplay}
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0 border-none shadow-xl rounded-2xl overflow-hidden" align="start">
+                            <PopoverContent className={cn("w-auto p-0 border-none shadow-xl rounded-2xl overflow-hidden", isLight ? 'bg-white' : 'bg-slate-900')} align="start">
+                                {/* Calendar for Month Selection */}
                                 <Calendar
                                     mode="single"
-                                    captionLayout="dropdown-buttons"
                                     selected={selectedMonth}
-                                    onSelect={(date) => {
-                                        handleMonthSelect(date ? startOfMonth(date) : undefined);
-                                    }}
-                                    className="bg-white dark:bg-slate-900"
+                                    onSelect={handleMonthSelect}
+                                    initialFocus
+                                    locale={lang === 'en' ? enUS : ja}
+                                    className={cn(isLight ? 'bg-white' : 'bg-slate-900')}
                                 />
+                                {selectedMonth && (
+                                    <div className={cn("flex justify-end p-2 border-t", isLight ? 'border-gray-100' : 'border-slate-800')}>
+                                        <Button
+                                            variant="ghost"
+                                            onClick={handleClearFilter}
+                                            className={cn("text-xs h-8 px-3", PRIMARY_COLOR_CLASSES.text, cn(isLight ? 'hover:bg-indigo-50/50' : 'hover:bg-violet-900/10'))}
+                                        >
+                                            <X size={14} className="mr-1" />
+                                            {strings.clearFilter}
+                                        </Button>
+                                    </div>
+                                )}
                             </PopoverContent>
                         </Popover>
 
-                        {selectedMonth && (
+                        {/* Add Shift Button */}
+                        <motion.button
+                            onClick={() => setAddModalOpen(true)}
+                            whileTap={{ scale: 0.95 }}
+                            className={cn("h-10 px-4 rounded-full flex items-center justify-center font-bold text-sm text-white shadow-md transition-shadow", PRIMARY_COLOR_CLASSES.bgGradient, "shadow-indigo-500/50")}
+                        >
+                            <Plus size={18} className="mr-1" />
+                            {strings.addShift}
+                        </motion.button>
+                    </motion.div>
+
+
+                    {/* View Mode Toggle & Stats */}
+                    <div className="flex justify-between items-center mb-6">
+                        <div className={cn("inline-flex rounded-full p-1 shadow-inner", isLight ? 'bg-gray-200' : 'bg-slate-800')}>
                             <Button
+                                onClick={() => setViewMode('list')}
                                 variant="ghost"
-                                onClick={() => setSelectedMonth(undefined)}
-                                className="h-10 px-3 text-sm text-gray-500 dark:text-gray-400 hover:text-red-500"
+                                size="sm"
+                                className={cn(
+                                    "rounded-full px-4 py-1 h-auto text-sm font-medium",
+                                    viewMode === 'list'
+                                        ? cn(PRIMARY_COLOR_CLASSES.bgLight, PRIMARY_COLOR_CLASSES.text, "shadow-sm")
+                                        : cn(isLight ? 'text-gray-500 hover:bg-transparent' : 'text-gray-400 hover:bg-slate-700'),
+                                )}
                             >
-                                <X size={14} className="mr-1" />
-                                {strings.clearFilter}
+                                <List size={16} className="mr-1" /> {strings.list}
                             </Button>
-                        )}
-                    </div>
-
-                    {/* GRAND TOTAL */}
-                    <div className="text-center">
-                        <p className="text-sm font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">{strings.grandTotal}</p>
-                        {/* Pay color updated */}
-                        <p className={cn("text-5xl font-extrabold tracking-tight", PRIMARY_COLOR_CLASSES.text)}>
-                            {yen.format(totalPay)}
-                        </p>
-                        {filteredShifts.length > 0 && (
-                            <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
-                                {strings.totalHours}: {totalHours} {strings.hours}
-                            </p>
-                        )}
-                    </div>
-                </div>
-
-                {/* VIEW TOGGLE AND SHIFT LIST */}
-                <div className="flex items-center justify-between mb-4 mt-8">
-                    <h2 className="text-lg font-bold tracking-wider uppercase text-gray-500 dark:text-gray-400">
-                        {viewMode === 'list' ? strings.list : strings.monthly}
-                    </h2>
-
-                    <div className="flex p-1 rounded-full bg-gray-100 dark:bg-slate-800">
-                        {/* List Button (Updated Color) */}
-                        <motion.button
-                            onClick={() => setViewMode('list')}
-                            className={cn("px-3 py-1 text-sm rounded-full transition-colors font-medium flex items-center gap-1",
-                                viewMode === 'list'
-                                    ? cn('bg-white dark:bg-slate-900 shadow-md', PRIMARY_COLOR_CLASSES.text)
-                                    : cn('text-gray-500 dark:text-gray-400', PRIMARY_COLOR_CLASSES.hover)
-                            )}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            <List size={16} /> {strings.view}
-                        </motion.button>
-                        {/* Monthly Button (Updated Color) */}
-                        <motion.button
-                            onClick={() => setViewMode('monthly')}
-                            className={cn("px-3 py-1 text-sm rounded-full transition-colors font-medium flex items-center gap-1",
-                                viewMode === 'monthly'
-                                    ? cn('bg-white dark:bg-slate-900 shadow-md', PRIMARY_COLOR_CLASSES.text)
-                                    : cn('text-gray-500 dark:text-gray-400', PRIMARY_COLOR_CLASSES.hover)
-                            )}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            <CalendarIcon size={16} /> {strings.monthly}
-                        </motion.button>
-                    </div>
-                </div>
-
-                {/* SHIFT CONTENT AREA */}
-                <div className="space-y-4 pb-32 max-h-[75vh] overflow-y-auto no-scrollbar">
-                    <AnimatePresence mode='popLayout'>
-                        {filteredShifts.length === 0 ? (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                                className="flex flex-col items-center justify-center pt-20 text-gray-400"
+                            <Button
+                                onClick={() => setViewMode('monthly')}
+                                variant="ghost"
+                                size="sm"
+                                className={cn(
+                                    "rounded-full px-4 py-1 h-auto text-sm font-medium",
+                                    viewMode === 'monthly'
+                                        ? cn(PRIMARY_COLOR_CLASSES.bgLight, PRIMARY_COLOR_CLASSES.text, "shadow-sm")
+                                        : cn(isLight ? 'text-gray-500 hover:bg-transparent' : 'text-gray-400 hover:bg-slate-700'),
+                                )}
                             >
-                                <CalendarIcon size={48} className="mb-4 opacity-20" />
-                                <p>{lang === 'en' ? 'No shifts found' : 'シフトは見つかりませんでした'}</p>
+                                <Clock size={16} className="mr-1" /> {strings.monthly}
+                            </Button>
+                        </div>
+                        <p className={cn("text-sm font-semibold", isLight ? 'text-gray-600' : 'text-gray-400')}>
+                            {strings.totalHours}: <span className={cn("font-bold", PRIMARY_COLOR_CLASSES.text)}>{totalHours.toFixed(2)}</span>
+                        </p>
+                    </div>
+
+                    {/* Shift List/Monthly View */}
+                    <AnimatePresence mode="wait">
+                        {shifts.length === 0 ? (
+                            <motion.div
+                                key="empty"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className={cn("p-8 text-center rounded-xl", isLight ? 'bg-white/70' : 'bg-slate-800/70')}
+                            >
+                                <p className={cn("text-lg font-medium", isLight ? 'text-gray-600' : 'text-gray-400')}>
+                                    {lang === 'en' ? 'No shifts added yet. Click the + button to start tracking!' : 'まだシフトがありません。「+」ボタンをクリックして記録を開始してください！'}
+                                </p>
+                            </motion.div>
+                        ) : filteredShifts.length === 0 ? (
+                            <motion.div
+                                key="no-results"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className={cn("p-8 text-center rounded-xl", isLight ? 'bg-white/70' : 'bg-slate-800/70')}
+                            >
+                                <p className={cn("text-lg font-medium", isLight ? 'text-gray-600' : 'text-gray-400')}>
+                                    {lang === 'en' ? `No shifts found for ${filteredDateDisplay}.` : `${filteredDateDisplay}のシフトは見つかりませんでした。`}
+                                </p>
+                                <Button variant="link" onClick={handleClearFilter} className={cn(PRIMARY_COLOR_CLASSES.text, isLight ? 'hover:bg-indigo-50/50' : 'hover:bg-violet-900/10')}>
+                                    {strings.clearFilter}
+                                </Button>
                             </motion.div>
                         ) : viewMode === 'list' ? (
-                            /* LIST VIEW */
-                            filteredShifts.slice().sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((s) => (
-                                <ShiftItem
-                                    key={s.id}
-                                    shift={s}
-                                    theme={theme}
-                                    baseLang={lang}
-                                    onDelete={handleDeleteShift}
-                                    onUpdate={setEditingShift}
-                                />
-                            ))
+                            <motion.div key="list-view" layout className="space-y-4">
+                                {filteredShifts.map(shift => (
+                                    <ShiftItem
+                                        key={shift.id}
+                                        shift={shift}
+                                        theme={theme}
+                                        baseLang={lang}
+                                        onDelete={handleDeleteShift}
+                                        onUpdate={setEditingShift}
+                                    />
+                                ))}
+                            </motion.div>
                         ) : (
-                            /* MONTHLY VIEW */
-                            monthlyGroups.map(group => (
-                                <MonthlyGroup
-                                    key={group.monthKey}
-                                    monthKey={group.monthKey}
-                                    totalPay={group.totalPay}
-                                    totalHours={group.totalHours}
-                                    shifts={group.shifts}
-                                    theme={theme}
-                                    baseLang={lang}
-                                    onDelete={handleDeleteShift}
-                                    onUpdate={setEditingShift}
-                                />
-                            ))
+                            <motion.div key="monthly-view" layout>
+                                {monthlyGroups.map(group => (
+                                    <MonthlyGroup
+                                        key={group.monthKey}
+                                        monthKey={group.monthKey}
+                                        totalPay={group.totalPay}
+                                        totalHours={group.totalHours}
+                                        shifts={group.shifts}
+                                        theme={theme}
+                                        baseLang={lang}
+                                        onDelete={handleDeleteShift}
+                                        onUpdate={setEditingShift}
+                                    />
+                                ))}
+                            </motion.div>
                         )}
                     </AnimatePresence>
                 </div>
-
-                {/* FAB */}
-                <Button
-                    onClick={() => setAddModalOpen(true)}
-                    className={cn(
-                        `fixed bottom-8 right-8 rounded-full cursor-pointer shadow-2xl z-40 transition-all hover:scale-105 active:scale-95`,
-                        theme === 'light'
-                            ? 'bg-black text-white hover:white/40 shadow-indigo-500/20'
-                            : 'bg-white text-black hover:bg-black/40 shadow-violet-500/20'
-                    )}
-                    aria-label="Add new shift"
-                >
-                    {
-                        lang === "en" ? 'Add Shift' : 'シフト追加'
-                    } +
-                </Button>
-
-                {/* MODALS */}
-                <AnimatePresence>
-                    {addModalOpen && (
-                        <ShiftModal
-                            shift={null}
-                            lang={lang}
-                            isUpdate={false}
-                            onSave={handleAddShift}
-                            onClose={() => setAddModalOpen(false)}
-                        />
-                    )}
-                </AnimatePresence>
-                <AnimatePresence>
-                    {editingShift && (
-                        <ShiftModal
-                            shift={editingShift}
-                            lang={lang}
-                            isUpdate={true}
-                            onSave={handleUpdateShift}
-                            onClose={() => setEditingShift(null)}
-                        />
-                    )}
-                </AnimatePresence>
-
-                {/* CLEAR DATA CONFIRMATION MODAL (UNCHANGED) */}
-                <AnimatePresence>
-                    {confirmClearOpen && (
-                        <motion.div
-                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            onClick={() => setConfirmClearOpen(false)}
-                            className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/40 backdrop-blur-sm p-4"
-                        >
-                            <motion.div
-                                initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-                                onClick={(e) => e.stopPropagation()}
-                                className="bg-white dark:bg-slate-950 w-full max-w-xs rounded-xl p-6 shadow-2xl ring-1 ring-gray-950/5 dark:ring-white/10"
-                            >
-                                <h3 className="text-lg font-bold text-red-600 dark:text-red-400 mb-2">{strings.areYouSure}</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{lang === 'en' ? 'This action will permanently delete ALL shift data.' : 'この操作はすべてのシフトデータを完全に削除します。'}</p>
-
-                                <div className="flex justify-end gap-3">
-                                    <Button variant="ghost" onClick={() => setConfirmClearOpen(false)} className="text-gray-600 dark:text-gray-300">
-                                        {lang === 'en' ? 'Cancel' : 'キャンセル'}
-                                    </Button>
-                                    <Button onClick={clearAllShifts} className="bg-red-600 hover:bg-red-700 text-white">
-                                        <Trash2 size={16} className="mr-2" /> {strings.clearData}
-                                    </Button>
-                                </div>
-                            </motion.div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
             </div>
+
+            {/* Modals */}
+            <AnimatePresence>
+                {(addModalOpen || editingShift) && (
+                    <ShiftModal
+                        shift={editingShift}
+                        lang={lang}
+                        isUpdate={!!editingShift}
+                        onSave={handleSaveShift}
+                        onClose={() => {
+                            setAddModalOpen(false);
+                            setEditingShift(null);
+                        }}
+                        theme={theme}
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* Clear All Data Button (Absolute Positioning) */}
+            <div className="absolute bottom-4 right-4 z-40">
+                <Button
+                    onClick={() => setConfirmClearOpen(true)}
+                    variant="outline"
+                    className={cn(
+                        "text-xs h-8 px-3 transition-colors",
+                        isLight ? 'border-gray-300 text-gray-500 hover:bg-red-50' : 'border-slate-600 text-gray-400 hover:bg-slate-700/50'
+                    )}
+                >
+                    <Trash2 size={14} className="mr-1 text-red-500" />
+                    {strings.clearData}
+                </Button>
+            </div>
+
+            {/* Clear All Data Confirmation Modal */}
+            <AnimatePresence>
+                {confirmClearOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        onClick={() => setConfirmClearOpen(false)}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 backdrop-blur-sm p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.8 }} animate={{ scale: 1 }} exit={{ scale: 0.8 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className={cn(
+                                "w-full max-w-xs rounded-2xl p-6 shadow-2xl text-center",
+                                isLight ? 'bg-white text-slate-900' : 'bg-slate-900 text-white'
+                            )}
+                        >
+                            <Trash2 size={32} className="mx-auto text-red-500 mb-4" />
+                            <h3 className="text-lg font-bold mb-2">{strings.areYouSure}</h3>
+                            <p className={cn("text-sm mb-6", isLight ? 'text-gray-600' : 'text-gray-400')}>
+                                {lang === 'en' ? 'This action cannot be undone.' : 'この操作は元に戻せません。'}
+                            </p>
+                            <div className="flex justify-between gap-3">
+                                <Button onClick={() => setConfirmClearOpen(false)} variant="outline" className={cn("flex-1", isLight ? 'border-gray-300' : 'border-slate-600')}>
+                                    {lang === 'en' ? 'Cancel' : 'キャンセル'}
+                                </Button>
+                                <Button onClick={handleClearAllData} className="flex-1 bg-red-600 hover:bg-red-700 text-white">
+                                    {strings.clearData}
+                                </Button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </>
     );
 }
