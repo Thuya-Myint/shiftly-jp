@@ -171,7 +171,7 @@ function calculateHours(from: string, to: string) {
 }
 
 // --- PWA INSTALL PROMPT COMPONENT ---
-function PWAInstallPrompt({ isOpen, onClose, lang, theme }: { isOpen: boolean; onClose: () => void; lang: Lang, theme: string }) {
+function PWAInstallPrompt({ isOpen, onClose, lang }: { isOpen: boolean; onClose: () => void; lang: Lang }) {
     const strings = LANG_STRINGS[lang];
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
@@ -242,7 +242,7 @@ function PWAInstallPrompt({ isOpen, onClose, lang, theme }: { isOpen: boolean; o
                                 <Button
                                     onClick={onClose}
                                     variant="outline"
-                                    className={`text-sm h-8 px-3 ${theme === 'dark' ? 'text-white' : 'text-gray-700'} border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300`}
+                                    className="text-sm h-8 px-3 border-gray-300 dark:border-slate-600 text-gray-800 dark:text-gray-200 hover:text-gray-900 dark:hover:text-gray-100"
                                 >
                                     {lang === 'en' ? 'Later' : '後で'}
                                 </Button>

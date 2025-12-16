@@ -149,7 +149,7 @@ function calculateHours(from, to) {
     return durationMinutes <= 0 ? 0 : Math.round((durationMinutes / 60) * 100) / 100;
 }
 // --- PWA INSTALL PROMPT COMPONENT ---
-function PWAInstallPrompt({ isOpen, onClose, lang }) {
+function PWAInstallPrompt({ isOpen, onClose, lang, theme }) {
     const strings = LANG_STRINGS[lang];
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     useEffect(() => {
@@ -178,7 +178,7 @@ function PWAInstallPrompt({ isOpen, onClose, lang }) {
                                     ? 'Install this app for quick access and better experience'
                                     : 'より良い体験のためにこのアプリをインストールしてください' }), _jsxs("div", { className: "flex gap-2", children: [isIOS ? (_jsx("p", { className: "text-xs text-gray-500 dark:text-gray-400", children: lang === 'en'
                                             ? 'Tap Share → Add to Home Screen'
-                                            : 'シェア → ホーム画面に追加をタップ' })) : (_jsx(Button, { onClick: handleInstall, className: cn("text-white font-semibold text-sm h-8 px-3", PRIMARY_COLOR_CLASSES.bgGradient), children: lang === 'en' ? 'Install' : 'インストール' })), _jsx(Button, { onClick: onClose, variant: "outline", className: "text-sm h-8 px-3 border-gray-300 dark:border-slate-600", children: lang === 'en' ? 'Later' : '後で' })] })] }), _jsx(Button, { onClick: onClose, variant: "ghost", size: "sm", className: "p-1 h-6 w-6 text-gray-400 hover:text-gray-600", children: _jsx(X, { size: 14 }) })] }) })) }));
+                                            : 'シェア → ホーム画面に追加をタップ' })) : (_jsx(Button, { onClick: handleInstall, className: cn("text-white font-semibold text-sm h-8 px-3", PRIMARY_COLOR_CLASSES.bgGradient), children: lang === 'en' ? 'Install' : 'インストール' })), _jsx(Button, { onClick: onClose, variant: "outline", className: `text-sm h-8 px-3 ${theme === 'dark' ? 'text-white' : 'text-gray-700'} border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300`, children: lang === 'en' ? 'Later' : '後で' })] })] }), _jsx(Button, { onClick: onClose, variant: "ghost", size: "sm", className: "p-1 h-6 w-6 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300", children: _jsx(X, { size: 14 }) })] }) })) }));
 }
 // --- CUSTOM ALERT COMPONENT ---
 function CustomAlert({ isOpen, onConfirm, onCancel, title, message }) {
