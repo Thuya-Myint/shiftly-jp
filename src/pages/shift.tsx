@@ -459,7 +459,8 @@ const getDayOfWeek = (dateString: string, language: Lang): string => {
 // Define responsive constants for Item Height and Container Height
 const ITEM_HEIGHT_SM = 32;
 const ITEM_HEIGHT_LG = 40;
-const CONTAINER_HEIGHT_MULTIPLIER = 3;
+const CONTAINER_HEIGHT_MULTIPLIER_SM = 5;
+const CONTAINER_HEIGHT_MULTIPLIER_LG = 3;
 
 function ScrollColumn({ options, selected, onSelect, isSmallDevice }: { options: string[]; selected: number; onSelect: (v: number) => void; isSmallDevice: boolean }) {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -468,7 +469,7 @@ function ScrollColumn({ options, selected, onSelect, isSmallDevice }: { options:
 
     // Determine heights based on screen size
     const ITEM_HEIGHT = isSmallDevice ? ITEM_HEIGHT_SM : ITEM_HEIGHT_LG;
-    const CONTAINER_HEIGHT = ITEM_HEIGHT * CONTAINER_HEIGHT_MULTIPLIER;
+    const CONTAINER_HEIGHT = ITEM_HEIGHT * (isSmallDevice ? CONTAINER_HEIGHT_MULTIPLIER_SM : CONTAINER_HEIGHT_MULTIPLIER_LG);
 
     useEffect(() => {
         if (containerRef.current && !isScrolling.current) {
@@ -1116,11 +1117,8 @@ function AddEditShiftModal({
                             </div>
 
                             {/* Summary */}
-                            <motion.div
+                            <div
                                 className={cn("p-4 rounded-xl flex justify-between items-center shadow-md", PRIMARY_COLOR_CLASSES.bgLight + '/50 dark:' + PRIMARY_COLOR_CLASSES.bgDark)}
-                                initial={{ scale: 0.95 }}
-                                animate={{ scale: 1 }}
-                                transition={{ type: "spring", stiffness: 400, damping: 25 }}
                             >
                                 <div>
                                     <p className="text-sm font-medium text-gray-700 dark:text-gray-400">{strings.totalHours}</p>
@@ -1130,16 +1128,15 @@ function AddEditShiftModal({
                                     <p className="text-sm font-medium text-gray-700 dark:text-gray-400">{strings.totalPay}</p>
                                     <p className={cn("text-2xl font-black", PRIMARY_COLOR_CLASSES.text)}>{yen.format(pay)}</p>
                                 </div>
-                            </motion.div>
+                            </div>
 
                             {/* Submit Button */}
-                            <motion.button
+                            <button
                                 type="submit"
                                 className={cn("w-full h-12 rounded-xl text-lg font-bold text-white transition-all shadow-lg hover:shadow-xl", PRIMARY_COLOR_CLASSES.bgGradient)}
-                                whileTap={{ scale: 0.98 }}
                             >
                                 {submitText}
-                            </motion.button>
+                            </button>
                         </form>
                     </motion.div>
                 </motion.div>
