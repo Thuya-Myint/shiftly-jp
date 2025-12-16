@@ -314,10 +314,14 @@ function PWAInstallPrompt({ isOpen, onClose, lang }: { isOpen: boolean; onClose:
     };
 
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
         (window.navigator as any).standalone === true;
 
     if (isStandalone) return null;
+
+    // Don't show if no install method available
+    if (!isIOS && !deferredPrompt) return null;
 
     return (
         <AnimatePresence>
@@ -345,19 +349,29 @@ function PWAInstallPrompt({ isOpen, onClose, lang }: { isOpen: boolean; onClose:
                             </p>
                             <div className="flex gap-2">
                                 {isIOS ? (
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                                        {lang === 'en'
-                                            ? 'Tap Share → Add to Home Screen'
-                                            : 'シェア → ホーム画面に追加をタップ'
-                                        }
-                                    </p>
-                                ) : (
+                                    <div className="text-center">
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                                            {lang === 'en'
+                                                ? 'Tap Share → Add to Home Screen'
+                                                : 'シェア → ホーム画面に追加をタップ'
+                                            }
+                                        </p>
+                                        <div className="text-2xl">📱 ↗️</div>
+                                    </div>
+                                ) : deferredPrompt ? (
                                     <Button
                                         onClick={handleInstall}
                                         className={cn("text-white font-semibold text-sm h-8 px-3 bg-gradient-to-r from-violet-500 to-purple-600")}
                                     >
                                         {lang === 'en' ? 'Install' : 'インストール'}
                                     </Button>
+                                ) : (
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        {lang === 'en'
+                                            ? 'Use browser menu to add to home screen'
+                                            : 'ブラウザメニューからホーム画面に追加'
+                                        }
+                                    </p>
                                 )}
                                 <Button
                                     onClick={onClose}
