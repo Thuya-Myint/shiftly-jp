@@ -929,20 +929,28 @@ export default function ShiftTracker() {
                                         scale: [1, 1.3, 1],
                                         opacity: [0.3, 0.8, 0.3],
                                         rotate: [0, 180, 360]
-                                    }, transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut" }, className: cn("absolute inset-7 rounded-full", PRIMARY_COLOR_CLASSES.bgGradient) }), _jsx(motion.div, { animate: { scale: [0.5, 1, 0.5], opacity: [1, 0.5, 1] }, transition: { duration: 1.5, repeat: Infinity, ease: "easeInOut" }, className: "absolute inset-10 bg-white rounded-full shadow-lg" })] }), _jsx(motion.h1, { initial: { y: 50, opacity: 0, scale: 0.8 }, animate: { y: 0, opacity: 1, scale: 1 }, transition: { delay: 0.4, duration: 0.8, ease: "backOut" }, className: cn("text-5xl font-black mb-4 tracking-tight", PRIMARY_COLOR_CLASSES.text), children: _jsx(motion.span, { animate: {
+                                    }, transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut" }, className: cn("absolute inset-7 rounded-full", PRIMARY_COLOR_CLASSES.bgGradient) }), _jsx("div", { className: "absolute inset-4 rounded-full overflow-hidden", children: [...Array(8)].map((_, i) => (_jsx(motion.div, { className: "absolute w-1.5 h-1.5 bg-white/70 rounded-full", animate: {
+                                            x: [8, 40, 20, 50, 8],
+                                            y: [10, 45, 25, 15, 10],
+                                            scale: [0.3, 1, 0.6, 1.2, 0.3],
+                                            opacity: [0.2, 0.9, 0.4, 1, 0.2]
+                                        }, transition: {
+                                            duration: 3 + i * 0.2,
+                                            repeat: Infinity,
+                                            delay: i * 0.3,
+                                            ease: "easeInOut"
+                                        } }, i))) })] }), _jsx(motion.h1, { initial: { y: 50, opacity: 0, scale: 0.8 }, animate: { y: 0, opacity: 1, scale: 1 }, transition: { delay: 0.4, duration: 0.8, ease: "backOut" }, className: cn("text-5xl font-black mb-4 tracking-tight", PRIMARY_COLOR_CLASSES.text), children: _jsx(motion.span, { animate: {
                                     backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
                                 }, transition: { duration: 3, repeat: Infinity, ease: "easeInOut" }, className: cn("bg-clip-text text-transparent bg-gradient-to-r", PRIMARY_COLOR_CLASSES.bgGradient), style: { backgroundSize: "200% 200%" }, children: "Shomyn" }) }), _jsx(motion.p, { initial: { y: 30, opacity: 0 }, animate: { y: 0, opacity: 1 }, transition: { delay: 0.6, duration: 0.6, ease: "easeOut" }, className: "text-gray-600 dark:text-gray-300 text-xl font-medium mb-2", children: _jsx(motion.span, { animate: {
                                     opacity: [0.6, 1, 0.6],
                                     y: [0, -2, 0]
-                                }, transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut" }, children: lang === 'en' ? 'Loading your shifts...' : 'シフトを読み込み中...' }) }), _jsx(motion.div, { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.8, duration: 0.5 }, className: "flex justify-center gap-3 mt-8", children: [...Array(5)].map((_, i) => (_jsx(motion.div, { className: cn("w-3 h-3 rounded-full", PRIMARY_COLOR_CLASSES.bgGradient), animate: {
-                                    scale: [0.8, 1.4, 0.8],
-                                    opacity: [0.4, 1, 0.4],
-                                    y: [0, -8, 0]
+                                }, transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut" }, children: lang === 'en' ? 'Loading your shifts...' : 'シフトを読み込み中...' }) }), _jsx(motion.div, { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { delay: 0.7 }, className: "flex justify-center gap-2 mt-6", children: [...Array(3)].map((_, i) => (_jsx(motion.div, { className: cn("w-2 h-2 rounded-full", PRIMARY_COLOR_CLASSES.bgLight), animate: {
+                                    scale: [1, 1.5, 1],
+                                    opacity: [0.3, 1, 0.3]
                                 }, transition: {
-                                    duration: 2,
+                                    duration: 1.5,
                                     repeat: Infinity,
-                                    delay: i * 0.15,
-                                    ease: "easeInOut"
+                                    delay: i * 0.2
                                 } }, i))) })] })] }));
     }
     return (_jsxs(_Fragment, { children: [_jsx(GlobalStyles, {}), _jsxs("div", { className: cn("min-h-screen transition-all duration-300 ease-in-out", appClasses), children: [_jsxs("div", { className: cn("min-h-screen flex flex-col items-center sm:p-6 transition-all duration-300 ease-in-out"), children: [_jsxs("header", { className: "w-full max-w-4xl sticky p-4 top-0 z-40 mb-6 py-4 backdrop-blur-md bg-transparent/80", children: [_jsxs("div", { className: "flex justify-between items-center mb-4", children: [_jsx("h1", { className: cn("text-2xl sm:text-3xl font-extrabold tracking-tight", PRIMARY_COLOR_CLASSES.text), children: "Shomyn" }), _jsxs("div", { className: "flex gap-2", children: [_jsx(ThemeDropdown, { theme: theme, setTheme: setTheme, variantIndex: variantIndex, setVariantIndex: setVariantIndex, toggleLang: toggleLang, primaryColors: PRIMARY_COLOR_CLASSES }), _jsx("button", { onClick: openAddModal, className: cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer backdrop-blur-md border shadow-sm transition-all active:scale-95", PRIMARY_COLOR_CLASSES.bgGradient, "text-white"), "aria-label": "Add new shift", children: _jsx(Plus, { size: 18 }) })] })] }), _jsxs("div", { className: cn("p-4 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4 border", theme === 'light'

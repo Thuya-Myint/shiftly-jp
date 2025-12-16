@@ -1776,12 +1776,27 @@ export default function ShiftTracker() {
                             transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
                             className={cn("absolute inset-7 rounded-full", PRIMARY_COLOR_CLASSES.bgGradient)}
                         />
-                        {/* Pulsing center dot */}
-                        <motion.div
-                            animate={{ scale: [0.5, 1, 0.5], opacity: [1, 0.5, 1] }}
-                            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                            className="absolute inset-10 bg-white rounded-full shadow-lg"
-                        />
+                        {/* Flowing fluid particles inside */}
+                        <div className="absolute inset-4 rounded-full overflow-hidden">
+                            {[...Array(8)].map((_, i) => (
+                                <motion.div
+                                    key={i}
+                                    className="absolute w-1.5 h-1.5 bg-white/70 rounded-full"
+                                    animate={{
+                                        x: [8, 40, 20, 50, 8],
+                                        y: [10, 45, 25, 15, 10],
+                                        scale: [0.3, 1, 0.6, 1.2, 0.3],
+                                        opacity: [0.2, 0.9, 0.4, 1, 0.2]
+                                    }}
+                                    transition={{
+                                        duration: 3 + i * 0.2,
+                                        repeat: Infinity,
+                                        delay: i * 0.3,
+                                        ease: "easeInOut"
+                                    }}
+                                />
+                            ))}
+                        </div>
                     </div>
 
                     <motion.h1
@@ -1791,7 +1806,7 @@ export default function ShiftTracker() {
                         className={cn("text-5xl font-black mb-4 tracking-tight", PRIMARY_COLOR_CLASSES.text)}
                     >
                         <motion.span
-                            animate={{ 
+                            animate={{
                                 backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
                             }}
                             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -1809,7 +1824,7 @@ export default function ShiftTracker() {
                         className="text-gray-600 dark:text-gray-300 text-xl font-medium mb-2"
                     >
                         <motion.span
-                            animate={{ 
+                            animate={{
                                 opacity: [0.6, 1, 0.6],
                                 y: [0, -2, 0]
                             }}
@@ -1819,27 +1834,25 @@ export default function ShiftTracker() {
                         </motion.span>
                     </motion.p>
 
-                    {/* Fluid progress wave */}
+                    {/* Progress dots */}
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.8, duration: 0.5 }}
-                        className="flex justify-center gap-3 mt-8"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.7 }}
+                        className="flex justify-center gap-2 mt-6"
                     >
-                        {[...Array(5)].map((_, i) => (
+                        {[...Array(3)].map((_, i) => (
                             <motion.div
                                 key={i}
-                                className={cn("w-3 h-3 rounded-full", PRIMARY_COLOR_CLASSES.bgGradient)}
+                                className={cn("w-2 h-2 rounded-full", PRIMARY_COLOR_CLASSES.bgLight)}
                                 animate={{
-                                    scale: [0.8, 1.4, 0.8],
-                                    opacity: [0.4, 1, 0.4],
-                                    y: [0, -8, 0]
+                                    scale: [1, 1.5, 1],
+                                    opacity: [0.3, 1, 0.3]
                                 }}
                                 transition={{
-                                    duration: 2,
+                                    duration: 1.5,
                                     repeat: Infinity,
-                                    delay: i * 0.15,
-                                    ease: "easeInOut"
+                                    delay: i * 0.2
                                 }}
                             />
                         ))}
