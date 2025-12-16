@@ -1422,10 +1422,9 @@ export default function ShiftTracker() {
     const renderShiftList = () => (
         <motion.div
             key="list"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: window.innerWidth < 768 ? 0 : 0.15 }}
             className="space-y-4 pt-4"
         >
             {sortedAndFilteredShifts.length > 0 ? (
@@ -1452,10 +1451,9 @@ export default function ShiftTracker() {
     const renderMonthlyView = () => (
         <motion.div
             key="monthly"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: window.innerWidth < 768 ? 0 : 0.15 }}
             className="pt-4"
         >
             {aggregatedData.sortedMonths.length > 0 ? (
@@ -1615,10 +1613,15 @@ export default function ShiftTracker() {
                     </header>
 
                     {/* Content Area */}
-                    <main className="w-full max-w-4xl pb-16  px-4">
-                        <AnimatePresence mode="wait">
+                    <main className="w-full max-w-4xl pb-16 px-4">
+                        <div className="md:hidden">
                             {viewMode === 'list' ? renderShiftList() : renderMonthlyView()}
-                        </AnimatePresence>
+                        </div>
+                        <div className="hidden md:block">
+                            <AnimatePresence mode="wait" initial={false}>
+                                {viewMode === 'list' ? renderShiftList() : renderMonthlyView()}
+                            </AnimatePresence>
+                        </div>
                     </main>
 
                     {/* Footer/Clear Data */}
