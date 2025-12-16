@@ -190,21 +190,7 @@ const GlobalStyles = () => (
           background: linear-gradient(135deg, #0f172a, #1e293b);
         }
         
-        /* Performance optimizations */
-        * {
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-          font-family: inherit;
-        }
         
-        .gpu-accelerated {
-          transform: translateZ(0);
-          will-change: transform;
-        }
-        
-        .smooth-scroll {
-          scroll-behavior: smooth;
-        }
 
         @keyframes gradient-x {
           0% { background-position: 0% 50%; }
