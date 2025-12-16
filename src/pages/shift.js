@@ -349,7 +349,7 @@ function ScrollColumn({ options, selected, onSelect, isSmallDevice }) {
             }
         }, 100);
     };
-    return (_jsxs("div", { className: "relative group ", children: [_jsx("div", { style: { height: `${ITEM_HEIGHT}px`, top: `${ITEM_HEIGHT}px` }, className: cn("absolute left-0 right-0 rounded-lg pointer-events-none z-0", PRIMARY_COLOR_CLASSES.bgLight + '/50 dark:' + PRIMARY_COLOR_CLASSES.bgDark) }), _jsxs("div", { ref: containerRef, onScroll: handleScroll, style: { height: `${CONTAINER_HEIGHT}px` }, className: "overflow-y-auto overflow-x-hidden no-scrollbar relative z-10 w-10 sm:w-12 text-center flex-shrink-0", children: [_jsx("div", { style: { height: `${ITEM_HEIGHT}px` } }), options.map((o, idx) => {
+    return (_jsxs("div", { className: "relative group ", children: [_jsx("div", { style: { height: `${ITEM_HEIGHT}px`, top: `${ITEM_HEIGHT * (isSmallDevice ? 2 : 1)}px` }, className: cn("absolute left-0 right-0 rounded-lg pointer-events-none z-0", PRIMARY_COLOR_CLASSES.bgLight + '/50 dark:' + PRIMARY_COLOR_CLASSES.bgDark) }), _jsxs("div", { ref: containerRef, onScroll: handleScroll, style: { height: `${CONTAINER_HEIGHT}px` }, className: "overflow-y-auto overflow-x-hidden no-scrollbar relative z-10 w-10 sm:w-12 text-center flex-shrink-0", children: [_jsx("div", { style: { height: `${ITEM_HEIGHT * (isSmallDevice ? 2 : 1)}px` } }), options.map((o, idx) => {
                         const isSelected = Number(o) === selected;
                         return (_jsx("div", { style: { height: `${ITEM_HEIGHT}px` }, onClick: () => {
                                 if (containerRef.current) {
@@ -360,7 +360,7 @@ function ScrollColumn({ options, selected, onSelect, isSmallDevice }) {
                                 ? cn("font-bold scale-110", isSmallDevice ? 'text-lg' : 'text-xl', PRIMARY_COLOR_CLASSES.text) // **FIX**: Smaller text for selected item
                                 : cn("text-gray-800 dark:text-gray-300 scale-100", isSmallDevice ? 'text-sm' : 'text-base') // **FIX**: Smaller text for non-selected items
                             ), children: o }, idx));
-                    }), _jsx("div", { style: { height: `${ITEM_HEIGHT}px` } })] })] }));
+                    }), _jsx("div", { style: { height: `${ITEM_HEIGHT * (isSmallDevice ? 2 : 1)}px` } })] })] }));
 }
 function ScrollTimePicker({ value, onChange, label }) {
     const [hour, minute] = (value || '00:00').split(':').map(v => parseInt(v, 10));

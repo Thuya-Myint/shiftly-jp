@@ -499,7 +499,7 @@ function ScrollColumn({ options, selected, onSelect, isSmallDevice }: { options:
         <div className="relative group ">
             {/* Dynamic height for selection highlight */}
             <div
-                style={{ height: `${ITEM_HEIGHT}px`, top: `${ITEM_HEIGHT}px` }}
+                style={{ height: `${ITEM_HEIGHT}px`, top: `${ITEM_HEIGHT * (isSmallDevice ? 2 : 1)}px` }}
                 className={cn("absolute left-0 right-0 rounded-lg pointer-events-none z-0", PRIMARY_COLOR_CLASSES.bgLight + '/50 dark:' + PRIMARY_COLOR_CLASSES.bgDark)}
             />
             <div
@@ -508,7 +508,7 @@ function ScrollColumn({ options, selected, onSelect, isSmallDevice }: { options:
                 style={{ height: `${CONTAINER_HEIGHT}px` }}
                 className="overflow-y-auto overflow-x-hidden no-scrollbar relative z-10 w-10 sm:w-12 text-center flex-shrink-0"
             >
-                <div style={{ height: `${ITEM_HEIGHT}px` }} />
+                <div style={{ height: `${ITEM_HEIGHT * (isSmallDevice ? 2 : 1)}px` }} />
                 {options.map((o, idx) => {
                     const isSelected = Number(o) === selected;
                     return (
@@ -532,7 +532,7 @@ function ScrollColumn({ options, selected, onSelect, isSmallDevice }: { options:
                         </div>
                     );
                 })}
-                <div style={{ height: `${ITEM_HEIGHT}px` }} />
+                <div style={{ height: `${ITEM_HEIGHT * (isSmallDevice ? 2 : 1)}px` }} />
             </div>
         </div>
     );
