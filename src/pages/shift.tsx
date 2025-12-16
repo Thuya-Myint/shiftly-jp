@@ -879,8 +879,8 @@ const ShiftItem = React.memo(function ShiftItem({ shift, theme, baseLang, onDele
     );
 }
 
-// --- MONTHLY GROUP COMPONENT (UNCHANGED) ---
-function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang, onDelete, onUpdate, primaryColors }: {
+// --- MONTHLY GROUP COMPONENT ---
+const MonthlyGroup = React.memo(function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang, onDelete, onUpdate, primaryColors }: {
     monthKey: string;
     totalPay: number;
     totalHours: number;
@@ -892,48 +892,55 @@ function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang,
     primaryColors: ReturnType<typeof getPrimaryColorClasses>;
 }) {
     const strings = LANG_STRINGS[baseLang];
-    const monthName = format(parseISO(`${monthKey}-01`), baseLang === 'en' ? 'MMM yyyy' : 'yyyy年M月');
+    const monthName = useMemo(() => format(parseISO(`${monthKey}-01`), baseLang === 'en' ? 'MMM yyyy' : 'yyyy年M月'), [monthKey, baseLang]);
 
-    const groupClasses = theme === 'light'
+    const groupClasses = useMemo(() => theme === 'light'
         ? `${primaryColors.bgLight} border-l-4 ${primaryColors.border}`
-        : `bg-slate-800/80 border-l-4 ${primaryColors.border}`;
+        : `bg-slate-800/80 border-l-4 ${primaryColors.border}`, [theme, primaryColors]);
 
     return (
-        <motion.div
-            layout
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
-        >
+        <div className="mb-8">
             <div className={cn("flex justify-between items-end mb-3 p-3 rounded-xl z-10", groupClasses)}>
-                <motion.h2
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className={cn("text-xl font-extrabold", primaryColors.text)}
-                >
+                <h2 className={cn("text-xl font-extrabold", primaryColors.text)}>
                     {monthName}
-                </motion.h2>
+                </h2>
                 <div className="flex flex-col items-end">
                     <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{totalHours} {strings.hours}</p>
                     <p className={cn("text-2xl font-black", primaryColors.text)}>{yen.format(totalPay)}</p>
                 </div>
             </div>
-            <div className="space-y-3">
-                {shifts.map((s: Shift) => (
-                    <ShiftItem
-                        key={s.id}
-                        shift={s}
-                        theme={theme}
-                        baseLang={baseLang}
-                        onDelete={onDelete}
-                        onUpdate={onUpdate}
-                        primaryColors={primaryColors}
-                    />
-                ))}
-            </div>
-        </motion.div>
+            {shifts.length > 5 ? (
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {shifts.map((s: Shift) => (
+                        <ShiftItem
+                            key={s.id}
+                            shift={s}
+                            theme={theme}
+                            baseLang={baseLang}
+                            onDelete={onDelete}
+                            onUpdate={onUpdate}
+                            primaryColors={primaryColors}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    {shifts.map((s: Shift) => (
+                        <ShiftItem
+                            key={s.id}
+                            shift={s}
+                            theme={theme}
+                            baseLang={baseLang}
+                            onDelete={onDelete}
+                            onUpdate={onUpdate}
+                            primaryColors={primaryColors}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
     );
-}
+});
 
 // --- MONTH FILTER COMPONENT (UNCHANGED) ---
 function MonthFilter({ selectedMonth, onMonthSelect, lang, primaryColors }: { selectedMonth: Date | undefined, onMonthSelect: (date: Date | undefined) => void, lang: Lang, primaryColors: ReturnType<typeof getPrimaryColorClasses> }) {
@@ -1262,7 +1269,7 @@ export default function ShiftTracker() {
 
     const strings = LANG_STRINGS[lang];
     const themeVariant = THEME_VARIANTS[variantIndex];
-    const PRIMARY_COLOR_CLASSES = getPrimaryColorClasses(variantIndex, theme);
+    const PRIMARY_COLOR_CLASSES = useMemo(() => getPrimaryColorClasses(variantIndex, theme), [variantIndex, theme]);
 
     // --- Local Storage Hooks (UNCHANGED) ---
     // Show install prompt after 3 seconds if not installed
