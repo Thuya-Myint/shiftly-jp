@@ -80,19 +80,56 @@ const LANG_STRINGS = {
         tryDifferentMonth: '別の月を選択するか、フィルタをクリアしてください。',
     }
 };
-// --- GLOBAL STYLES (UNCHANGED) ---
+// --- GLOBAL STYLES WITH PERFORMANCE OPTIMIZATIONS ---
 const GlobalStyles = () => (_jsx("style", { children: `
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Performance optimizations */
+        * {
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .gpu-accelerated {
+          transform: translateZ(0);
+          will-change: transform;
+        }
+        
+        .smooth-scroll {
+          scroll-behavior: smooth;
+        }
 
         @keyframes gradient-x {
           0% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
           100% { background-position: 0% 50%; }
         }
+        
         .animate-gradient-x {
           background-size: 200% 200%;
-          animation: gradient-x 10s ease infinite;
+          animation: gradient-x 15s ease infinite;
+        }
+        
+        /* Reduce motion for accessibility and performance */
+        @media (prefers-reduced-motion: reduce) {
+          .animate-gradient-x {
+            animation: none;
+            background: linear-gradient(135deg, var(--tw-gradient-from), var(--tw-gradient-to));
+          }
+          * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
+        }
+        
+        /* Low power mode optimizations */
+        @media (prefers-reduced-motion: reduce), (update: slow) {
+          .motion-safe {
+            animation: none !important;
+            transition: none !important;
+          }
         }
     ` }));
 // --- THEME VARIANTS (UNCHANGED) ---
@@ -174,7 +211,7 @@ function PWAInstallPrompt({ isOpen, onClose, lang }) {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
     if (isStandalone)
         return null;
-    return (_jsx(AnimatePresence, { children: isOpen && (_jsx(motion.div, { initial: { opacity: 0, y: 100 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: 100 }, className: "fixed bottom-4 left-4 right-4 z-[99999] bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-2xl border border-gray-200 dark:border-slate-700", children: _jsxs("div", { className: "flex items-start gap-3", children: [_jsx("div", { className: cn("p-2 rounded-lg", PRIMARY_COLOR_CLASSES.bgLight, "dark:bg-violet-900/40"), children: _jsx(Plus, { className: PRIMARY_COLOR_CLASSES.text, size: 20 }) }), _jsxs("div", { className: "flex-1", children: [_jsx("h3", { className: "font-bold text-gray-900 dark:text-white mb-1", children: lang === 'en' ? 'Add to Home Screen' : 'ホーム画面に追加' }), _jsx("p", { className: "text-sm text-gray-600 dark:text-gray-300 mb-3", children: lang === 'en'
+    return (_jsx(AnimatePresence, { children: isOpen && (_jsx(motion.div, { initial: { opacity: 0, y: 50 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: 50 }, transition: { type: "tween", duration: 0.2, ease: "easeOut" }, className: "fixed bottom-4 left-4 right-4 z-[99999] bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-2xl border border-gray-200 dark:border-slate-700 gpu-accelerated", children: _jsxs("div", { className: "flex items-start gap-3", children: [_jsx("div", { className: cn("p-2 rounded-lg", PRIMARY_COLOR_CLASSES.bgLight, "dark:bg-violet-900/40"), children: _jsx(Plus, { className: PRIMARY_COLOR_CLASSES.text, size: 20 }) }), _jsxs("div", { className: "flex-1", children: [_jsx("h3", { className: "font-bold text-gray-900 dark:text-white mb-1", children: lang === 'en' ? 'Add to Home Screen' : 'ホーム画面に追加' }), _jsx("p", { className: "text-sm text-gray-600 dark:text-gray-300 mb-3", children: lang === 'en'
                                     ? 'Install this app for quick access and better experience'
                                     : 'より良い体験のためにこのアプリをインストールしてください' }), _jsxs("div", { className: "flex gap-2", children: [isIOS ? (_jsx("p", { className: "text-xs text-gray-500 dark:text-gray-400", children: lang === 'en'
                                             ? 'Tap Share → Add to Home Screen'
@@ -182,8 +219,86 @@ function PWAInstallPrompt({ isOpen, onClose, lang }) {
 }
 // --- CUSTOM ALERT COMPONENT ---
 function CustomAlert({ isOpen, onConfirm, onCancel, title, message }) {
-    return (_jsx(AnimatePresence, { children: isOpen && (_jsx(motion.div, { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, className: "fixed inset-0 z-[99999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4", onClick: onCancel, children: _jsxs(motion.div, { initial: { scale: 0.9, y: 20 }, animate: { scale: 1, y: 0 }, exit: { scale: 0.9, y: 20 }, className: "bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-gray-200 dark:border-slate-700", onClick: (e) => e.stopPropagation(), children: [_jsxs("div", { className: "flex items-center gap-3 mb-4", children: [_jsx(AlertTriangle, { className: "text-red-500 flex-shrink-0", size: 24 }), _jsx("h3", { className: "text-lg font-bold text-gray-900 dark:text-white", children: title })] }), _jsx("p", { className: "text-gray-600 dark:text-gray-300 mb-6", children: message }), _jsxs("div", { className: "flex gap-3", children: [_jsx(Button, { onClick: onCancel, variant: "outline", className: "flex-1 h-10 rounded-xl border-gray-300 dark:border-slate-600 text-gray-600 dark:text-gray-400", children: "Cancel" }), _jsx(Button, { onClick: onConfirm, className: cn("flex-1 h-10 rounded-xl text-white font-semibold", "bg-red-500 hover:bg-red-600"), children: "Delete" })] })] }) })) }));
+    return (_jsx(AnimatePresence, { children: isOpen && (_jsx(motion.div, { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, className: "fixed inset-0 z-[99999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4", onClick: onCancel, children: _jsxs(motion.div, { initial: { scale: 0.95, y: 10 }, animate: { scale: 1, y: 0 }, exit: { scale: 0.95, y: 10 }, transition: { type: "tween", duration: 0.15, ease: "easeOut" }, className: "bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-gray-200 dark:border-slate-700 gpu-accelerated", onClick: (e) => e.stopPropagation(), children: [_jsxs("div", { className: "flex items-center gap-3 mb-4", children: [_jsx(AlertTriangle, { className: "text-red-500 flex-shrink-0", size: 24 }), _jsx("h3", { className: "text-lg font-bold text-gray-900 dark:text-white", children: title })] }), _jsx("p", { className: "text-gray-600 dark:text-gray-300 mb-6", children: message }), _jsxs("div", { className: "flex gap-3", children: [_jsx(Button, { onClick: onCancel, variant: "outline", className: "flex-1 h-10 rounded-xl border-gray-300 dark:border-slate-600 text-gray-600 dark:text-gray-400", children: "Cancel" }), _jsx(Button, { onClick: onConfirm, className: cn("flex-1 h-10 rounded-xl text-white font-semibold", "bg-red-500 hover:bg-red-600"), children: "Delete" })] })] }) })) }));
 }
+// --- INDEXEDDB UTILITIES ---
+const DB_NAME = 'ShiftTrackerDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'shifts';
+const openDB = () => {
+    return new Promise((resolve, reject) => {
+        if (!window.indexedDB) {
+            reject(new Error('IndexedDB not supported'));
+            return;
+        }
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        const timeout = setTimeout(() => {
+            reject(new Error('IndexedDB timeout'));
+        }, 5000);
+        request.onerror = () => {
+            clearTimeout(timeout);
+            reject(request.error || new Error('IndexedDB open failed'));
+        };
+        request.onsuccess = () => {
+            clearTimeout(timeout);
+            resolve(request.result);
+        };
+        request.onupgradeneeded = () => {
+            const db = request.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                db.createObjectStore(STORE_NAME);
+            }
+        };
+    });
+};
+const saveToIndexedDB = async (key, data) => {
+    try {
+        const db = await openDB();
+        const transaction = db.transaction([STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        store.put(data, key);
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new Error('Save timeout'));
+            }, 3000);
+            transaction.oncomplete = () => {
+                clearTimeout(timeout);
+                resolve();
+            };
+            transaction.onerror = () => {
+                clearTimeout(timeout);
+                reject(transaction.error || new Error('Save failed'));
+            };
+        });
+    }
+    catch (e) {
+        throw new Error(`IndexedDB save failed: ${e}`);
+    }
+};
+const loadFromIndexedDB = async (key) => {
+    try {
+        const db = await openDB();
+        const transaction = db.transaction([STORE_NAME], 'readonly');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.get(key);
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new Error('Load timeout'));
+            }, 3000);
+            request.onsuccess = () => {
+                clearTimeout(timeout);
+                resolve(request.result);
+            };
+            request.onerror = () => {
+                clearTimeout(timeout);
+                reject(request.error || new Error('Load failed'));
+            };
+        });
+    }
+    catch (e) {
+        throw new Error(`IndexedDB load failed: ${e}`);
+    }
+};
 // --- UTILITY FUNCTIONS (UNCHANGED) ---
 const getDayOfWeek = (dateString, language) => {
     try {
@@ -280,7 +395,7 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
         setTheme(newTheme);
     };
     const handleThemeIconClick = () => setIsOpen(prev => !prev);
-    return (_jsxs("div", { className: "relative flex gap-2", ref: dropdownRef, children: [_jsx(motion.button, { onClick: handleThemeIconClick, whileTap: { scale: 0.95 }, className: cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer", frostedGlassClasses), "aria-label": "Change theme", children: isOpen || isLight ? _jsx(Sun, { size: 18, className: "text-orange-500" }) : _jsx(Moon, { size: 18, className: "text-indigo-400" }) }), _jsx(motion.button, { onClick: toggleLang, whileTap: { scale: 0.95 }, className: cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer", frostedGlassClasses), "aria-label": "Toggle language", children: _jsx(Globe, { size: 18, className: PRIMARY_COLOR_CLASSES.text }) }), _jsx(AnimatePresence, { children: isOpen && (_jsxs(motion.div, { initial: { opacity: 0, y: -20, scale: 0.9 }, animate: { opacity: 1, y: 0, scale: 1 }, exit: { opacity: 0, y: -20, scale: 0.9 }, transition: { type: "spring", stiffness: 400, damping: 25 }, className: cn(`absolute right-0 top-full mt-2 w-64 sm:w-72 rounded-xl p-3 sm:p-4 origin-top-right shadow-xl ring-1 ring-gray-950/5 dark:ring-white/10`, isLight ? 'bg-white' : 'bg-slate-950', 'z-[9999]'), children: [_jsxs("div", { className: `flex justify-between items-center mb-3 p-1 rounded-lg ${isLight ? 'bg-gray-100' : 'bg-slate-800'}  `, children: [_jsxs(motion.button, { onClick: () => handleToggleTheme('light'), className: cn("flex-1 px-3 py-2 rounded-lg cursor-pointer text-sm font-medium transition-colors", isLight
+    return (_jsxs("div", { className: "relative flex gap-2", ref: dropdownRef, children: [_jsx(motion.button, { onClick: handleThemeIconClick, whileTap: { scale: 0.98 }, transition: { type: "tween", duration: 0.1 }, className: cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer", frostedGlassClasses), "aria-label": "Change theme", children: isOpen || isLight ? _jsx(Sun, { size: 18, className: "text-orange-500" }) : _jsx(Moon, { size: 18, className: "text-indigo-400" }) }), _jsx(motion.button, { onClick: toggleLang, whileTap: { scale: 0.98 }, transition: { type: "tween", duration: 0.1 }, className: cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer", frostedGlassClasses), "aria-label": "Toggle language", children: _jsx(Globe, { size: 18, className: PRIMARY_COLOR_CLASSES.text }) }), _jsx(AnimatePresence, { children: isOpen && (_jsxs(motion.div, { initial: { opacity: 0, y: -20, scale: 0.9 }, animate: { opacity: 1, y: 0, scale: 1 }, exit: { opacity: 0, y: -20, scale: 0.9 }, transition: { type: "spring", stiffness: 400, damping: 25 }, className: cn(`absolute right-0 top-full mt-2 w-64 sm:w-72 rounded-xl p-3 sm:p-4 origin-top-right shadow-xl ring-1 ring-gray-950/5 dark:ring-white/10`, isLight ? 'bg-white' : 'bg-slate-950', 'z-[9999]'), children: [_jsxs("div", { className: `flex justify-between items-center mb-3 p-1 rounded-lg ${isLight ? 'bg-gray-100' : 'bg-slate-800'}  `, children: [_jsxs(motion.button, { onClick: () => handleToggleTheme('light'), className: cn("flex-1 px-3 py-2 rounded-lg cursor-pointer text-sm font-medium transition-colors", isLight
                                         ? 'bg-white shadow-md text-slate-800'
                                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-100'), children: [_jsx(Sun, { size: 16, className: "inline mr-1" }), " Light"] }), _jsxs(motion.button, { onClick: () => handleToggleTheme('dark'), className: cn("flex-1 px-3 py-2 rounded-lg text-sm cursor-pointer font-medium transition-colors", !isLight
                                         ? 'bg-slate-700 shadow-md text-white'
@@ -300,9 +415,9 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }) {
     const handleDelete = () => {
         onDelete(shift.id);
     };
-    return (_jsxs(motion.div, { layout: true, initial: { opacity: 0, scale: 0.95, y: 20 }, animate: { opacity: 1, scale: 1, y: 0 }, exit: { opacity: 0, scale: 0.95, y: -20 }, whileHover: { scale: 1.02, y: -4 }, transition: { type: "spring", stiffness: 300, damping: 30 }, className: cn("group relative overflow-hidden rounded-3xl p-4 sm:p-6 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer backdrop-blur-xl border", theme === 'light'
+    return (_jsxs(motion.div, { layout: true, initial: { opacity: 0, scale: 0.95, y: 20 }, animate: { opacity: 1, scale: 1, y: 0 }, exit: { opacity: 0, scale: 0.95, y: -20 }, whileHover: { scale: 1.01, y: -2 }, transition: { type: "tween", duration: 0.2, ease: "easeOut" }, className: cn("group relative overflow-hidden rounded-3xl p-4 sm:p-6 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer backdrop-blur-xl border", theme === 'light'
             ? 'bg-white/80 border-gray-200/50 hover:bg-white/90'
-            : 'bg-slate-900/60 border-slate-700/50 hover:bg-slate-900/80'), ref: itemRef, children: [_jsx(motion.div, { className: cn("absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500", "bg-gradient-to-br from-indigo-500/5 via-violet-500/5 to-purple-500/5"), initial: false, animate: { opacity: 0 }, whileHover: { opacity: 1 } }), _jsxs("div", { className: "flex flex-col lg:flex-row justify-between items-start relative z-10 gap-3 sm:gap-4 lg:gap-0", children: [_jsxs("div", { className: "flex flex-col space-y-3 sm:space-y-4 w-full lg:w-auto", children: [_jsxs("div", { className: "flex flex-wrap items-center gap-2 sm:gap-3", children: [_jsx(motion.span, { whileHover: { scale: 1.1 }, className: cn("text-sm font-bold px-3 py-2 rounded-xl shadow-sm", PRIMARY_COLOR_CLASSES.bgLight, "dark:bg-violet-900/40", PRIMARY_COLOR_CLASSES.text), children: displayDayOfWeek }), _jsx(motion.span, { whileHover: { scale: 1.05 }, className: "text-sm font-semibold px-3 py-2 rounded-xl bg-gray-100/80 dark:bg-slate-700/60 text-gray-900 dark:text-gray-100 shadow-sm backdrop-blur-sm", children: shift.date }), _jsxs(motion.button, { onClick: () => setShiftLang(shiftLang === 'en' ? 'jp' : 'en'), whileTap: { scale: 0.95 }, whileHover: { scale: 1.05 }, className: cn("text-sm font-medium px-3 py-2 rounded-xl border-2 backdrop-blur-sm transition-all duration-300", PRIMARY_COLOR_CLASSES.border, PRIMARY_COLOR_CLASSES.text, "hover:shadow-md", theme === 'light' ? 'bg-white/60' : 'bg-slate-800/60'), "aria-label": "Translate shift details", children: [_jsx(Globe, { size: 14, className: "inline mr-2" }), shiftLang === 'en' ? 'JP' : 'EN'] })] }), _jsx("div", { className: "flex items-baseline gap-4", children: _jsxs(motion.div, { className: "flex items-baseline gap-3", whileHover: { scale: 1.05 }, children: [_jsx("span", { className: "text-2xl font-bold text-gray-900 dark:text-white", children: shift.fromTime }), _jsx(motion.span, { className: cn("text-lg font-medium", PRIMARY_COLOR_CLASSES.text), animate: { opacity: [0.5, 1, 0.5] }, transition: { duration: 2, repeat: Infinity }, children: "\u2192" }), _jsx("span", { className: "text-2xl font-bold text-gray-900 dark:text-white", children: shift.toTime })] }) }), _jsxs(motion.p, { className: "text-sm text-gray-700 dark:text-gray-300 font-medium", whileHover: { scale: 1.02 }, children: [shift.hours, " ", strings.hours, " @ \u00A5", shift.wage.toLocaleString(), "/", strings.hours === 'hours' ? 'h' : '時間'] })] }), _jsxs("div", { className: "flex flex-col items-start lg:items-end space-y-3 sm:space-y-4 w-full lg:w-auto", children: [_jsx(motion.div, { whileHover: { scale: 1.1 }, className: cn("px-4 py-2 rounded-2xl shadow-lg backdrop-blur-sm", PRIMARY_COLOR_CLASSES.bgGradient), children: _jsx("p", { className: "text-2xl font-black text-white", children: yen.format(shift.pay) }) }), _jsxs("div", { className: "flex flex-wrap gap-2 sm:gap-3 w-full lg:w-auto justify-start lg:justify-end", children: [_jsx(motion.div, { whileHover: { scale: 1.05 }, whileTap: { scale: 0.95 }, children: _jsxs(Button, { variant: "outline", size: "sm", className: cn("h-10 px-4 text-sm font-semibold rounded-xl border-2 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md", PRIMARY_COLOR_CLASSES.border, PRIMARY_COLOR_CLASSES.text, theme === 'light' ? 'bg-white/60 hover:bg-white/80' : 'bg-slate-800/60 hover:bg-slate-800/80'), onClick: () => onUpdate(shift), children: [_jsx(RotateCcw, { size: 16, className: "mr-2" }), " ", strings.update] }) }), _jsx(motion.div, { whileHover: { scale: 1.05 }, whileTap: { scale: 0.95 }, children: _jsxs(Button, { variant: "outline", size: "sm", className: "h-10 px-4 text-sm font-semibold rounded-xl border-2 border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 bg-white/60 dark:bg-slate-800/60 hover:bg-red-50 dark:hover:bg-red-900/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md", onClick: handleDelete, children: [_jsx(Trash2, { size: 16, className: "mr-2" }), " ", strings.delete] }) })] })] })] })] }, shift.id));
+            : 'bg-slate-900/60 border-slate-700/50 hover:bg-slate-900/80'), ref: itemRef, children: [_jsx(motion.div, { className: cn("absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500", "bg-gradient-to-br from-indigo-500/5 via-violet-500/5 to-purple-500/5"), initial: false, animate: { opacity: 0 }, whileHover: { opacity: 1 } }), _jsxs("div", { className: "flex flex-col lg:flex-row justify-between items-start relative z-10 gap-3 sm:gap-4 lg:gap-0", children: [_jsxs("div", { className: "flex flex-col space-y-3 sm:space-y-4 w-full lg:w-auto", children: [_jsxs("div", { className: "flex flex-wrap items-center gap-2 sm:gap-3", children: [_jsx(motion.span, { whileHover: { scale: 1.1 }, className: cn("text-sm font-bold px-3 py-2 rounded-xl shadow-sm", PRIMARY_COLOR_CLASSES.bgLight, "dark:bg-violet-900/40", PRIMARY_COLOR_CLASSES.text), children: displayDayOfWeek }), _jsx(motion.span, { whileHover: { scale: 1.05 }, className: "text-sm font-semibold px-3 py-2 rounded-xl bg-gray-100/80 dark:bg-slate-700/60 text-gray-900 dark:text-gray-100 shadow-sm backdrop-blur-sm", children: shift.date }), _jsxs(motion.button, { onClick: () => setShiftLang(shiftLang === 'en' ? 'jp' : 'en'), whileTap: { scale: 0.95 }, whileHover: { scale: 1.05 }, className: cn("text-sm font-medium px-3 py-2 rounded-xl border-2 backdrop-blur-sm transition-all duration-300", PRIMARY_COLOR_CLASSES.border, PRIMARY_COLOR_CLASSES.text, "hover:shadow-md", theme === 'light' ? 'bg-white/60' : 'bg-slate-800/60'), "aria-label": "Translate shift details", children: [_jsx(Globe, { size: 14, className: "inline mr-2" }), shiftLang === 'en' ? 'JP' : 'EN'] })] }), _jsx("div", { className: "flex items-baseline gap-4", children: _jsxs(motion.div, { className: "flex items-baseline gap-3", whileHover: { scale: 1.05 }, children: [_jsx("span", { className: "text-2xl font-bold text-gray-900 dark:text-white", children: shift.fromTime }), _jsx(motion.span, { className: cn("text-lg font-medium", PRIMARY_COLOR_CLASSES.text), animate: { opacity: [0.7, 1, 0.7] }, transition: { duration: 3, repeat: Infinity, ease: "easeInOut" }, children: "\u2192" }), _jsx("span", { className: "text-2xl font-bold text-gray-900 dark:text-white", children: shift.toTime })] }) }), _jsxs(motion.p, { className: "text-sm text-gray-700 dark:text-gray-300 font-medium", whileHover: { scale: 1.02 }, children: [shift.hours, " ", strings.hours, " @ \u00A5", shift.wage.toLocaleString(), "/", strings.hours === 'hours' ? 'h' : '時間'] })] }), _jsxs("div", { className: "flex flex-col items-start lg:items-end space-y-3 sm:space-y-4 w-full lg:w-auto", children: [_jsx(motion.div, { whileHover: { scale: 1.1 }, className: cn("px-4 py-2 rounded-2xl shadow-lg backdrop-blur-sm", PRIMARY_COLOR_CLASSES.bgGradient), children: _jsx("p", { className: "text-2xl font-black text-white", children: yen.format(shift.pay) }) }), _jsxs("div", { className: "flex flex-wrap gap-2 sm:gap-3 w-full lg:w-auto justify-start lg:justify-end", children: [_jsx(motion.div, { whileHover: { scale: 1.05 }, whileTap: { scale: 0.95 }, children: _jsxs(Button, { variant: "outline", size: "sm", className: cn("h-10 px-4 text-sm font-semibold rounded-xl border-2 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md", PRIMARY_COLOR_CLASSES.border, PRIMARY_COLOR_CLASSES.text, theme === 'light' ? 'bg-white/60 hover:bg-white/80' : 'bg-slate-800/60 hover:bg-slate-800/80'), onClick: () => onUpdate(shift), children: [_jsx(RotateCcw, { size: 16, className: "mr-2" }), " ", strings.update] }) }), _jsx(motion.div, { whileHover: { scale: 1.05 }, whileTap: { scale: 0.95 }, children: _jsxs(Button, { variant: "outline", size: "sm", className: "h-10 px-4 text-sm font-semibold rounded-xl border-2 border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 bg-white/60 dark:bg-slate-800/60 hover:bg-red-50 dark:hover:bg-red-900/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md", onClick: handleDelete, children: [_jsx(Trash2, { size: 16, className: "mr-2" }), " ", strings.delete] }) })] })] })] })] }, shift.id));
 }
 // --- MONTHLY GROUP COMPONENT (UNCHANGED) ---
 function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang, onDelete, onUpdate }) {
@@ -398,6 +513,25 @@ export default function ShiftTracker() {
     const [filterMonth, setFilterMonth] = useState(undefined);
     const [alertConfig, setAlertConfig] = useState(null);
     const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    // Block overscroll when modal is open
+    useEffect(() => {
+        if (isModalOpen) {
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+        }
+        else {
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+        };
+    }, [isModalOpen]);
     const strings = LANG_STRINGS[lang];
     const themeVariant = THEME_VARIANTS[variantIndex];
     // --- Local Storage Hooks (UNCHANGED) ---
@@ -417,29 +551,65 @@ export default function ShiftTracker() {
         localStorage.setItem('pwa-install-prompt-seen', 'true');
     };
     useEffect(() => {
-        const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (savedData) {
+        const loadData = async () => {
             try {
-                const parsedData = JSON.parse(savedData);
-                setShifts(parsedData.shifts || []);
-                setHourlyRate(parsedData.hourlyRate || 1000);
-                setLang(parsedData.lang || 'jp');
-                setTheme(parsedData.theme || 'light');
-                setVariantIndex(parsedData.variantIndex || 3);
+                // Try IndexedDB first
+                const data = await loadFromIndexedDB('appData');
+                if (data && typeof data === 'object') {
+                    setShifts(data.shifts || []);
+                    setHourlyRate(data.hourlyRate || 1000);
+                    setLang(data.lang || 'jp');
+                    setTheme(data.theme || 'light');
+                    setVariantIndex(data.variantIndex || 3);
+                    setIsLoading(false);
+                    return;
+                }
             }
             catch (e) {
-                console.error("Failed to parse local storage data:", e);
+                console.warn("IndexedDB failed, trying localStorage:", e);
             }
-        }
+            // Fallback to localStorage
+            try {
+                const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+                if (savedData) {
+                    const parsedData = JSON.parse(savedData);
+                    setShifts(parsedData.shifts || []);
+                    setHourlyRate(parsedData.hourlyRate || 1000);
+                    setLang(parsedData.lang || 'jp');
+                    setTheme(parsedData.theme || 'light');
+                    setVariantIndex(parsedData.variantIndex || 3);
+                    // Try to migrate to IndexedDB
+                    try {
+                        await saveToIndexedDB('appData', parsedData);
+                    }
+                    catch (e) {
+                        console.warn("Failed to migrate to IndexedDB:", e);
+                    }
+                }
+            }
+            catch (e) {
+                console.error("Failed to load from localStorage:", e);
+            }
+            setIsLoading(false);
+        };
+        loadData();
     }, []);
     useEffect(() => {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
-            shifts,
-            hourlyRate,
-            lang,
-            theme,
-            variantIndex
-        }));
+        if (isLoading)
+            return; // Don't save during initial load
+        const saveData = async () => {
+            const data = { shifts, hourlyRate, lang, theme, variantIndex };
+            // Always save to localStorage as backup
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+            // Try to save to IndexedDB
+            try {
+                await saveToIndexedDB('appData', data);
+            }
+            catch (e) {
+                console.warn("Failed to save to IndexedDB:", e);
+            }
+        };
+        saveData();
         if (theme === 'dark') {
             document.documentElement.classList.add('dark');
         }
@@ -451,7 +621,7 @@ export default function ShiftTracker() {
         if (themeColorMeta) {
             themeColorMeta.setAttribute('content', theme === 'dark' ? '#0f172a' : '#6366f1');
         }
-    }, [shifts, hourlyRate, lang, theme, variantIndex]);
+    }, [shifts, hourlyRate, lang, theme, variantIndex, isLoading]);
     // --- Core Logic (UNCHANGED) ---
     const processShiftData = useCallback((rawShift) => {
         const hours = calculateHours(rawShift.fromTime, rawShift.toTime);
@@ -537,8 +707,8 @@ export default function ShiftTracker() {
         };
     }, [sortedAndFilteredShifts]);
     // --- Render Components (UNCHANGED) ---
-    const renderShiftList = () => (_jsx(motion.div, { initial: { opacity: 0, x: -50 }, animate: { opacity: 1, x: 0 }, exit: { opacity: 0, x: 50 }, transition: { type: "tween", duration: 0.3 }, className: "space-y-4 pt-4", children: sortedAndFilteredShifts.length > 0 ? (sortedAndFilteredShifts.map(shift => (_jsx(ShiftItem, { shift: shift, theme: theme, baseLang: lang, onDelete: deleteShift, onUpdate: openEditModal }, shift.id)))) : (_jsx(EmptyState, { lang: lang, hasFilter: !!filterMonth, onClearFilter: () => setFilterMonth(undefined) })) }, "list"));
-    const renderMonthlyView = () => (_jsx(motion.div, { initial: { opacity: 0, x: 50 }, animate: { opacity: 1, x: 0 }, exit: { opacity: 0, x: -50 }, transition: { type: "tween", duration: 0.3 }, className: "pt-4", children: aggregatedData.sortedMonths.length > 0 ? (aggregatedData.sortedMonths.map(monthKey => (_jsx(MonthlyGroup, { monthKey: monthKey, totalPay: aggregatedData.monthlyGroups[monthKey].totalPay, totalHours: aggregatedData.monthlyGroups[monthKey].totalHours, shifts: aggregatedData.monthlyGroups[monthKey].shifts, theme: theme, baseLang: lang, onDelete: deleteShift, onUpdate: openEditModal }, monthKey)))) : (_jsx(EmptyState, { lang: lang, hasFilter: !!filterMonth, onClearFilter: () => setFilterMonth(undefined) })) }, "monthly"));
+    const renderShiftList = () => (_jsx(motion.div, { initial: { opacity: 0, x: -20 }, animate: { opacity: 1, x: 0 }, exit: { opacity: 0, x: 20 }, transition: { type: "tween", duration: 0.2, ease: "easeOut" }, className: "space-y-4 pt-4", children: sortedAndFilteredShifts.length > 0 ? (sortedAndFilteredShifts.map(shift => (_jsx(ShiftItem, { shift: shift, theme: theme, baseLang: lang, onDelete: deleteShift, onUpdate: openEditModal }, shift.id)))) : (_jsx(EmptyState, { lang: lang, hasFilter: !!filterMonth, onClearFilter: () => setFilterMonth(undefined) })) }, "list"));
+    const renderMonthlyView = () => (_jsx(motion.div, { initial: { opacity: 0, x: 20 }, animate: { opacity: 1, x: 0 }, exit: { opacity: 0, x: -20 }, transition: { type: "tween", duration: 0.2, ease: "easeOut" }, className: "pt-4", children: aggregatedData.sortedMonths.length > 0 ? (aggregatedData.sortedMonths.map(monthKey => (_jsx(MonthlyGroup, { monthKey: monthKey, totalPay: aggregatedData.monthlyGroups[monthKey].totalPay, totalHours: aggregatedData.monthlyGroups[monthKey].totalHours, shifts: aggregatedData.monthlyGroups[monthKey].shifts, theme: theme, baseLang: lang, onDelete: deleteShift, onUpdate: openEditModal }, monthKey)))) : (_jsx(EmptyState, { lang: lang, hasFilter: !!filterMonth, onClearFilter: () => setFilterMonth(undefined) })) }, "monthly"));
     // --- Empty State Component (UNCHANGED) ---
     function EmptyState({ lang, hasFilter, onClearFilter }) {
         const strings = LANG_STRINGS[lang];
@@ -548,6 +718,9 @@ export default function ShiftTracker() {
     const appClasses = theme === 'light'
         ? themeVariant.light
         : themeVariant.dark;
+    if (isLoading) {
+        return (_jsx("div", { className: "min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-slate-900 dark:to-slate-800", children: _jsxs("div", { className: "text-center", children: [_jsx("div", { className: cn("w-12 h-12 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4", PRIMARY_COLOR_CLASSES.border) }), _jsx("p", { className: cn("text-lg font-semibold", PRIMARY_COLOR_CLASSES.text), children: "Loading..." })] }) }));
+    }
     return (_jsxs(_Fragment, { children: [_jsx(GlobalStyles, {}), _jsxs("div", { className: cn("min-h-screen", appClasses), children: [_jsxs("div", { className: cn("min-h-screen flex flex-col items-center p-4 sm:p-6 transition-colors duration-500"), children: [_jsxs("header", { className: "w-full max-w-4xl sticky top-0 z-40 mb-6 py-4 backdrop-blur-md bg-transparent/80", children: [_jsxs("div", { className: "flex justify-between items-center mb-4", children: [_jsx("h1", { className: cn("text-2xl sm:text-3xl font-extrabold tracking-tight", PRIMARY_COLOR_CLASSES.text), children: "Shift Tracker" }), _jsxs("div", { className: "flex gap-2", children: [_jsx(ThemeDropdown, { theme: theme, setTheme: setTheme, variantIndex: variantIndex, setVariantIndex: setVariantIndex, toggleLang: toggleLang }), _jsx(motion.button, { onClick: openAddModal, whileTap: { scale: 0.95 }, className: cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer backdrop-blur-md border shadow-sm transition-colors", PRIMARY_COLOR_CLASSES.bgGradient, "text-white"), "aria-label": "Add new shift", children: _jsx(Plus, { size: 18 }) })] })] }), _jsxs("div", { className: cn("p-4 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4 border", theme === 'light'
                                             ? 'bg-white/80 border-gray-200'
                                             : 'bg-slate-900/70 border-slate-700'), children: [_jsxs("div", { className: "flex flex-col items-center sm:items-start", children: [_jsx("p", { className: "text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-400 text-center sm:text-left", children: strings.grandTotal }), _jsx("p", { className: cn("text-3xl font-black text-center sm:text-left", PRIMARY_COLOR_CLASSES.text), children: yen.format(aggregatedData.grandTotal.totalPay) }), _jsxs("p", { className: "text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left", children: [aggregatedData.grandTotal.totalHours, " ", strings.hours] })] }), _jsxs("div", { className: "flex gap-3 w-full sm:w-auto flex-1 sm:flex-none min-w-0", children: [_jsx(MonthFilter, { selectedMonth: filterMonth, onMonthSelect: setFilterMonth, lang: lang }), _jsx(Button, { onClick: () => setViewMode(prev => prev === 'list' ? 'monthly' : 'list'), variant: "outline", className: cn("h-10 w-10 sm:h-12 sm:w-12 p-0 flex items-center justify-center rounded-xl border-2 transition-all flex-shrink-0", viewMode === 'list'
@@ -557,10 +730,19 @@ export default function ShiftTracker() {
                                             isOpen: true,
                                             title: strings.areYouSure,
                                             message: strings.clearData,
-                                            onConfirm: () => {
+                                            onConfirm: async () => {
                                                 setShifts([]);
                                                 setHourlyRate(1000);
-                                                localStorage.removeItem(LOCAL_STORAGE_KEY);
+                                                const emptyData = { shifts: [], hourlyRate: 1000, lang, theme, variantIndex };
+                                                // Clear localStorage
+                                                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(emptyData));
+                                                // Try to clear IndexedDB
+                                                try {
+                                                    await saveToIndexedDB('appData', emptyData);
+                                                }
+                                                catch (e) {
+                                                    console.warn('Failed to clear IndexedDB:', e);
+                                                }
                                                 setAlertConfig(null);
                                             }
                                         });

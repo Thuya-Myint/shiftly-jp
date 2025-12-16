@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
@@ -99,20 +99,57 @@ const LANG_STRINGS = {
     }
 };
 
-// --- GLOBAL STYLES (UNCHANGED) ---
+// --- GLOBAL STYLES WITH PERFORMANCE OPTIMIZATIONS ---
 const GlobalStyles = () => (
     <style>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Performance optimizations */
+        * {
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .gpu-accelerated {
+          transform: translateZ(0);
+          will-change: transform;
+        }
+        
+        .smooth-scroll {
+          scroll-behavior: smooth;
+        }
 
         @keyframes gradient-x {
           0% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
           100% { background-position: 0% 50%; }
         }
+        
         .animate-gradient-x {
           background-size: 200% 200%;
-          animation: gradient-x 10s ease infinite;
+          animation: gradient-x 15s ease infinite;
+        }
+        
+        /* Reduce motion for accessibility and performance */
+        @media (prefers-reduced-motion: reduce) {
+          .animate-gradient-x {
+            animation: none;
+            background: linear-gradient(135deg, var(--tw-gradient-from), var(--tw-gradient-to));
+          }
+          * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
+        }
+        
+        /* Low power mode optimizations */
+        @media (prefers-reduced-motion: reduce), (update: slow) {
+          .motion-safe {
+            animation: none !important;
+            transition: none !important;
+          }
         }
     `}</style>
 );
@@ -171,7 +208,7 @@ function calculateHours(from: string, to: string) {
 }
 
 // --- PWA INSTALL PROMPT COMPONENT ---
-function PWAInstallPrompt({ isOpen, onClose, lang }: { isOpen: boolean; onClose: () => void; lang: Lang }) {
+const PWAInstallPrompt = memo(({ isOpen, onClose, lang }: { isOpen: boolean; onClose: () => void; lang: Lang }) => {
     const strings = LANG_STRINGS[lang];
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
@@ -204,10 +241,11 @@ function PWAInstallPrompt({ isOpen, onClose, lang }: { isOpen: boolean; onClose:
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    initial={{ opacity: 0, y: 100 }}
+                    initial={{ opacity: 0, y: 50 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 100 }}
-                    className="fixed bottom-4 left-4 right-4 z-[99999] bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-2xl border border-gray-200 dark:border-slate-700"
+                    exit={{ opacity: 0, y: 50 }}
+                    transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
+                    className="fixed bottom-4 left-4 right-4 z-[99999] bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-2xl border border-gray-200 dark:border-slate-700 gpu-accelerated"
                 >
                     <div className="flex items-start gap-3">
                         <div className={cn("p-2 rounded-lg", PRIMARY_COLOR_CLASSES.bgLight, "dark:bg-violet-900/40")}>
@@ -282,10 +320,11 @@ function CustomAlert({ isOpen, onConfirm, onCancel, title, message }: {
                     onClick={onCancel}
                 >
                     <motion.div
-                        initial={{ scale: 0.9, y: 20 }}
+                        initial={{ scale: 0.95, y: 10 }}
                         animate={{ scale: 1, y: 0 }}
-                        exit={{ scale: 0.9, y: 20 }}
-                        className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-gray-200 dark:border-slate-700"
+                        exit={{ scale: 0.95, y: 10 }}
+                        transition={{ type: "tween", duration: 0.15, ease: "easeOut" }}
+                        className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-gray-200 dark:border-slate-700 gpu-accelerated"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex items-center gap-3 mb-4">
@@ -315,6 +354,94 @@ function CustomAlert({ isOpen, onConfirm, onCancel, title, message }: {
     );
 }
 
+// --- INDEXEDDB UTILITIES ---
+const DB_NAME = 'ShiftTrackerDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'shifts';
+
+const openDB = (): Promise<IDBDatabase> => {
+    return new Promise((resolve, reject) => {
+        if (!window.indexedDB) {
+            reject(new Error('IndexedDB not supported'));
+            return;
+        }
+
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        const timeout = setTimeout(() => {
+            reject(new Error('IndexedDB timeout'));
+        }, 5000);
+
+        request.onerror = () => {
+            clearTimeout(timeout);
+            reject(request.error || new Error('IndexedDB open failed'));
+        };
+
+        request.onsuccess = () => {
+            clearTimeout(timeout);
+            resolve(request.result);
+        };
+
+        request.onupgradeneeded = () => {
+            const db = request.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                db.createObjectStore(STORE_NAME);
+            }
+        };
+    });
+};
+
+const saveToIndexedDB = async (key: string, data: any): Promise<void> => {
+    try {
+        const db = await openDB();
+        const transaction = db.transaction([STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        store.put(data, key);
+
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new Error('Save timeout'));
+            }, 3000);
+
+            transaction.oncomplete = () => {
+                clearTimeout(timeout);
+                resolve();
+            };
+            transaction.onerror = () => {
+                clearTimeout(timeout);
+                reject(transaction.error || new Error('Save failed'));
+            };
+        });
+    } catch (e) {
+        throw new Error(`IndexedDB save failed: ${e}`);
+    }
+};
+
+const loadFromIndexedDB = async (key: string): Promise<any> => {
+    try {
+        const db = await openDB();
+        const transaction = db.transaction([STORE_NAME], 'readonly');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.get(key);
+
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new Error('Load timeout'));
+            }, 3000);
+
+            request.onsuccess = () => {
+                clearTimeout(timeout);
+                resolve(request.result);
+            };
+            request.onerror = () => {
+                clearTimeout(timeout);
+                reject(request.error || new Error('Load failed'));
+            };
+        });
+    } catch (e) {
+        throw new Error(`IndexedDB load failed: ${e}`);
+    }
+};
+
 // --- UTILITY FUNCTIONS (UNCHANGED) ---
 const getDayOfWeek = (dateString: string, language: Lang): string => {
     try {
@@ -334,7 +461,7 @@ const ITEM_HEIGHT_SM = 32;
 const ITEM_HEIGHT_LG = 40;
 const CONTAINER_HEIGHT_MULTIPLIER = 3;
 
-function ScrollColumn({ options, selected, onSelect, isSmallDevice }: { options: string[]; selected: number; onSelect: (v: number) => void; isSmallDevice: boolean }) {
+const ScrollColumn = memo(({ options, selected, onSelect, isSmallDevice }: { options: string[]; selected: number; onSelect: (v: number) => void; isSmallDevice: boolean }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const isScrolling = useRef(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -350,7 +477,7 @@ function ScrollColumn({ options, selected, onSelect, isSmallDevice }: { options:
         }
     }, [selected, options, ITEM_HEIGHT]);
 
-    const handleScroll = () => {
+    const handleScroll = useCallback(() => {
         isScrolling.current = true;
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(() => {
@@ -362,10 +489,10 @@ function ScrollColumn({ options, selected, onSelect, isSmallDevice }: { options:
                 const value = Number(options[safeIndex]);
                 containerRef.current.scrollTo({ top: safeIndex * ITEM_HEIGHT, behavior: 'smooth' });
                 if (value !== selected) onSelect(value);
-                setTimeout(() => { isScrolling.current = false; }, 300);
+                setTimeout(() => { isScrolling.current = false; }, 200);
             }
-        }, 100);
-    };
+        }, 80);
+    }, [ITEM_HEIGHT, options.length, selected, onSelect]);
 
     return (
         <div className="relative group ">
@@ -410,19 +537,28 @@ function ScrollColumn({ options, selected, onSelect, isSmallDevice }: { options:
     );
 }
 
-function ScrollTimePicker({ value, onChange, label }: { value: string; onChange: (v: string) => void; label?: string }) {
+const ScrollTimePicker = memo(({ value, onChange, label }: { value: string; onChange: (v: string) => void; label?: string }) => {
     const [hour, minute] = (value || '00:00').split(':').map(v => parseInt(v, 10));
     const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
     const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
-    const updateTime = (newH: number, newM: number) => onChange(`${newH.toString().padStart(2, '0')}:${newM.toString().padStart(2, '0')}`);
+    const updateTime = useCallback((newH: number, newM: number) => 
+        onChange(`${newH.toString().padStart(2, '0')}:${newM.toString().padStart(2, '0')}`),
+        [onChange]
+    );
 
-    // Simple check for small device (can be replaced by a more robust custom hook if needed)
-    const [isSmallDevice, setIsSmallDevice] = useState(false);
+    // Optimized device size check with debouncing
+    const [isSmallDevice, setIsSmallDevice] = useState(() => window.innerWidth < 640);
     useEffect(() => {
-        const checkSize = () => setIsSmallDevice(window.innerWidth < 640);
-        checkSize();
-        window.addEventListener('resize', checkSize);
-        return () => window.removeEventListener('resize', checkSize);
+        let timeoutId: NodeJS.Timeout;
+        const checkSize = () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => setIsSmallDevice(window.innerWidth < 640), 100);
+        };
+        window.addEventListener('resize', checkSize, { passive: true });
+        return () => {
+            window.removeEventListener('resize', checkSize);
+            clearTimeout(timeoutId);
+        };
     }, []);
 
     return (
@@ -471,7 +607,8 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
         <div className="relative flex gap-2" ref={dropdownRef}>
             <motion.button
                 onClick={handleThemeIconClick}
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: "tween", duration: 0.1 }}
                 className={cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer", frostedGlassClasses)}
                 aria-label="Change theme"
             >
@@ -480,7 +617,8 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
 
             <motion.button
                 onClick={toggleLang}
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: "tween", duration: 0.1 }}
                 className={cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer", frostedGlassClasses)}
                 aria-label="Toggle language"
             >
@@ -575,8 +713,8 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
-            whileHover={{ scale: 1.02, y: -4 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            whileHover={{ scale: 1.01, y: -2 }}
+            transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
             className={cn(
                 "group relative overflow-hidden rounded-3xl p-4 sm:p-6 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer backdrop-blur-xl border",
                 theme === 'light'
@@ -644,8 +782,8 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
                             <span className="text-2xl font-bold text-gray-900 dark:text-white">{shift.fromTime}</span>
                             <motion.span
                                 className={cn("text-lg font-medium", PRIMARY_COLOR_CLASSES.text)}
-                                animate={{ opacity: [0.5, 1, 0.5] }}
-                                transition={{ duration: 2, repeat: Infinity }}
+                                animate={{ opacity: [0.7, 1, 0.7] }}
+                                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                             >
                                 →
                             </motion.span>
@@ -1072,9 +1210,32 @@ export default function ShiftTracker() {
     const [filterMonth, setFilterMonth] = useState<Date | undefined>(undefined);
     const [alertConfig, setAlertConfig] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void } | null>(null);
     const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const strings = LANG_STRINGS[lang];
-    const themeVariant = THEME_VARIANTS[variantIndex];
+    // Memoize expensive calculations
+    const memoizedStrings = useMemo(() => LANG_STRINGS[lang], [lang]);
+    const memoizedThemeVariant = useMemo(() => THEME_VARIANTS[variantIndex], [variantIndex]);
+
+    // Block overscroll when modal is open
+    useEffect(() => {
+        if (isModalOpen) {
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+        } else {
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.width = '';
+        };
+    }, [isModalOpen]);
+
+    const strings = memoizedStrings;
+    const themeVariant = memoizedThemeVariant;
 
     // --- Local Storage Hooks (UNCHANGED) ---
     // Show install prompt after 3 seconds if not installed
@@ -1096,29 +1257,67 @@ export default function ShiftTracker() {
     };
 
     useEffect(() => {
-        const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (savedData) {
+        const loadData = async () => {
             try {
-                const parsedData = JSON.parse(savedData);
-                setShifts(parsedData.shifts || []);
-                setHourlyRate(parsedData.hourlyRate || 1000);
-                setLang(parsedData.lang || 'jp');
-                setTheme(parsedData.theme || 'light');
-                setVariantIndex(parsedData.variantIndex || 3);
+                // Try IndexedDB first
+                const data = await loadFromIndexedDB('appData');
+                if (data && typeof data === 'object') {
+                    setShifts(data.shifts || []);
+                    setHourlyRate(data.hourlyRate || 1000);
+                    setLang(data.lang || 'jp');
+                    setTheme(data.theme || 'light');
+                    setVariantIndex(data.variantIndex || 3);
+                    setIsLoading(false);
+                    return;
+                }
             } catch (e) {
-                console.error("Failed to parse local storage data:", e);
+                console.warn("IndexedDB failed, trying localStorage:", e);
             }
-        }
+
+            // Fallback to localStorage
+            try {
+                const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+                if (savedData) {
+                    const parsedData = JSON.parse(savedData);
+                    setShifts(parsedData.shifts || []);
+                    setHourlyRate(parsedData.hourlyRate || 1000);
+                    setLang(parsedData.lang || 'jp');
+                    setTheme(parsedData.theme || 'light');
+                    setVariantIndex(parsedData.variantIndex || 3);
+
+                    // Try to migrate to IndexedDB
+                    try {
+                        await saveToIndexedDB('appData', parsedData);
+                    } catch (e) {
+                        console.warn("Failed to migrate to IndexedDB:", e);
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to load from localStorage:", e);
+            }
+
+            setIsLoading(false);
+        };
+        loadData();
     }, []);
 
     useEffect(() => {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
-            shifts,
-            hourlyRate,
-            lang,
-            theme,
-            variantIndex
-        }));
+        if (isLoading) return; // Don't save during initial load
+
+        const saveData = async () => {
+            const data = { shifts, hourlyRate, lang, theme, variantIndex };
+
+            // Always save to localStorage as backup
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+
+            // Try to save to IndexedDB
+            try {
+                await saveToIndexedDB('appData', data);
+            } catch (e) {
+                console.warn("Failed to save to IndexedDB:", e);
+            }
+        };
+        saveData();
 
         if (theme === 'dark') {
             document.documentElement.classList.add('dark');
@@ -1132,7 +1331,7 @@ export default function ShiftTracker() {
             themeColorMeta.setAttribute('content', theme === 'dark' ? '#0f172a' : '#6366f1');
         }
 
-    }, [shifts, hourlyRate, lang, theme, variantIndex]);
+    }, [shifts, hourlyRate, lang, theme, variantIndex, isLoading]);
 
     // --- Core Logic (UNCHANGED) ---
 
@@ -1239,10 +1438,10 @@ export default function ShiftTracker() {
     const renderShiftList = () => (
         <motion.div
             key="list"
-            initial={{ opacity: 0, x: -50 }}
+            initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 50 }}
-            transition={{ type: "tween", duration: 0.3 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
             className="space-y-4 pt-4"
         >
             {sortedAndFilteredShifts.length > 0 ? (
@@ -1269,10 +1468,10 @@ export default function ShiftTracker() {
     const renderMonthlyView = () => (
         <motion.div
             key="monthly"
-            initial={{ opacity: 0, x: 50 }}
+            initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ type: "tween", duration: 0.3 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
             className="pt-4"
         >
             {aggregatedData.sortedMonths.length > 0 ? (
@@ -1346,11 +1545,23 @@ export default function ShiftTracker() {
         );
     }
 
-    // --- Main Layout (UNCHANGED) ---
+    // --- Main Layout (OPTIMIZED) ---
 
-    const appClasses = theme === 'light'
-        ? themeVariant.light
-        : themeVariant.dark;
+    const appClasses = useMemo(() => 
+        theme === 'light' ? themeVariant.light : themeVariant.dark,
+        [theme, themeVariant]
+    );
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-slate-900 dark:to-slate-800">
+                <div className="text-center">
+                    <div className={cn("w-12 h-12 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4", PRIMARY_COLOR_CLASSES.border)}></div>
+                    <p className={cn("text-lg font-semibold", PRIMARY_COLOR_CLASSES.text)}>Loading...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <>
@@ -1438,10 +1649,20 @@ export default function ShiftTracker() {
                                     isOpen: true,
                                     title: strings.areYouSure,
                                     message: strings.clearData,
-                                    onConfirm: () => {
+                                    onConfirm: async () => {
                                         setShifts([]);
                                         setHourlyRate(1000);
-                                        localStorage.removeItem(LOCAL_STORAGE_KEY);
+                                        const emptyData = { shifts: [], hourlyRate: 1000, lang, theme, variantIndex };
+
+                                        // Clear localStorage
+                                        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(emptyData));
+
+                                        // Try to clear IndexedDB
+                                        try {
+                                            await saveToIndexedDB('appData', emptyData);
+                                        } catch (e) {
+                                            console.warn('Failed to clear IndexedDB:', e);
+                                        }
                                         setAlertConfig(null);
                                     }
                                 });
