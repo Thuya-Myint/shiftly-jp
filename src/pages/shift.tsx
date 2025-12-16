@@ -233,8 +233,7 @@ function ScrollColumn({ options, selected, onSelect, isSmallDevice }: { options:
                 ref={containerRef}
                 onScroll={handleScroll}
                 style={{ height: `${CONTAINER_HEIGHT}px` }}
-                // Responsive width: w-10 on small, w-12 on larger screens
-                className="overflow-y-auto no-scrollbar relative z-10 w-10 sm:w-12 text-center flex-shrink-0"
+                className="overflow-y-auto overflow-x-hidden no-scrollbar relative z-10 w-10 sm:w-12 text-center flex-shrink-0"
             >
                 <div style={{ height: `${ITEM_HEIGHT}px` }} />
                 {options.map((o, idx) => {
@@ -984,14 +983,15 @@ export default function ShiftTracker() {
     const addOrUpdateShift = (newShiftData: Omit<Shift, 'hours' | 'pay' | 'dayOfWeek'>) => {
         const processedShift = processShiftData({ ...newShiftData, wage: newShiftData.wage || hourlyRate });
 
-        if (processedShift.id === 'new') {
-            // New shift
-            setShifts(prev => [processedShift, ...prev]);
-        } else {
+        if (editingShift) {
             // Update existing
             setShifts(prev => prev.map(s => s.id === processedShift.id ? processedShift : s));
+        } else {
+            // New shift
+            setShifts(prev => [processedShift, ...prev]);
         }
         setEditingShift(null);
+        setIsModalOpen(false);
     };
 
     const deleteShift = (id: string) => {

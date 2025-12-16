@@ -197,9 +197,7 @@ function ScrollColumn({ options, selected, onSelect, isSmallDevice }) {
             }
         }, 100);
     };
-    return (_jsxs("div", { className: "relative group ", children: [_jsx("div", { style: { height: `${ITEM_HEIGHT}px`, top: `${ITEM_HEIGHT}px` }, className: cn("absolute left-0 right-0 rounded-lg pointer-events-none z-0", PRIMARY_COLOR_CLASSES.bgLight + '/50 dark:' + PRIMARY_COLOR_CLASSES.bgDark) }), _jsxs("div", { ref: containerRef, onScroll: handleScroll, style: { height: `${CONTAINER_HEIGHT}px` }, 
-                // Responsive width: w-10 on small, w-12 on larger screens
-                className: "overflow-y-auto no-scrollbar relative z-10 w-10 sm:w-12 text-center flex-shrink-0", children: [_jsx("div", { style: { height: `${ITEM_HEIGHT}px` } }), options.map((o, idx) => {
+    return (_jsxs("div", { className: "relative group ", children: [_jsx("div", { style: { height: `${ITEM_HEIGHT}px`, top: `${ITEM_HEIGHT}px` }, className: cn("absolute left-0 right-0 rounded-lg pointer-events-none z-0", PRIMARY_COLOR_CLASSES.bgLight + '/50 dark:' + PRIMARY_COLOR_CLASSES.bgDark) }), _jsxs("div", { ref: containerRef, onScroll: handleScroll, style: { height: `${CONTAINER_HEIGHT}px` }, className: "overflow-y-auto overflow-x-hidden no-scrollbar relative z-10 w-10 sm:w-12 text-center flex-shrink-0", children: [_jsx("div", { style: { height: `${ITEM_HEIGHT}px` } }), options.map((o, idx) => {
                         const isSelected = Number(o) === selected;
                         return (_jsx("div", { style: { height: `${ITEM_HEIGHT}px` }, onClick: () => {
                                 if (containerRef.current) {
@@ -412,15 +410,16 @@ export default function ShiftTracker() {
     }, [lang]);
     const addOrUpdateShift = (newShiftData) => {
         const processedShift = processShiftData({ ...newShiftData, wage: newShiftData.wage || hourlyRate });
-        if (processedShift.id === 'new') {
-            // New shift
-            setShifts(prev => [processedShift, ...prev]);
-        }
-        else {
+        if (editingShift) {
             // Update existing
             setShifts(prev => prev.map(s => s.id === processedShift.id ? processedShift : s));
         }
+        else {
+            // New shift
+            setShifts(prev => [processedShift, ...prev]);
+        }
         setEditingShift(null);
+        setIsModalOpen(false);
     };
     const deleteShift = (id) => {
         if (window.confirm(`${strings.areYouSure} (${strings.delete})?`)) {
