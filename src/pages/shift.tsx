@@ -892,14 +892,7 @@ function MonthFilter({ selectedMonth, onMonthSelect, lang }: { selectedMonth: Da
     const strings = LANG_STRINGS[lang];
 
     const allShiftMonths = useMemo(() => {
-        const months = new Set<string>();
-        const currentYear = new Date().getFullYear();
-        for (let i = 0; i < 12; i++) {
-            months.add(format(new Date(currentYear, i, 1), 'yyyy-MM'));
-        }
-
-        return Array.from(months)
-            .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+        return [];
     }, []);
 
     const handleSelectMonth = (monthStr: string | undefined) => {
@@ -1192,10 +1185,10 @@ export default function ShiftTracker() {
     const [lang, setLang] = useState<Lang>('jp');
     const [theme, setTheme] = useState<'light' | 'dark'>('light');
     const [variantIndex, setVariantIndex] = useState(3); // Violet Horizon
-    const [viewMode, setViewMode] = useState<ViewMode>('list');
+    const [viewMode, setViewMode] = useState<ViewMode>('monthly');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingShift, setEditingShift] = useState<Shift | null>(null);
-    const [filterMonth, setFilterMonth] = useState<Date | undefined>(undefined);
+    const [filterMonth, setFilterMonth] = useState<Date | undefined>(new Date());
     const [alertConfig, setAlertConfig] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void } | null>(null);
     const [showInstallPrompt, setShowInstallPrompt] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -1448,37 +1441,34 @@ export default function ShiftTracker() {
         </motion.div>
     );
 
-    const renderMonthlyView = () => (
-        <motion.div
-            key="monthly"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: window.innerWidth < 768 ? 0 : 0.15 }}
-            className="pt-4"
-        >
-            {aggregatedData.sortedMonths.length > 0 ? (
-                aggregatedData.sortedMonths.map(monthKey => (
+    const renderMonthlyView = () => {
+        const currentMonthKey = filterMonth ? format(filterMonth, 'yyyy-MM') : format(new Date(), 'yyyy-MM');
+        const monthData = aggregatedData.monthlyGroups[currentMonthKey];
+        
+        return (
+            <div className="pt-4">
+                {monthData ? (
                     <MonthlyGroup
-                        key={monthKey}
-                        monthKey={monthKey}
-                        totalPay={aggregatedData.monthlyGroups[monthKey].totalPay}
-                        totalHours={aggregatedData.monthlyGroups[monthKey].totalHours}
-                        shifts={aggregatedData.monthlyGroups[monthKey].shifts}
+                        key={currentMonthKey}
+                        monthKey={currentMonthKey}
+                        totalPay={monthData.totalPay}
+                        totalHours={monthData.totalHours}
+                        shifts={monthData.shifts}
                         theme={theme}
                         baseLang={lang}
                         onDelete={deleteShift}
                         onUpdate={openEditModal}
                     />
-                ))
-            ) : (
-                <EmptyState
-                    lang={lang}
-                    hasFilter={!!filterMonth}
-                    onClearFilter={() => setFilterMonth(undefined)}
-                />
-            )}
-        </motion.div>
-    );
+                ) : (
+                    <EmptyState
+                        lang={lang}
+                        hasFilter={!!filterMonth}
+                        onClearFilter={() => setFilterMonth(new Date())}
+                    />
+                )}
+            </div>
+        );
+    };
 
     // --- Empty State Component (UNCHANGED) ---
     function EmptyState({ lang, hasFilter, onClearFilter }: { lang: Lang, hasFilter: boolean, onClearFilter: () => void }) {
@@ -1507,7 +1497,7 @@ export default function ShiftTracker() {
                                 "hover:bg-indigo-50/20 dark:hover:bg-violet-900/30"
                             )}
                         >
-                            <X size={16} className="mr-2" /> {strings.clearFilter}
+                            <X size={16} className="mr-2" /> {lang === 'en' ? 'Current Month' : '今月'}
                         </Button>
                     </>
                 ) : (
@@ -1595,33 +1585,14 @@ export default function ShiftTracker() {
                                     lang={lang}
                                 />
 
-                                <Button
-                                    onClick={() => setViewMode(prev => prev === 'list' ? 'monthly' : 'list')}
-                                    variant="outline"
-                                    className={cn(
-                                        "h-10 w-10 sm:h-12 sm:w-12 p-0 flex items-center justify-center rounded-xl border-2 transition-all flex-shrink-0",
-                                        viewMode === 'list'
-                                            ? "border-gray-300 dark:border-slate-600 text-gray-800 dark:text-gray-400 bg-white/80 dark:bg-slate-900/60"
-                                            : cn(PRIMARY_COLOR_CLASSES.border, PRIMARY_COLOR_CLASSES.text, "bg-white dark:bg-slate-900/80")
-                                    )}
-                                    title={viewMode === 'list' ? strings.monthly : strings.list}
-                                >
-                                    {viewMode === 'list' ? <List size={20} /> : <Clock size={20} />}
-                                </Button>
+
                             </div>
                         </div>
                     </header>
 
                     {/* Content Area */}
                     <main className="w-full max-w-4xl pb-16 px-4">
-                        <div className="md:hidden">
-                            {viewMode === 'list' ? renderShiftList() : renderMonthlyView()}
-                        </div>
-                        <div className="hidden md:block">
-                            <AnimatePresence mode="wait" initial={false}>
-                                {viewMode === 'list' ? renderShiftList() : renderMonthlyView()}
-                            </AnimatePresence>
-                        </div>
+                        {renderMonthlyView()}
                     </main>
 
                     {/* Footer/Clear Data */}
