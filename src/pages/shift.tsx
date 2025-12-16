@@ -4,7 +4,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Sun, Moon, Globe, Calendar as CalendarIcon, Clock, Trash2, RotateCcw, List, Filter, X, Zap } from 'lucide-react';
+import { Plus, Sun, Moon, Globe, Calendar as CalendarIcon, Clock, Trash2, RotateCcw, List, Filter, X, Zap, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 
@@ -168,6 +168,58 @@ function calculateHours(from: string, to: string) {
     if (endMinutes <= startMinutes) endMinutes += 24 * 60;
     const durationMinutes = endMinutes - startMinutes;
     return durationMinutes <= 0 ? 0 : Math.round((durationMinutes / 60) * 100) / 100;
+}
+
+// --- CUSTOM ALERT COMPONENT ---
+function CustomAlert({ isOpen, onConfirm, onCancel, title, message }: {
+    isOpen: boolean;
+    onConfirm: () => void;
+    onCancel: () => void;
+    title: string;
+    message: string;
+}) {
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[99999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+                    onClick={onCancel}
+                >
+                    <motion.div
+                        initial={{ scale: 0.9, y: 20 }}
+                        animate={{ scale: 1, y: 0 }}
+                        exit={{ scale: 0.9, y: 20 }}
+                        className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-gray-200 dark:border-slate-700"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center gap-3 mb-4">
+                            <AlertTriangle className="text-red-500 flex-shrink-0" size={24} />
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h3>
+                        </div>
+                        <p className="text-gray-600 dark:text-gray-300 mb-6">{message}</p>
+                        <div className="flex gap-3">
+                            <Button
+                                onClick={onCancel}
+                                variant="outline"
+                                className="flex-1 h-10 rounded-xl border-gray-300 dark:border-slate-600 text-gray-600 dark:text-gray-400"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={onConfirm}
+                                className={cn("flex-1 h-10 rounded-xl text-white font-semibold", "bg-red-500 hover:bg-red-600")}
+                            >
+                                Delete
+                            </Button>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+    );
 }
 
 // --- UTILITY FUNCTIONS (UNCHANGED) ---
@@ -420,9 +472,7 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
     const displayDayOfWeek = useMemo(() => getDayOfWeek(shift.date, shiftLang), [shift.date, shiftLang]);
 
     const handleDelete = () => {
-        if (window.confirm(`${strings.areYouSure} (${strings.delete})?`)) {
-            onDelete(shift.id);
-        }
+        onDelete(shift.id);
     };
 
     return (
@@ -927,6 +977,7 @@ export default function ShiftTracker() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingShift, setEditingShift] = useState<Shift | null>(null);
     const [filterMonth, setFilterMonth] = useState<Date | undefined>(undefined);
+    const [alertConfig, setAlertConfig] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void } | null>(null);
 
     const strings = LANG_STRINGS[lang];
     const themeVariant = THEME_VARIANTS[variantIndex];
@@ -995,9 +1046,15 @@ export default function ShiftTracker() {
     };
 
     const deleteShift = (id: string) => {
-        if (window.confirm(`${strings.areYouSure} (${strings.delete})?`)) {
-            setShifts(prev => prev.filter(s => s.id !== id));
-        }
+        setAlertConfig({
+            isOpen: true,
+            title: strings.areYouSure,
+            message: strings.delete,
+            onConfirm: () => {
+                setShifts(prev => prev.filter(s => s.id !== id));
+                setAlertConfig(null);
+            }
+        });
     };
 
     const openAddModal = () => {
@@ -1215,10 +1272,10 @@ export default function ShiftTracker() {
                                 ? 'bg-white/80 border-gray-200'
                                 : 'bg-slate-900/70 border-slate-700'
                         )}>
-                            <div className="flex flex-col items-start">
-                                <p className="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-400">{strings.grandTotal}</p>
-                                <p className={cn("text-3xl font-black", PRIMARY_COLOR_CLASSES.text)}>{yen.format(aggregatedData.grandTotal.totalPay)}</p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{aggregatedData.grandTotal.totalHours} {strings.hours}</p>
+                            <div className="flex flex-col items-center sm:items-start">
+                                <p className="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-400 text-center sm:text-left">{strings.grandTotal}</p>
+                                <p className={cn("text-3xl font-black text-center sm:text-left", PRIMARY_COLOR_CLASSES.text)}>{yen.format(aggregatedData.grandTotal.totalPay)}</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left">{aggregatedData.grandTotal.totalHours} {strings.hours}</p>
                             </div>
 
                             <div className="flex gap-3 w-full sm:w-auto flex-1 sm:flex-none min-w-0">
@@ -1259,11 +1316,17 @@ export default function ShiftTracker() {
                             size="sm"
                             className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200"
                             onClick={() => {
-                                if (window.confirm(`${strings.areYouSure} (${strings.clearData})?`)) {
-                                    setShifts([]);
-                                    setHourlyRate(1000);
-                                    localStorage.removeItem(LOCAL_STORAGE_KEY);
-                                }
+                                setAlertConfig({
+                                    isOpen: true,
+                                    title: strings.areYouSure,
+                                    message: strings.clearData,
+                                    onConfirm: () => {
+                                        setShifts([]);
+                                        setHourlyRate(1000);
+                                        localStorage.removeItem(LOCAL_STORAGE_KEY);
+                                        setAlertConfig(null);
+                                    }
+                                });
                             }}
                         >
                             <Trash2 size={16} className="mr-2" /> {strings.clearData}
@@ -1278,6 +1341,16 @@ export default function ShiftTracker() {
                     initialShift={editingShift}
                     lang={lang}
                 />
+                
+                {alertConfig && (
+                    <CustomAlert
+                        isOpen={alertConfig.isOpen}
+                        title={alertConfig.title}
+                        message={alertConfig.message}
+                        onConfirm={alertConfig.onConfirm}
+                        onCancel={() => setAlertConfig(null)}
+                    />
+                )}
             </div>
         </>
     );

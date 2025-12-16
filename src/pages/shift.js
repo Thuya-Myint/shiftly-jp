@@ -5,7 +5,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Sun, Moon, Globe, Calendar as CalendarIcon, Clock, Trash2, RotateCcw, List, Filter, X, Zap } from 'lucide-react';
+import { Plus, Sun, Moon, Globe, Calendar as CalendarIcon, Clock, Trash2, RotateCcw, List, Filter, X, Zap, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 // --- Constants ---
@@ -148,6 +148,10 @@ function calculateHours(from, to) {
     const durationMinutes = endMinutes - startMinutes;
     return durationMinutes <= 0 ? 0 : Math.round((durationMinutes / 60) * 100) / 100;
 }
+// --- CUSTOM ALERT COMPONENT ---
+function CustomAlert({ isOpen, onConfirm, onCancel, title, message }) {
+    return (_jsx(AnimatePresence, { children: isOpen && (_jsx(motion.div, { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, className: "fixed inset-0 z-[99999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4", onClick: onCancel, children: _jsxs(motion.div, { initial: { scale: 0.9, y: 20 }, animate: { scale: 1, y: 0 }, exit: { scale: 0.9, y: 20 }, className: "bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-gray-200 dark:border-slate-700", onClick: (e) => e.stopPropagation(), children: [_jsxs("div", { className: "flex items-center gap-3 mb-4", children: [_jsx(AlertTriangle, { className: "text-red-500 flex-shrink-0", size: 24 }), _jsx("h3", { className: "text-lg font-bold text-gray-900 dark:text-white", children: title })] }), _jsx("p", { className: "text-gray-600 dark:text-gray-300 mb-6", children: message }), _jsxs("div", { className: "flex gap-3", children: [_jsx(Button, { onClick: onCancel, variant: "outline", className: "flex-1 h-10 rounded-xl border-gray-300 dark:border-slate-600 text-gray-600 dark:text-gray-400", children: "Cancel" }), _jsx(Button, { onClick: onConfirm, className: cn("flex-1 h-10 rounded-xl text-white font-semibold", "bg-red-500 hover:bg-red-600"), children: "Delete" })] })] }) })) }));
+}
 // --- UTILITY FUNCTIONS (UNCHANGED) ---
 const getDayOfWeek = (dateString, language) => {
     try {
@@ -262,9 +266,7 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }) {
     }, [baseLang]);
     const displayDayOfWeek = useMemo(() => getDayOfWeek(shift.date, shiftLang), [shift.date, shiftLang]);
     const handleDelete = () => {
-        if (window.confirm(`${strings.areYouSure} (${strings.delete})?`)) {
-            onDelete(shift.id);
-        }
+        onDelete(shift.id);
     };
     return (_jsxs(motion.div, { layout: true, initial: { opacity: 0, scale: 0.95, y: 20 }, animate: { opacity: 1, scale: 1, y: 0 }, exit: { opacity: 0, scale: 0.95, y: -20 }, whileHover: { scale: 1.02, y: -4 }, transition: { type: "spring", stiffness: 300, damping: 30 }, className: cn("group relative overflow-hidden rounded-3xl p-4 sm:p-6 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer backdrop-blur-xl border", theme === 'light'
             ? 'bg-white/80 border-gray-200/50 hover:bg-white/90'
@@ -362,6 +364,7 @@ export default function ShiftTracker() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingShift, setEditingShift] = useState(null);
     const [filterMonth, setFilterMonth] = useState(undefined);
+    const [alertConfig, setAlertConfig] = useState(null);
     const strings = LANG_STRINGS[lang];
     const themeVariant = THEME_VARIANTS[variantIndex];
     // --- Local Storage Hooks (UNCHANGED) ---
@@ -422,9 +425,15 @@ export default function ShiftTracker() {
         setIsModalOpen(false);
     };
     const deleteShift = (id) => {
-        if (window.confirm(`${strings.areYouSure} (${strings.delete})?`)) {
-            setShifts(prev => prev.filter(s => s.id !== id));
-        }
+        setAlertConfig({
+            isOpen: true,
+            title: strings.areYouSure,
+            message: strings.delete,
+            onConfirm: () => {
+                setShifts(prev => prev.filter(s => s.id !== id));
+                setAlertConfig(null);
+            }
+        });
     };
     const openAddModal = () => {
         setEditingShift(null);
@@ -488,13 +497,19 @@ export default function ShiftTracker() {
         : themeVariant.dark;
     return (_jsxs(_Fragment, { children: [_jsx(GlobalStyles, {}), _jsxs("div", { className: cn("min-h-screen", appClasses), children: [_jsxs("div", { className: cn("min-h-screen flex flex-col items-center p-4 sm:p-6 transition-colors duration-500"), children: [_jsxs("header", { className: "w-full max-w-4xl sticky top-0 z-40 mb-6 py-4 backdrop-blur-md bg-transparent/80", children: [_jsxs("div", { className: "flex justify-between items-center mb-4", children: [_jsx("h1", { className: cn("text-2xl sm:text-3xl font-extrabold tracking-tight", PRIMARY_COLOR_CLASSES.text), children: "Shift Tracker" }), _jsxs("div", { className: "flex gap-2", children: [_jsx(ThemeDropdown, { theme: theme, setTheme: setTheme, variantIndex: variantIndex, setVariantIndex: setVariantIndex, toggleLang: toggleLang }), _jsx(motion.button, { onClick: openAddModal, whileTap: { scale: 0.95 }, className: cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer backdrop-blur-md border shadow-sm transition-colors", PRIMARY_COLOR_CLASSES.bgGradient, "text-white"), "aria-label": "Add new shift", children: _jsx(Plus, { size: 18 }) })] })] }), _jsxs("div", { className: cn("p-4 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4 border", theme === 'light'
                                             ? 'bg-white/80 border-gray-200'
-                                            : 'bg-slate-900/70 border-slate-700'), children: [_jsxs("div", { className: "flex flex-col items-start", children: [_jsx("p", { className: "text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-400", children: strings.grandTotal }), _jsx("p", { className: cn("text-3xl font-black", PRIMARY_COLOR_CLASSES.text), children: yen.format(aggregatedData.grandTotal.totalPay) }), _jsxs("p", { className: "text-sm text-gray-500 dark:text-gray-400", children: [aggregatedData.grandTotal.totalHours, " ", strings.hours] })] }), _jsxs("div", { className: "flex gap-3 w-full sm:w-auto flex-1 sm:flex-none min-w-0", children: [_jsx(MonthFilter, { selectedMonth: filterMonth, onMonthSelect: setFilterMonth, lang: lang }), _jsx(Button, { onClick: () => setViewMode(prev => prev === 'list' ? 'monthly' : 'list'), variant: "outline", className: cn("h-10 w-10 sm:h-12 sm:w-12 p-0 flex items-center justify-center rounded-xl border-2 transition-all flex-shrink-0", viewMode === 'list'
+                                            : 'bg-slate-900/70 border-slate-700'), children: [_jsxs("div", { className: "flex flex-col items-center sm:items-start", children: [_jsx("p", { className: "text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-400 text-center sm:text-left", children: strings.grandTotal }), _jsx("p", { className: cn("text-3xl font-black text-center sm:text-left", PRIMARY_COLOR_CLASSES.text), children: yen.format(aggregatedData.grandTotal.totalPay) }), _jsxs("p", { className: "text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left", children: [aggregatedData.grandTotal.totalHours, " ", strings.hours] })] }), _jsxs("div", { className: "flex gap-3 w-full sm:w-auto flex-1 sm:flex-none min-w-0", children: [_jsx(MonthFilter, { selectedMonth: filterMonth, onMonthSelect: setFilterMonth, lang: lang }), _jsx(Button, { onClick: () => setViewMode(prev => prev === 'list' ? 'monthly' : 'list'), variant: "outline", className: cn("h-10 w-10 sm:h-12 sm:w-12 p-0 flex items-center justify-center rounded-xl border-2 transition-all flex-shrink-0", viewMode === 'list'
                                                             ? "border-gray-300 dark:border-slate-600 text-gray-800 dark:text-gray-400 bg-white/80 dark:bg-slate-900/60"
                                                             : cn(PRIMARY_COLOR_CLASSES.border, PRIMARY_COLOR_CLASSES.text, "bg-white dark:bg-slate-900/80")), title: viewMode === 'list' ? strings.monthly : strings.list, children: viewMode === 'list' ? _jsx(List, { size: 20 }) : _jsx(Clock, { size: 20 }) })] })] })] }), _jsx("main", { className: "w-full max-w-4xl pb-16", children: _jsx(AnimatePresence, { mode: "wait", children: viewMode === 'list' ? renderShiftList() : renderMonthlyView() }) }), _jsx("footer", { className: "w-full max-w-4xl mt-8 pt-4 border-t border-gray-200 dark:border-slate-700", children: _jsxs(Button, { variant: "ghost", size: "sm", className: "text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200", onClick: () => {
-                                        if (window.confirm(`${strings.areYouSure} (${strings.clearData})?`)) {
-                                            setShifts([]);
-                                            setHourlyRate(1000);
-                                            localStorage.removeItem(LOCAL_STORAGE_KEY);
-                                        }
-                                    }, children: [_jsx(Trash2, { size: 16, className: "mr-2" }), " ", strings.clearData] }) })] }), _jsx(AddEditShiftModal, { isOpen: isModalOpen, onClose: () => setIsModalOpen(false), onSubmit: addOrUpdateShift, initialShift: editingShift, lang: lang })] })] }));
+                                        setAlertConfig({
+                                            isOpen: true,
+                                            title: strings.areYouSure,
+                                            message: strings.clearData,
+                                            onConfirm: () => {
+                                                setShifts([]);
+                                                setHourlyRate(1000);
+                                                localStorage.removeItem(LOCAL_STORAGE_KEY);
+                                                setAlertConfig(null);
+                                            }
+                                        });
+                                    }, children: [_jsx(Trash2, { size: 16, className: "mr-2" }), " ", strings.clearData] }) })] }), _jsx(AddEditShiftModal, { isOpen: isModalOpen, onClose: () => setIsModalOpen(false), onSubmit: addOrUpdateShift, initialShift: editingShift, lang: lang }), alertConfig && (_jsx(CustomAlert, { isOpen: alertConfig.isOpen, title: alertConfig.title, message: alertConfig.message, onConfirm: alertConfig.onConfirm, onCancel: () => setAlertConfig(null) }))] })] }));
 }
