@@ -664,14 +664,15 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [dropdownRef]);
 
-    const handleSelectVariant = (index: number) => {
+    const handleSelectVariant = useCallback((index: number) => {
         setVariantIndex(index);
         setIsOpen(false);
-    };
-    const handleToggleTheme = (newTheme: 'light' | 'dark') => {
+    }, [setVariantIndex]);
+    
+    const handleToggleTheme = useCallback((newTheme: 'light' | 'dark') => {
         setTheme(newTheme);
         setIsOpen(false);
-    };
+    }, [setTheme]);
     const handleThemeIconClick = () => setIsOpen(prev => !prev);
 
     return (
@@ -1645,7 +1646,7 @@ export default function ShiftTracker() {
         <>
             <GlobalStyles />
             <div className={cn("min-h-screen", appClasses)}>
-                <div className={cn("min-h-screen flex flex-col items-center sm:p-6 transition-colors duration-500")}>
+                <div className={cn("min-h-screen flex flex-col items-center sm:p-6 transition-colors duration-200")}>
 
                     {/* Header/Controls */}
                     <header className="w-full max-w-4xl sticky p-4 top-0 z-40 mb-6 py-4 backdrop-blur-md bg-transparent/80">
@@ -1662,14 +1663,13 @@ export default function ShiftTracker() {
                                     toggleLang={toggleLang}
                                     primaryColors={PRIMARY_COLOR_CLASSES}
                                 />
-                                <motion.button
+                                <button
                                     onClick={openAddModal}
-                                    whileTap={{ scale: 0.95 }}
-                                    className={cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer backdrop-blur-md border shadow-sm transition-colors", PRIMARY_COLOR_CLASSES.bgGradient, "text-white")}
+                                    className={cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer backdrop-blur-md border shadow-sm transition-all active:scale-95", PRIMARY_COLOR_CLASSES.bgGradient, "text-white")}
                                     aria-label="Add new shift"
                                 >
                                     <Plus size={18} />
-                                </motion.button>
+                                </button>
                             </div>
                         </div>
 
