@@ -1531,13 +1531,7 @@ export default function ShiftTracker() {
     // --- Render Components (UNCHANGED) ---
 
     const renderShiftList = () => (
-        <motion.div
-            key="list"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: window.innerWidth < 768 ? 0 : 0.15 }}
-            className="space-y-4 pt-4"
-        >
+        <div className="space-y-4 pt-4">
             {sortedAndFilteredShifts.length > 0 ? (
                 sortedAndFilteredShifts.map(shift => (
                     <ShiftItem
@@ -1595,9 +1589,7 @@ export default function ShiftTracker() {
         const strings = LANG_STRINGS[lang];
 
         return (
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+            <div
                 className={cn(
                     "p-8 rounded-3xl text-center backdrop-blur-md transition-colors border",
                     theme === 'light' ? 'bg-indigo-50/50 border-indigo-200' : 'bg-slate-900/60 border-slate-700'
@@ -1633,7 +1625,7 @@ export default function ShiftTracker() {
                         </Button>
                     </>
                 )}
-            </motion.div>
+            </div>
         );
     }
 
@@ -1666,14 +1658,13 @@ export default function ShiftTracker() {
                                     toggleLang={toggleLang}
                                     primaryColors={PRIMARY_COLOR_CLASSES}
                                 />
-                                <motion.button
+                                <button
                                     onClick={openAddModal}
-                                    whileTap={{ scale: 0.95 }}
                                     className={cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer backdrop-blur-md border shadow-sm transition-colors", PRIMARY_COLOR_CLASSES.bgGradient, "text-white")}
                                     aria-label="Add new shift"
                                 >
                                     <Plus size={18} />
-                                </motion.button>
+                                </button>
                             </div>
                         </div>
 
