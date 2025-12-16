@@ -696,13 +696,8 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
     };
 
     return (
-        <motion.div
+        <div
             key={shift.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            whileHover={{ y: -1 }}
-            transition={{ type: "tween", duration: 0.15, ease: "easeOut" }}
             className={cn(
                 "group relative overflow-hidden rounded-3xl p-4 sm:p-6 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer backdrop-blur-xl border",
                 theme === 'light'
@@ -711,22 +706,18 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
             )}
             ref={itemRef}
         >
-            <motion.div
+            <div
                 className={cn(
                     "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500",
                     "bg-gradient-to-br from-indigo-500/5 via-violet-500/5 to-purple-500/5"
                 )}
-                initial={false}
-                animate={{ opacity: 0 }}
-                whileHover={{ opacity: 1 }}
             />
 
             <div className="flex flex-col lg:flex-row justify-between items-start relative z-10 gap-3 sm:gap-4 lg:gap-0">
                 <div className="flex flex-col space-y-3 sm:space-y-4 w-full lg:w-auto">
 
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                        <motion.span
-                            whileHover={{ scale: 1.1 }}
+                        <span
                             className={cn(
                                 "text-sm font-bold px-3 py-2 rounded-xl shadow-sm",
                                 PRIMARY_COLOR_CLASSES.bgLight,
@@ -735,19 +726,16 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
                             )}
                         >
                             {displayDayOfWeek}
-                        </motion.span>
+                        </span>
 
-                        <motion.span
-                            whileHover={{ scale: 1.05 }}
+                        <span
                             className="text-sm font-semibold px-3 py-2 rounded-xl bg-gray-100/80 dark:bg-slate-700/60 text-gray-900 dark:text-gray-100 shadow-sm backdrop-blur-sm"
                         >
                             {shift.date}
-                        </motion.span>
+                        </span>
 
-                        <motion.button
+                        <button
                             onClick={() => setShiftLang(shiftLang === 'en' ? 'jp' : 'en')}
-                            whileTap={{ scale: 0.95 }}
-                            whileHover={{ scale: 1.05 }}
                             className={cn(
                                 "text-sm font-medium px-3 py-2 rounded-xl border-2 backdrop-blur-sm transition-all duration-300",
                                 PRIMARY_COLOR_CLASSES.border,
@@ -759,76 +747,61 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
                         >
                             <Globe size={14} className="inline mr-2" />
                             {shiftLang === 'en' ? 'JP' : 'EN'}
-                        </motion.button>
+                        </button>
                     </div>
 
                     <div className="flex items-baseline gap-4">
-                        <motion.div
-                            className="flex items-baseline gap-3"
-                            whileHover={{ scale: 1.05 }}
-                        >
+                        <div className="flex items-baseline gap-3">
                             <span className="text-2xl font-bold text-gray-900 dark:text-white">{shift.fromTime}</span>
-                            <motion.span
-                                className={cn("text-lg font-medium", PRIMARY_COLOR_CLASSES.text)}
-                                animate={{ opacity: [0.7, 1, 0.7] }}
-                                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                            >
+                            <span className={cn("text-lg font-medium", PRIMARY_COLOR_CLASSES.text)}>
                                 →
-                            </motion.span>
+                            </span>
                             <span className="text-2xl font-bold text-gray-900 dark:text-white">{shift.toTime}</span>
-                        </motion.div>
+                        </div>
                     </div>
 
-                    <motion.p
-                        className="text-sm text-gray-700 dark:text-gray-300 font-medium"
-                        whileHover={{ scale: 1.02 }}
-                    >
+                    <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                         {shift.hours} {strings.hours} @ ¥{shift.wage.toLocaleString()}/{strings.hours === 'hours' ? 'h' : '時間'}
-                    </motion.p>
+                    </p>
                 </div>
 
                 <div className="flex flex-col items-start lg:items-end space-y-3 sm:space-y-4 w-full lg:w-auto">
-                    <motion.div
-                        whileHover={{ scale: 1.1 }}
+                    <div
                         className={cn(
                             "px-4 py-2 rounded-2xl shadow-lg backdrop-blur-sm",
                             PRIMARY_COLOR_CLASSES.bgGradient
                         )}
                     >
                         <p className="text-2xl font-black text-white">{yen.format(shift.pay)}</p>
-                    </motion.div>
+                    </div>
 
                     <div className="flex flex-wrap gap-2 sm:gap-3 w-full lg:w-auto justify-start lg:justify-end">
-                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className={cn(
-                                    "h-10 px-4 text-sm font-semibold rounded-xl border-2 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md",
-                                    PRIMARY_COLOR_CLASSES.border,
-                                    PRIMARY_COLOR_CLASSES.text,
-                                    theme === 'light' ? 'bg-white/60 hover:bg-white/80' : 'bg-slate-800/60 hover:bg-slate-800/80'
-                                )}
-                                onClick={() => onUpdate(shift)}
-                            >
-                                <RotateCcw size={16} className="mr-2" /> {strings.update}
-                            </Button>
-                        </motion.div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className={cn(
+                                "h-10 px-4 text-sm font-semibold rounded-xl border-2 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md",
+                                PRIMARY_COLOR_CLASSES.border,
+                                PRIMARY_COLOR_CLASSES.text,
+                                theme === 'light' ? 'bg-white/60 hover:bg-white/80' : 'bg-slate-800/60 hover:bg-slate-800/80'
+                            )}
+                            onClick={() => onUpdate(shift)}
+                        >
+                            <RotateCcw size={16} className="mr-2" /> {strings.update}
+                        </Button>
 
-                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-10 px-4 text-sm font-semibold rounded-xl border-2 border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 bg-white/60 dark:bg-slate-800/60 hover:bg-red-50 dark:hover:bg-red-900/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
-                                onClick={handleDelete}
-                            >
-                                <Trash2 size={16} className="mr-2" /> {strings.delete}
-                            </Button>
-                        </motion.div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-10 px-4 text-sm font-semibold rounded-xl border-2 border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 bg-white/60 dark:bg-slate-800/60 hover:bg-red-50 dark:hover:bg-red-900/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                            onClick={handleDelete}
+                        >
+                            <Trash2 size={16} className="mr-2" /> {strings.delete}
+                        </Button>
                     </div>
                 </div>
             </div>
-        </motion.div>
+        </div>
     );
 }
 
@@ -1443,7 +1416,7 @@ export default function ShiftTracker() {
     const renderMonthlyView = () => {
         const currentMonthKey = filterMonth ? format(filterMonth, 'yyyy-MM') : format(new Date(), 'yyyy-MM');
         const monthData = aggregatedData.monthlyGroups[currentMonthKey];
-        
+
         return (
             <div className="pt-4">
                 {monthData ? (
