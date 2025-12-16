@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
@@ -1892,14 +1892,16 @@ export default function ShiftTracker() {
                     </footer>
                 </div>
 
-                <AddEditShiftModal
-                    isOpen={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
-                    onSubmit={addOrUpdateShift}
-                    initialShift={editingShift}
-                    lang={lang}
-                    primaryColors={PRIMARY_COLOR_CLASSES}
-                />
+                {isModalOpen && (
+                    <AddEditShiftModal
+                        isOpen={isModalOpen}
+                        onClose={() => setIsModalOpen(false)}
+                        onSubmit={addOrUpdateShift}
+                        initialShift={editingShift}
+                        lang={lang}
+                        primaryColors={PRIMARY_COLOR_CLASSES}
+                    />
+                )}
 
                 {alertConfig && (
                     <CustomAlert
