@@ -899,7 +899,67 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate, primaryColors }
     );
 }
 
-// --- MONTHLY GROUP COMPONENT (UNCHANGED) ---
+// --- VIRTUAL SCROLL COMPONENT ---
+function VirtualShiftList({ shifts, theme, baseLang, onDelete, onUpdate, primaryColors }: {
+    shifts: Shift[];
+    theme: 'light' | 'dark';
+    baseLang: Lang;
+    onDelete: (id: string) => void;
+    onUpdate: (shift: Shift) => void;
+    primaryColors: ReturnType<typeof getPrimaryColorClasses>;
+}) {
+    const [scrollTop, setScrollTop] = useState(0);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const ITEM_HEIGHT = 200; // Approximate height of each shift item
+    const BUFFER = 3; // Render extra items for smooth scrolling
+    
+    const containerHeight = 600; // Fixed height for virtual scroll container
+    const visibleCount = Math.ceil(containerHeight / ITEM_HEIGHT);
+    const startIndex = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - BUFFER);
+    const endIndex = Math.min(shifts.length, startIndex + visibleCount + BUFFER * 2);
+    const visibleShifts = shifts.slice(startIndex, endIndex);
+    
+    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        setScrollTop(e.currentTarget.scrollTop);
+    };
+    
+    return (
+        <div 
+            ref={containerRef}
+            className="relative overflow-auto"
+            style={{ height: containerHeight }}
+            onScroll={handleScroll}
+        >
+            <div style={{ height: shifts.length * ITEM_HEIGHT, position: 'relative' }}>
+                <div 
+                    style={{ 
+                        transform: `translateY(${startIndex * ITEM_HEIGHT}px)`,
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0
+                    }}
+                >
+                    <div className="space-y-3">
+                        {visibleShifts.map((shift) => (
+                            <ShiftItem
+                                key={shift.id}
+                                shift={shift}
+                                theme={theme}
+                                baseLang={baseLang}
+                                onDelete={onDelete}
+                                onUpdate={onUpdate}
+                                primaryColors={primaryColors}
+                            />
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// --- MONTHLY GROUP COMPONENT ---
 function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang, onDelete, onUpdate, primaryColors }: {
     monthKey: string;
     totalPay: number;
@@ -938,19 +998,30 @@ function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang,
                     <p className={cn("text-2xl font-black", primaryColors.text)}>{yen.format(totalPay)}</p>
                 </div>
             </div>
-            <div className="space-y-3">
-                {shifts.map((s: Shift) => (
-                    <ShiftItem
-                        key={s.id}
-                        shift={s}
-                        theme={theme}
-                        baseLang={baseLang}
-                        onDelete={onDelete}
-                        onUpdate={onUpdate}
-                        primaryColors={primaryColors}
-                    />
-                ))}
-            </div>
+            {shifts.length > 20 ? (
+                <VirtualShiftList
+                    shifts={shifts}
+                    theme={theme}
+                    baseLang={baseLang}
+                    onDelete={onDelete}
+                    onUpdate={onUpdate}
+                    primaryColors={primaryColors}
+                />
+            ) : (
+                <div className="space-y-3">
+                    {shifts.map((s: Shift) => (
+                        <ShiftItem
+                            key={s.id}
+                            shift={s}
+                            theme={theme}
+                            baseLang={baseLang}
+                            onDelete={onDelete}
+                            onUpdate={onUpdate}
+                            primaryColors={primaryColors}
+                        />
+                    ))}
+                </div>
+            )}
         </motion.div>
     );
 }

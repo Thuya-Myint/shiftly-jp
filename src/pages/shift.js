@@ -148,6 +148,10 @@ const LANG_STRINGS = {
         tryDifferentMonth: '別の月を選択するか、フィルタをクリアしてください。',
     }
 };
+// --- MOBILE DETECTION ---
+const isMobile = () => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+};
 // --- GLOBAL STYLES WITH PERFORMANCE OPTIMIZATIONS ---
 const GlobalStyles = () => (_jsx("style", { children: `
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -170,7 +174,13 @@ const GlobalStyles = () => (_jsx("style", { children: `
           background: linear-gradient(135deg, #0f172a, #1e293b);
         }
         
-        
+        /* Mobile performance optimizations */
+        @media (max-width: 768px) {
+          * {
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+          }
+        }
 
         @keyframes gradient-x {
           0% { background-position: 0% 50%; }
@@ -183,6 +193,12 @@ const GlobalStyles = () => (_jsx("style", { children: `
           animation: gradient-x 20s ease infinite;
         }
         
+        /* Disable animations on mobile for better performance */
+        @media (max-width: 768px) {
+          .animate-gradient-x {
+            animation: none;
+          }
+        }
        
     ` }));
 // --- THEME VARIANTS ---
@@ -498,14 +514,36 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate, primaryColors }
             ? 'bg-white/80 border-gray-200/50 hover:bg-white/90'
             : 'bg-slate-900/60 border-slate-700/50 hover:bg-slate-900/80'), ref: itemRef, children: [_jsx("div", { className: cn("absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500", "bg-gradient-to-br from-indigo-500/5 via-violet-500/5 to-purple-500/5") }), _jsxs("div", { className: "flex justify-between items-start relative z-10 gap-2", children: [_jsxs("div", { className: "flex flex-col gap-2 flex-1", children: [_jsxs("div", { className: "flex flex-wrap items-center gap-1 sm:gap-2", children: [_jsx("span", { className: cn("text-xs sm:text-sm font-bold px-2 py-1 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl shadow-sm", primaryColors.bgLight, "dark:bg-violet-900/40", primaryColors.text), children: displayDayOfWeek }), _jsx("span", { className: "text-xs sm:text-sm font-semibold px-2 py-1 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl bg-gray-100/80 dark:bg-slate-700/60 text-gray-900 dark:text-gray-100 shadow-sm backdrop-blur-sm", children: shift.date }), _jsxs("button", { onClick: () => setShiftLang(shiftLang === 'en' ? 'jp' : 'en'), className: cn("text-xs sm:text-sm font-medium px-2 py-1 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl border-2 backdrop-blur-sm transition-all duration-300", primaryColors.border, primaryColors.text, "hover:shadow-md", theme === 'light' ? 'bg-white/60' : 'bg-slate-800/60'), "aria-label": "Translate shift details", children: [_jsx(Globe, { size: 12, className: "inline mr-1" }), shiftLang === 'en' ? 'JP' : 'EN'] })] }), _jsxs("div", { className: "flex items-baseline gap-2 sm:gap-3", children: [_jsx("span", { className: "text-xl sm:text-2xl font-bold text-gray-900 dark:text-white", children: shift.fromTime }), _jsx("span", { className: cn("text-base sm:text-lg font-medium", primaryColors.text), children: "\u2192" }), _jsx("span", { className: "text-xl sm:text-2xl font-bold text-gray-900 dark:text-white", children: shift.toTime })] }), _jsxs("p", { className: "text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium", children: [shift.hours, " ", strings.hours, " @ \u00A5", shift.wage.toLocaleString(), "/", strings.hours === 'hours' ? 'h' : '時間'] })] }), _jsxs("div", { className: "flex flex-col items-end gap-2 flex-shrink-0", children: [_jsx("div", { className: cn("px-3 py-1 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl shadow-lg backdrop-blur-sm", primaryColors.bgGradient), children: _jsx("p", { className: "text-lg sm:text-2xl font-black text-white", children: yen.format(shift.pay) }) }), _jsxs("div", { className: "flex flex-col gap-1 sm:gap-2", children: [_jsxs(Button, { variant: "outline", size: "sm", className: cn("h-8 px-2 sm:h-9 sm:px-3 text-xs font-semibold rounded-lg sm:rounded-xl border-2 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md", primaryColors.border, primaryColors.text, theme === 'light' ? 'bg-white/60 hover:bg-white/80' : 'bg-slate-800/60 hover:bg-slate-800/80'), onClick: () => onUpdate(shift), children: [_jsx(RotateCcw, { size: 12, className: "mr-1" }), " ", strings.update] }), _jsxs(Button, { variant: "outline", size: "sm", className: "h-8 px-2 sm:h-9 sm:px-3 text-xs font-semibold rounded-lg sm:rounded-xl border-2 border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 bg-white/60 dark:bg-slate-800/60 hover:bg-red-50 dark:hover:bg-red-900/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md", onClick: handleDelete, children: [_jsx(Trash2, { size: 12, className: "mr-1" }), " ", strings.delete] })] })] })] })] }, shift.id));
 }
-// --- MONTHLY GROUP COMPONENT (UNCHANGED) ---
+// --- VIRTUAL SCROLL COMPONENT ---
+function VirtualShiftList({ shifts, theme, baseLang, onDelete, onUpdate, primaryColors }) {
+    const [scrollTop, setScrollTop] = useState(0);
+    const containerRef = useRef(null);
+    const ITEM_HEIGHT = 200; // Approximate height of each shift item
+    const BUFFER = 3; // Render extra items for smooth scrolling
+    const containerHeight = 600; // Fixed height for virtual scroll container
+    const visibleCount = Math.ceil(containerHeight / ITEM_HEIGHT);
+    const startIndex = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - BUFFER);
+    const endIndex = Math.min(shifts.length, startIndex + visibleCount + BUFFER * 2);
+    const visibleShifts = shifts.slice(startIndex, endIndex);
+    const handleScroll = (e) => {
+        setScrollTop(e.currentTarget.scrollTop);
+    };
+    return (_jsx("div", { ref: containerRef, className: "relative overflow-auto", style: { height: containerHeight }, onScroll: handleScroll, children: _jsx("div", { style: { height: shifts.length * ITEM_HEIGHT, position: 'relative' }, children: _jsx("div", { style: {
+                    transform: `translateY(${startIndex * ITEM_HEIGHT}px)`,
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0
+                }, children: _jsx("div", { className: "space-y-3", children: visibleShifts.map((shift) => (_jsx(ShiftItem, { shift: shift, theme: theme, baseLang: baseLang, onDelete: onDelete, onUpdate: onUpdate, primaryColors: primaryColors }, shift.id))) }) }) }) }));
+}
+// --- MONTHLY GROUP COMPONENT ---
 function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang, onDelete, onUpdate, primaryColors }) {
     const strings = LANG_STRINGS[baseLang];
     const monthName = format(parseISO(`${monthKey}-01`), baseLang === 'en' ? 'MMM yyyy' : 'yyyy年M月');
     const groupClasses = theme === 'light'
         ? `${primaryColors.bgLight} border-l-4 ${primaryColors.border}`
         : `bg-slate-800/80 border-l-4 ${primaryColors.border}`;
-    return (_jsxs(motion.div, { layout: true, initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, className: "mb-8", children: [_jsxs("div", { className: cn("flex justify-between items-end mb-3 p-3 rounded-xl z-10", groupClasses), children: [_jsx(motion.h2, { initial: { opacity: 0, x: -20 }, animate: { opacity: 1, x: 0 }, className: cn("text-xl font-extrabold", primaryColors.text), children: monthName }), _jsxs("div", { className: "flex flex-col items-end", children: [_jsxs("p", { className: "text-sm font-medium text-gray-500 dark:text-gray-400", children: [totalHours, " ", strings.hours] }), _jsx("p", { className: cn("text-2xl font-black", primaryColors.text), children: yen.format(totalPay) })] })] }), _jsx("div", { className: "space-y-3", children: shifts.map((s) => (_jsx(ShiftItem, { shift: s, theme: theme, baseLang: baseLang, onDelete: onDelete, onUpdate: onUpdate, primaryColors: primaryColors }, s.id))) })] }));
+    return (_jsxs(motion.div, { layout: true, initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, className: "mb-8", children: [_jsxs("div", { className: cn("flex justify-between items-end mb-3 p-3 rounded-xl z-10", groupClasses), children: [_jsx(motion.h2, { initial: { opacity: 0, x: -20 }, animate: { opacity: 1, x: 0 }, className: cn("text-xl font-extrabold", primaryColors.text), children: monthName }), _jsxs("div", { className: "flex flex-col items-end", children: [_jsxs("p", { className: "text-sm font-medium text-gray-500 dark:text-gray-400", children: [totalHours, " ", strings.hours] }), _jsx("p", { className: cn("text-2xl font-black", primaryColors.text), children: yen.format(totalPay) })] })] }), shifts.length > 20 ? (_jsx(VirtualShiftList, { shifts: shifts, theme: theme, baseLang: baseLang, onDelete: onDelete, onUpdate: onUpdate, primaryColors: primaryColors })) : (_jsx("div", { className: "space-y-3", children: shifts.map((s) => (_jsx(ShiftItem, { shift: s, theme: theme, baseLang: baseLang, onDelete: onDelete, onUpdate: onUpdate, primaryColors: primaryColors }, s.id))) }))] }));
 }
 // --- MONTH FILTER COMPONENT (UNCHANGED) ---
 function MonthFilter({ selectedMonth, onMonthSelect, lang, primaryColors }) {
@@ -594,6 +632,10 @@ export default function ShiftTracker() {
     const [showInstallPrompt, setShowInstallPrompt] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [showLaunchScreen, setShowLaunchScreen] = useState(true);
+    const [isMobileDevice, setIsMobileDevice] = useState(false);
+    useEffect(() => {
+        setIsMobileDevice(isMobile());
+    }, []);
     // Block overscroll when modal is open
     useEffect(() => {
         if (isModalOpen) {
@@ -830,9 +872,9 @@ export default function ShiftTracker() {
     }
     return (_jsxs(_Fragment, { children: [_jsx(GlobalStyles, {}), _jsxs("div", { className: cn("min-h-screen", appClasses), children: [_jsxs("div", { className: cn("min-h-screen flex flex-col items-center sm:p-6 transition-colors duration-500"), children: [_jsxs("header", { className: "w-full max-w-4xl sticky p-4 top-0 z-40 mb-6 py-4 backdrop-blur-md bg-transparent/80", children: [_jsxs("div", { className: "flex justify-between items-center mb-4", children: [_jsx("h1", { className: cn("text-2xl sm:text-3xl font-extrabold tracking-tight", PRIMARY_COLOR_CLASSES.text), children: "Shomyn" }), _jsxs("div", { className: "flex gap-2", children: [_jsx(ThemeDropdown, { theme: theme, setTheme: setTheme, variantIndex: variantIndex, setVariantIndex: setVariantIndex, toggleLang: toggleLang, primaryColors: PRIMARY_COLOR_CLASSES }), _jsx(motion.button, { onClick: openAddModal, whileTap: { scale: 0.95 }, className: cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer backdrop-blur-md border shadow-sm transition-colors", PRIMARY_COLOR_CLASSES.bgGradient, "text-white"), "aria-label": "Add new shift", children: _jsx(Plus, { size: 18 }) })] })] }), _jsxs("div", { className: cn("p-4 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4 border", theme === 'light'
                                             ? 'bg-white/80 border-gray-200'
-                                            : 'bg-slate-900/70 border-slate-700'), children: [_jsxs("div", { className: "flex flex-col items-center sm:items-start", children: [_jsx("p", { className: "text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-400 text-center sm:text-left", children: strings.grandTotal }), _jsx("p", { className: cn("text-3xl font-black text-center sm:text-left", PRIMARY_COLOR_CLASSES.text), children: yen.format(aggregatedData.grandTotal.totalPay) }), _jsxs("p", { className: "text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left", children: [aggregatedData.grandTotal.totalHours, " ", strings.hours] })] }), _jsx("div", { className: "flex gap-3 w-full sm:w-auto flex-1 sm:flex-none min-w-0", children: _jsx(MonthFilter, { selectedMonth: filterMonth, onMonthSelect: setFilterMonth, lang: lang, primaryColors: PRIMARY_COLOR_CLASSES }) })] })] }), _jsx("main", { className: "w-full max-w-4xl pb-16 px-4", children: renderMonthlyView() }), _jsx("footer", { className: "w-full max-w-4xl mt-8 pt-6 pb-safe", children: _jsxs(motion.div, { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.5, delay: 0.2 }, className: cn("relative overflow-hidden rounded-2xl p-6 backdrop-blur-xl border shadow-xl", theme === 'light'
+                                            : 'bg-slate-900/70 border-slate-700'), children: [_jsxs("div", { className: "flex flex-col items-center sm:items-start", children: [_jsx("p", { className: "text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-400 text-center sm:text-left", children: strings.grandTotal }), _jsx("p", { className: cn("text-3xl font-black text-center sm:text-left", PRIMARY_COLOR_CLASSES.text), children: yen.format(aggregatedData.grandTotal.totalPay) }), _jsxs("p", { className: "text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left", children: [aggregatedData.grandTotal.totalHours, " ", strings.hours] })] }), _jsx("div", { className: "flex gap-3 w-full sm:w-auto flex-1 sm:flex-none min-w-0", children: _jsx(MonthFilter, { selectedMonth: filterMonth, onMonthSelect: setFilterMonth, lang: lang, primaryColors: PRIMARY_COLOR_CLASSES }) })] })] }), _jsx("main", { className: "w-full max-w-4xl pb-16 px-4", children: renderMonthlyView() }), _jsx("footer", { className: "w-full max-w-4xl mt-8 pt-6 pb-safe", children: _jsxs(motion.div, { initial: isMobileDevice ? {} : { opacity: 0, y: 20 }, animate: isMobileDevice ? {} : { opacity: 1, y: 0 }, transition: isMobileDevice ? {} : { duration: 0.5, delay: 0.2 }, className: cn("relative overflow-hidden rounded-2xl p-6 backdrop-blur-xl border shadow-xl", theme === 'light'
                                         ? 'bg-white/80 border-gray-200/50'
-                                        : 'bg-slate-900/60 border-slate-700/50'), children: [_jsx("div", { className: cn("absolute inset-0 opacity-20 animate-gradient-x", PRIMARY_COLOR_CLASSES.bgGradient) }), _jsxs("div", { className: "relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4", children: [_jsx(motion.div, { whileHover: { scale: 1.02 }, whileTap: { scale: 0.98 }, children: _jsx(Button, { variant: "outline", size: "sm", className: cn("group relative overflow-hidden px-4 py-2 rounded-xl border-2 transition-all duration-300 hover:shadow-lg", "border-red-300 dark:border-red-600 text-red-600 dark:text-red-400", "bg-white/60 dark:bg-slate-800/60 hover:bg-red-50 dark:hover:bg-red-900/20"), onClick: () => {
+                                        : 'bg-slate-900/60 border-slate-700/50'), children: [!isMobileDevice && (_jsx("div", { className: cn("absolute inset-0 opacity-20 animate-gradient-x", PRIMARY_COLOR_CLASSES.bgGradient) })), _jsxs("div", { className: "relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4", children: [_jsx(motion.div, { whileHover: isMobileDevice ? {} : { scale: 1.02 }, whileTap: { scale: 0.98 }, children: _jsx(Button, { variant: "outline", size: "sm", className: cn("group relative overflow-hidden px-4 py-2 rounded-xl border-2 transition-all duration-300 hover:shadow-lg", "border-red-300 dark:border-red-600 text-red-600 dark:text-red-400", "bg-white/60 dark:bg-slate-800/60 hover:bg-red-50 dark:hover:bg-red-900/20"), onClick: () => {
                                                             setAlertConfig({
                                                                 isOpen: true,
                                                                 title: strings.areYouSure,
@@ -853,23 +895,5 @@ export default function ShiftTracker() {
                                                                     setAlertConfig(null);
                                                                 }
                                                             });
-                                                        }, children: _jsxs(motion.div, { className: "flex items-center gap-2", whileHover: { x: 2 }, children: [_jsx(motion.div, { animate: { rotate: [0, 10, -10, 0] }, transition: { duration: 2, repeat: Infinity, ease: "easeInOut" }, children: _jsx(Trash2, { size: 16 }) }), _jsx("span", { className: "font-semibold", children: strings.clearData })] }) }) }), _jsxs("div", { className: "flex flex-col sm:flex-row items-center gap-3", children: [_jsx(motion.div, { animate: {
-                                                                rotate: [0, 5, -5, 0],
-                                                                scale: [1, 1.05, 1]
-                                                            }, transition: {
-                                                                duration: 3,
-                                                                repeat: Infinity,
-                                                                ease: "easeInOut"
-                                                            }, className: cn("p-2 rounded-full shadow-lg", PRIMARY_COLOR_CLASSES.bgGradient), children: _jsx(Zap, { size: 20, className: "text-white" }) }), _jsxs("div", { className: "text-center sm:text-right", children: [_jsx(motion.p, { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { delay: 0.5 }, className: cn("text-sm font-bold tracking-wide", PRIMARY_COLOR_CLASSES.text), children: "\u00A9 2024 Shomyn" }), _jsxs(motion.p, { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { delay: 0.7 }, className: "text-xs text-gray-500 dark:text-gray-400 font-medium", children: [lang === 'en' ? 'Made with' : '愛を込めて', _jsx(motion.span, { animate: { scale: [1, 1.2, 1] }, transition: { duration: 1.5, repeat: Infinity }, className: "inline-block mx-1 text-red-500", children: "\u2665" }), lang === 'en' ? 'by Shomyn Team' : 'Shomynチーム'] })] })] })] }), _jsx("div", { className: "absolute inset-0 pointer-events-none overflow-hidden", children: [...Array(3)].map((_, i) => (_jsx(motion.div, { className: cn("absolute w-2 h-2 rounded-full opacity-30", PRIMARY_COLOR_CLASSES.bgLight), animate: {
-                                                    x: [0, 100, 0],
-                                                    y: [0, -50, 0],
-                                                    opacity: [0.3, 0.7, 0.3]
-                                                }, transition: {
-                                                    duration: 4 + i,
-                                                    repeat: Infinity,
-                                                    delay: i * 0.5
-                                                }, style: {
-                                                    left: `${20 + i * 30}%`,
-                                                    top: `${50 + i * 10}%`
-                                                } }, i))) })] }) })] }), _jsx(AddEditShiftModal, { isOpen: isModalOpen, onClose: () => setIsModalOpen(false), onSubmit: addOrUpdateShift, initialShift: editingShift, lang: lang, primaryColors: PRIMARY_COLOR_CLASSES }), alertConfig && (_jsx(CustomAlert, { isOpen: alertConfig.isOpen, title: alertConfig.title, message: alertConfig.message, onConfirm: alertConfig.onConfirm, onCancel: () => setAlertConfig(null) })), _jsx(PWAInstallPrompt, { isOpen: showInstallPrompt, onClose: handleCloseInstallPrompt, lang: lang })] })] }));
+                                                        }, children: _jsxs("div", { className: "flex items-center gap-2", children: [_jsx(Trash2, { size: 16 }), _jsx("span", { className: "font-semibold", children: strings.clearData })] }) }) }), _jsxs("div", { className: "flex flex-col sm:flex-row items-center gap-3", children: [_jsx("div", { className: cn("p-2 rounded-full shadow-lg", PRIMARY_COLOR_CLASSES.bgGradient), children: _jsx(Zap, { size: 20, className: "text-white" }) }), _jsxs("div", { className: "text-center sm:text-right", children: [_jsx("p", { className: cn("text-sm font-bold tracking-wide", PRIMARY_COLOR_CLASSES.text), children: "\u00A9 2024 Shomyn" }), _jsxs("p", { className: "text-xs text-gray-500 dark:text-gray-400 font-medium", children: [lang === 'en' ? 'Made with' : '愛を込めて', _jsx("span", { className: "inline-block mx-1 text-red-500", children: "\u2665" }), lang === 'en' ? 'by Shomyn Team' : 'Shomynチーム'] })] })] })] })] }) })] }), _jsx(AddEditShiftModal, { isOpen: isModalOpen, onClose: () => setIsModalOpen(false), onSubmit: addOrUpdateShift, initialShift: editingShift, lang: lang, primaryColors: PRIMARY_COLOR_CLASSES }), alertConfig && (_jsx(CustomAlert, { isOpen: alertConfig.isOpen, title: alertConfig.title, message: alertConfig.message, onConfirm: alertConfig.onConfirm, onCancel: () => setAlertConfig(null) })), _jsx(PWAInstallPrompt, { isOpen: showInstallPrompt, onClose: handleCloseInstallPrompt, lang: lang })] })] }));
 }
