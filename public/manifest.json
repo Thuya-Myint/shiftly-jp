@@ -2,7 +2,7 @@
   "name": "Shomyn - Shift Tracker",
   "short_name": "Shomyn",
   "description": "Track your work shifts and calculate earnings easily",
-  "start_url": "/",
+  "start_url": "/?v=1",
   "scope": "/",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone"],
