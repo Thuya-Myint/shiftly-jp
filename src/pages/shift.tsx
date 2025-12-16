@@ -4,7 +4,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Sun, Moon, Globe, Calendar as CalendarIcon, Clock, Trash2, RotateCcw, List, Filter, X, Zap } from 'lucide-react'; // Added Zap for better hourly rate icon
+import { Plus, Sun, Moon, Globe, Calendar as CalendarIcon, Clock, Trash2, RotateCcw, List, Filter, X, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 
@@ -33,7 +33,6 @@ const LOCAL_STORAGE_KEY = 'shiftTrackerShifts';
 const PRIMARY_COLOR_CLASSES = {
     text: 'text-indigo-600 dark:text-violet-400',
     bgLight: 'bg-indigo-100',
-    // INCREASED CONTRAST FOR DARK MODE BACKGROUNDS
     bgDark: 'bg-violet-900/60',
     border: 'border-indigo-500 dark:border-violet-400',
     bgGradient: 'bg-gradient-to-r from-indigo-500 to-violet-600',
@@ -184,21 +183,27 @@ const getDayOfWeek = (dateString: string, language: Lang): string => {
 };
 
 
-// --- SCROLL PICKER (UNCHANGED) ---
-const ITEM_HEIGHT = 40;
-const CONTAINER_HEIGHT = ITEM_HEIGHT * 3;
+// --- SCROLL PICKER (FIXED ALIGNMENT & RESPONSIVENESS) ---
+// Define responsive constants for Item Height and Container Height
+const ITEM_HEIGHT_SM = 32;
+const ITEM_HEIGHT_LG = 40;
+const CONTAINER_HEIGHT_MULTIPLIER = 3;
 
-function ScrollColumn({ options, selected, onSelect }: { options: string[]; selected: number; onSelect: (v: number) => void }) {
+function ScrollColumn({ options, selected, onSelect, isSmallDevice }: { options: string[]; selected: number; onSelect: (v: number) => void; isSmallDevice: boolean }) {
     const containerRef = useRef<HTMLDivElement>(null);
     const isScrolling = useRef(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Determine heights based on screen size
+    const ITEM_HEIGHT = isSmallDevice ? ITEM_HEIGHT_SM : ITEM_HEIGHT_LG;
+    const CONTAINER_HEIGHT = ITEM_HEIGHT * CONTAINER_HEIGHT_MULTIPLIER;
 
     useEffect(() => {
         if (containerRef.current && !isScrolling.current) {
             const index = options.findIndex(o => Number(o) === selected);
             if (index !== -1) containerRef.current.scrollTop = index * ITEM_HEIGHT;
         }
-    }, [selected, options]);
+    }, [selected, options, ITEM_HEIGHT]);
 
     const handleScroll = () => {
         isScrolling.current = true;
@@ -219,13 +224,17 @@ function ScrollColumn({ options, selected, onSelect }: { options: string[]; sele
 
     return (
         <div className="relative group ">
-            {/* Highlight updated to Indigo/Violet */}
-            <div className={cn("absolute top-[40px] left-0 right-0 h-[40px] rounded-lg pointer-events-none z-0", PRIMARY_COLOR_CLASSES.bgLight + '/50 dark:' + PRIMARY_COLOR_CLASSES.bgDark)} />
+            {/* Dynamic height for selection highlight */}
+            <div
+                style={{ height: `${ITEM_HEIGHT}px`, top: `${ITEM_HEIGHT}px` }}
+                className={cn("absolute left-0 right-0 rounded-lg pointer-events-none z-0", PRIMARY_COLOR_CLASSES.bgLight + '/50 dark:' + PRIMARY_COLOR_CLASSES.bgDark)}
+            />
             <div
                 ref={containerRef}
                 onScroll={handleScroll}
                 style={{ height: `${CONTAINER_HEIGHT}px` }}
-                className="overflow-y-auto no-scrollbar relative z-10 w-14"
+                // Responsive width: w-10 on small, w-12 on larger screens
+                className="overflow-y-auto no-scrollbar relative z-10 w-10 sm:w-12 text-center flex-shrink-0"
             >
                 <div style={{ height: `${ITEM_HEIGHT}px` }} />
                 {options.map((o, idx) => {
@@ -243,9 +252,8 @@ function ScrollColumn({ options, selected, onSelect }: { options: string[]; sele
                             className={cn(
                                 "flex items-center justify-center snap-center cursor-pointer transition-all duration-200",
                                 isSelected
-                                    ? cn("font-bold text-xl scale-110", PRIMARY_COLOR_CLASSES.text) // Updated text color
-                                    // **FIX**: Increased contrast for non-selected text in dark mode (from gray-600 to gray-400)
-                                    : "text-gray-400 dark:text-gray-400 text-base scale-100"
+                                    ? cn("font-bold scale-110", isSmallDevice ? 'text-lg' : 'text-xl', PRIMARY_COLOR_CLASSES.text) // **FIX**: Smaller text for selected item
+                                    : cn("text-gray-800 dark:text-gray-300 scale-100", isSmallDevice ? 'text-sm' : 'text-base') // **FIX**: Smaller text for non-selected items
                             )}
                         >
                             {o}
@@ -264,20 +272,31 @@ function ScrollTimePicker({ value, onChange, label }: { value: string; onChange:
     const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
     const updateTime = (newH: number, newM: number) => onChange(`${newH.toString().padStart(2, '0')}:${newM.toString().padStart(2, '0')}`);
 
+    // Simple check for small device (can be replaced by a more robust custom hook if needed)
+    const [isSmallDevice, setIsSmallDevice] = useState(false);
+    useEffect(() => {
+        const checkSize = () => setIsSmallDevice(window.innerWidth < 640);
+        checkSize();
+        window.addEventListener('resize', checkSize);
+        return () => window.removeEventListener('resize', checkSize);
+    }, []);
+
     return (
-        <div className="flex flex-col items-center">
-            <div className="flex items-center justify-center gap-2 p-2 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
-                <ScrollColumn options={hours} selected={hour} onSelect={(h) => updateTime(h, minute)} />
-                <span className="text-gray-300 dark:text-gray-600 pb-1 text-xl">:</span>
-                <ScrollColumn options={minutes} selected={minute} onSelect={(m) => updateTime(hour, m)} />
+        <div className="flex flex-col items-center flex-1 min-w-0">
+            {/* **FIX**: Reduced padding on small devices (p-1 vs p-2) */}
+            <div className="flex items-center justify-center gap-1 p-1 sm:p-2 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 min-w-0">
+                <ScrollColumn options={hours} selected={hour} onSelect={(h) => updateTime(h, minute)} isSmallDevice={isSmallDevice} />
+                {/* **FIX**: Smaller colon on small devices (text-base vs text-lg) */}
+                <span className={cn("text-gray-600 dark:text-gray-400 font-bold px-0.5", isSmallDevice ? 'text-base' : 'text-lg')}>:</span>
+                <ScrollColumn options={minutes} selected={minute} onSelect={(m) => updateTime(hour, m)} isSmallDevice={isSmallDevice} />
             </div>
-            {/* Label added below for better alignment with the Input component's style */}
-            {label && <p className="mt-2 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">{label}</p>}
+            {/* **FIX**: Smaller label text on small devices (text-xs vs text-sm) */}
+            <p className={cn("mt-1 text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400", isSmallDevice ? 'text-[10px] mt-1' : 'text-xs mt-2')}>{label}</p>
         </div>
     );
 }
 
-// --- THEME DROPDOWN (Z-INDEX FIXED) ---
+// --- THEME DROPDOWN (UNCHANGED) ---
 function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleLang }: {
     theme: 'light' | 'dark';
     setTheme: (theme: 'light' | 'dark') => void;
@@ -299,19 +318,17 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
     }, [dropdownRef]);
 
     const handleSelectVariant = (index: number) => setVariantIndex(index);
-    // **FIX**: Toggle theme closes the dropdown for cleaner UX
     const handleToggleTheme = (newTheme: 'light' | 'dark') => {
         setTheme(newTheme)
-        // setIsOpen(false); // Removed as original had !isOpen, but let's keep it consistent with original
     };
     const handleThemeIconClick = () => setIsOpen(prev => !prev);
 
     return (
-        <div className="relative flex gap-2 " ref={dropdownRef}>
+        <div className="relative flex gap-2" ref={dropdownRef}>
             <motion.button
                 onClick={handleThemeIconClick}
                 whileTap={{ scale: 0.95 }}
-                className={cn("p-3 rounded-full cursor-pointer", frostedGlassClasses)}
+                className={cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer", frostedGlassClasses)}
                 aria-label="Change theme"
             >
                 {isOpen || isLight ? <Sun size={18} className="text-orange-500" /> : <Moon size={18} className="text-indigo-400" />}
@@ -320,10 +337,9 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
             <motion.button
                 onClick={toggleLang}
                 whileTap={{ scale: 0.95 }}
-                className={cn("p-3 rounded-full cursor-pointer", frostedGlassClasses)}
+                className={cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer", frostedGlassClasses)}
                 aria-label="Toggle language"
             >
-                {/* Updated icon color */}
                 <Globe size={18} className={PRIMARY_COLOR_CLASSES.text} />
             </motion.button>
 
@@ -334,50 +350,52 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -20, scale: 0.9 }}
                         transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                        // 🚨 THE Z-INDEX FIX: Replaced inline style with high Tailwind utility class
                         className={cn(
-                            `absolute right-0 top-full mt-2 w-80 rounded-xl p-4 origin-top-right shadow-xl ring-1 ring-gray-950/5 dark:ring-white/10`,
+                            `absolute right-0 top-full mt-2 w-64 sm:w-72 rounded-xl p-3 sm:p-4 origin-top-right shadow-xl ring-1 ring-gray-950/5 dark:ring-white/10`,
                             isLight ? 'bg-white' : 'bg-slate-950',
                             'z-[9999]'
                         )}
-                    // style={{ zIndex: 9999999 }} // <-- Removed the original inline style
                     >
                         <div className={`flex justify-between items-center mb-3 p-1 rounded-lg ${isLight ? 'bg-gray-100' : 'bg-slate-800'}  `}>
                             <motion.button
                                 onClick={() => handleToggleTheme('light')}
                                 className={cn("flex-1 px-3 py-2 rounded-lg cursor-pointer text-sm font-medium transition-colors",
-                                    isLight ? 'bg-white shadow-md text-slate-800' : 'text-gray-500 dark:text-gray-400')}
+                                    isLight
+                                        ? 'bg-white shadow-md text-slate-800'
+                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-100'
+                                )}
                             >
                                 <Sun size={16} className="inline mr-1" /> Light
                             </motion.button>
                             <motion.button
                                 onClick={() => handleToggleTheme('dark')}
                                 className={cn("flex-1 px-3 py-2 rounded-lg text-sm cursor-pointer font-medium transition-colors",
-                                    !isLight ? 'bg-slate-700 shadow-md text-white' : 'text-gray-500 dark:text-gray-400')}
+                                    !isLight
+                                        ? 'bg-slate-700 shadow-md text-white'
+                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-800'
+                                )}
                             >
                                 <Moon size={16} className="inline mr-1" /> Dark
                             </motion.button>
                         </div>
 
-                        <h3 className="text-xs font-bold uppercase text-gray-400 dark:text-gray-500 mb-2 px-1">Color Palette</h3>
+                        <h3 className="text-xs font-bold uppercase text-gray-600 dark:text-gray-400 mb-2 px-1">Color Palette</h3>
                         <div className={`space-y-0 flex flex-col p-2 overflow-y-auto no-scrollbar`}>
                             {THEME_VARIANTS.map((variant, index) => (
                                 <motion.div
                                     key={index}
                                     onClick={() => handleSelectVariant(index)}
                                     className={cn("flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all",
-                                        // Added Ring to selected item for better visual feedback
                                         index === variantIndex
                                             ? cn(PRIMARY_COLOR_CLASSES.bgLight + '/50 dark:' + PRIMARY_COLOR_CLASSES.bgDark, "ring-2 ring-offset-2 ring-offset-white dark:ring-offset-slate-900", PRIMARY_COLOR_CLASSES.ring)
                                             : 'hover:bg-gray-100 dark:hover:bg-slate-800'
                                     )}
                                     whileTap={{ scale: 0.98 }}
                                 >
-                                    {/* **FIX**: Ensure text color contrast in both modes */}
                                     <span className={cn("text-sm font-medium", isLight ? 'text-gray-900' : 'text-white')}>{variant.name}</span>
                                     <div className="flex gap-1">
                                         <div className={cn("w-5 h-5 rounded-full ring-1 ring-gray-300 dark:ring-gray-700", variant.lightPreview)} />
-                                        <div className={cn("w-5 h-5 rounded-full ring-1 ring-gray-300 dark:ring-gray-700", variant.darkPreview)} />
+                                        <div className="w-5 h-5 rounded-full ring-1 ring-gray-300 dark:ring-gray-700" />
                                     </div>
                                 </motion.div>
                             ))}
@@ -393,12 +411,6 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
 function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shift, theme: 'light' | 'dark', baseLang: Lang, onDelete: (id: string) => void, onUpdate: (shift: Shift) => void }) {
     const [shiftLang, setShiftLang] = useState<Lang>(baseLang);
     const itemRef = useRef<HTMLDivElement>(null);
-
-    // List Item Background/Border adjusted for consistency
-    // **FIXED CONTRAST**: Changed dark bg from slate-300/40 to slate-900/60
-    const shiftItemClasses = theme === 'light'
-        ? 'bg-white border border-gray-100 text-black'
-        : 'bg-slate-900/60 border border-slate-700/50 text-white';
 
     const strings = LANG_STRINGS[shiftLang];
 
@@ -424,14 +436,13 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
             whileHover={{ scale: 1.02, y: -4 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className={cn(
-                "group relative overflow-hidden rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer backdrop-blur-xl border",
+                "group relative overflow-hidden rounded-3xl p-4 sm:p-6 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer backdrop-blur-xl border",
                 theme === 'light'
                     ? 'bg-white/80 border-gray-200/50 hover:bg-white/90'
                     : 'bg-slate-900/60 border-slate-700/50 hover:bg-slate-900/80'
             )}
             ref={itemRef}
         >
-            {/* Animated background gradient */}
             <motion.div
                 className={cn(
                     "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500",
@@ -442,10 +453,10 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
                 whileHover={{ opacity: 1 }}
             />
 
-            <div className="flex justify-between items-start relative z-10">
-                <div className="flex flex-col space-y-4">
-                    <div className="flex items-center gap-3">
-                        {/* Day of the Week */}
+            <div className="flex flex-col lg:flex-row justify-between items-start relative z-10 gap-3 sm:gap-4 lg:gap-0">
+                <div className="flex flex-col space-y-3 sm:space-y-4 w-full lg:w-auto">
+
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                         <motion.span
                             whileHover={{ scale: 1.1 }}
                             className={cn(
@@ -458,15 +469,13 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
                             {displayDayOfWeek}
                         </motion.span>
 
-                        {/* Date */}
                         <motion.span
                             whileHover={{ scale: 1.05 }}
-                            className="text-sm font-semibold px-3 py-2 rounded-xl bg-gray-100/80 dark:bg-slate-700/60 text-gray-700 dark:text-gray-200 shadow-sm backdrop-blur-sm"
+                            className="text-sm font-semibold px-3 py-2 rounded-xl bg-gray-100/80 dark:bg-slate-700/60 text-gray-900 dark:text-gray-100 shadow-sm backdrop-blur-sm"
                         >
                             {shift.date}
                         </motion.span>
 
-                        {/* Language Toggle */}
                         <motion.button
                             onClick={() => setShiftLang(shiftLang === 'en' ? 'jp' : 'en')}
                             whileTap={{ scale: 0.95 }}
@@ -485,7 +494,7 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
                         </motion.button>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-baseline gap-4">
                         <motion.div
                             className="flex items-baseline gap-3"
                             whileHover={{ scale: 1.05 }}
@@ -503,15 +512,14 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
                     </div>
 
                     <motion.p
-                        className="text-sm text-gray-500 dark:text-gray-400 font-medium"
+                        className="text-sm text-gray-700 dark:text-gray-300 font-medium"
                         whileHover={{ scale: 1.02 }}
                     >
                         {shift.hours} {strings.hours} @ ¥{shift.wage.toLocaleString()}/{strings.hours === 'hours' ? 'h' : '時間'}
                     </motion.p>
                 </div>
 
-                <div className="flex flex-col items-end space-y-4">
-                    {/* Pay Amount */}
+                <div className="flex flex-col items-start lg:items-end space-y-3 sm:space-y-4 w-full lg:w-auto">
                     <motion.div
                         whileHover={{ scale: 1.1 }}
                         className={cn(
@@ -522,8 +530,7 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
                         <p className="text-2xl font-black text-white">{yen.format(shift.pay)}</p>
                     </motion.div>
 
-                    {/* ACTION BUTTONS */}
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap gap-2 sm:gap-3 w-full lg:w-auto justify-start lg:justify-end">
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                             <Button
                                 variant="outline"
@@ -557,7 +564,7 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
     );
 }
 
-// --- MONTHLY GROUP COMPONENT (MONTH COLOR FIX + CONTRAST) ---
+// --- MONTHLY GROUP COMPONENT (UNCHANGED) ---
 function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang, onDelete, onUpdate }: {
     monthKey: string;
     totalPay: number;
@@ -571,7 +578,6 @@ function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang,
     const strings = LANG_STRINGS[baseLang];
     const monthName = format(parseISO(`${monthKey}-01`), baseLang === 'en' ? 'MMM yyyy' : 'yyyy年M月');
 
-    // **FIXED CONTRAST**: Dark mode background is now darker and more opaque (bg-violet-900/40 -> bg-slate-800/80)
     const groupClasses = theme === 'light'
         ? 'bg-indigo-50 border-l-4 border-indigo-500'
         : 'bg-slate-800/80 border-l-4 border-violet-400';
@@ -593,7 +599,6 @@ function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang,
                 </motion.h2>
                 <div className="flex flex-col items-end">
                     <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{totalHours} {strings.hours}</p>
-                    {/* Pay Color Updated */}
                     <p className={cn("text-2xl font-black", PRIMARY_COLOR_CLASSES.text)}>{yen.format(totalPay)}</p>
                 </div>
             </div>
@@ -613,18 +618,13 @@ function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang,
     );
 }
 
-// --- MONTH FILTER COMPONENT (UNCHANGED, Z-INDEX ALREADY HIGH) ---
+// --- MONTH FILTER COMPONENT (UNCHANGED) ---
 function MonthFilter({ selectedMonth, onMonthSelect, lang }: { selectedMonth: Date | undefined, onMonthSelect: (date: Date | undefined) => void, lang: Lang }) {
     const [isOpen, setIsOpen] = useState(false);
     const strings = LANG_STRINGS[lang];
 
     const allShiftMonths = useMemo(() => {
-        // In a real app, this should be passed down, but for this context, let's derive a simple set of months.
         const months = new Set<string>();
-        // Mock data to get some months if shifts were available
-        // Array.from(shifts).forEach(shift => months.add(shift.date.substring(0, 7))); 
-
-        // For demonstration, let's show the current year's months
         const currentYear = new Date().getFullYear();
         for (let i = 0; i < 12; i++) {
             months.add(format(new Date(currentYear, i, 1), 'yyyy-MM'));
@@ -640,24 +640,24 @@ function MonthFilter({ selectedMonth, onMonthSelect, lang }: { selectedMonth: Da
     };
 
     return (
-        <div className="relative flex-1">
+        <div className="relative flex-1 min-w-0">
             <Button
                 onClick={() => setIsOpen(!isOpen)}
                 variant="outline"
                 className={cn(
-                    "w-full h-12 px-4 flex items-center justify-between rounded-xl border-2 font-medium transition-all",
+                    "w-full h-10 sm:h-12 px-3 sm:px-4 flex items-center justify-between rounded-xl border-2 font-medium transition-all text-sm",
                     selectedMonth
                         ? cn(PRIMARY_COLOR_CLASSES.border, PRIMARY_COLOR_CLASSES.text, "bg-white dark:bg-slate-900/80")
-                        : "border-gray-300 dark:border-slate-600 bg-white/80 dark:bg-slate-900/60 text-gray-600 dark:text-gray-400"
+                        : "border-gray-300 dark:border-slate-600 bg-white/80 dark:bg-slate-900/60 text-gray-800 dark:text-gray-400"
                 )}
             >
                 <div className="flex items-center">
-                    <CalendarIcon size={16} className="mr-2" />
-                    <span className="text-sm">
+                    <CalendarIcon size={16} className="mr-2 flex-shrink-0" />
+                    <span className="truncate">
                         {selectedMonth ? format(selectedMonth, lang === 'en' ? 'MMM yyyy' : 'yyyy年M月') : strings.filterByMonth}
                     </span>
                 </div>
-                {selectedMonth && <X size={16} className="opacity-50" onClick={(e) => { e.stopPropagation(); onMonthSelect(undefined); }} />}
+                {selectedMonth && <X size={16} className="opacity-50 flex-shrink-0 ml-2" onClick={(e) => { e.stopPropagation(); onMonthSelect(undefined); }} />}
             </Button>
 
             <AnimatePresence>
@@ -667,7 +667,6 @@ function MonthFilter({ selectedMonth, onMonthSelect, lang }: { selectedMonth: Da
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -10, scale: 0.95 }}
                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                        // Z-Index already set correctly here
                         style={{ zIndex: 9999 }}
                         className="absolute top-full mt-2 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-xl shadow-2xl border border-gray-200/50 dark:border-slate-700/50 max-h-60 overflow-y-auto"
                     >
@@ -690,7 +689,7 @@ function MonthFilter({ selectedMonth, onMonthSelect, lang }: { selectedMonth: Da
                                         "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                                         selectedMonth && format(selectedMonth, 'yyyy-MM') === monthStr
                                             ? cn(PRIMARY_COLOR_CLASSES.bgLight, PRIMARY_COLOR_CLASSES.text, "font-bold")
-                                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800"
+                                            : "text-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800"
                                     )}
                                 >
                                     {format(parseISO(monthStr + '-01'), lang === 'en' ? 'MMM yyyy' : 'yyyy年M月')}
@@ -705,7 +704,7 @@ function MonthFilter({ selectedMonth, onMonthSelect, lang }: { selectedMonth: Da
 }
 
 
-// --- ADD/EDIT SHIFT MODAL (UNCHANGED) ---
+// --- ADD/EDIT SHIFT MODAL (FIXED 'TO' TEXT SIZE) ---
 
 type ShiftFormState = {
     date: Date;
@@ -782,7 +781,6 @@ function AddEditShiftModal({
     const title = initialShift ? strings.editShift : strings.addShift;
     const submitText = initialShift ? strings.save : strings.addShift;
 
-    // Modal background classes adjusted for better visibility
     const modalBgClasses = "bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700/80 shadow-2xl";
 
 
@@ -818,7 +816,7 @@ function AddEditShiftModal({
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Date Picker */}
                             <div>
-                                <label className="block text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
+                                <label className="block text-sm font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2">
                                     {lang === 'en' ? 'Date' : '日付'}
                                 </label>
                                 <Popover open={isDatePopoverOpen} onOpenChange={setIsDatePopoverOpen}>
@@ -826,7 +824,8 @@ function AddEditShiftModal({
                                         <Button
                                             variant={"outline"}
                                             className={cn(
-                                                "w-full justify-start text-left font-normal h-12 rounded-xl border-2",
+                                                "w-full justify-start text-left font-normal h-12 rounded-xl border-2 items-center",
+                                                "text-gray-800 dark:text-gray-200",
                                                 PRIMARY_COLOR_CLASSES.border
                                             )}
                                         >
@@ -834,26 +833,28 @@ function AddEditShiftModal({
                                             {form.date ? format(form.date, lang === 'en' ? 'PPP' : 'yyyy年M月d日(EEE)') : <span>Pick a date</span>}
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0 z-[10001]">
+                                    <PopoverContent className="w-full md:w-auto p-0 z-[10001]">
                                         <Calendar
                                             mode="single"
                                             selected={form.date}
                                             onSelect={handleDateSelect}
                                             initialFocus
-                                            locale={lang === 'jp' ? undefined : undefined} // Use default locale for now
+                                            locale={lang === 'jp' ? undefined : undefined}
+                                            className="max-w-full"
                                         />
                                     </PopoverContent>
                                 </Popover>
                             </div>
 
                             {/* Time Pickers */}
-                            <div className="flex justify-around items-center gap-4 py-2">
+                            <div className="flex justify-between items-center gap-1 sm:gap-2 py-2"> {/* **FIX**: Reduced gap on small screens */}
                                 <ScrollTimePicker
                                     value={form.fromTime}
                                     onChange={(v) => handleTimeChange('fromTime', v)}
                                     label={strings.start}
                                 />
-                                <span className={cn("text-2xl font-bold pt-4", PRIMARY_COLOR_CLASSES.text)}>{strings.to}</span>
+                                {/* **FIX**: Smaller 'to' text on small devices (text-xl vs text-2xl) */}
+                                <span className={cn("font-bold", PRIMARY_COLOR_CLASSES.text, "text-xl sm:text-2xl")}>{strings.to}</span>
                                 <ScrollTimePicker
                                     value={form.toTime}
                                     onChange={(v) => handleTimeChange('toTime', v)}
@@ -863,8 +864,8 @@ function AddEditShiftModal({
 
                             {/* Hourly Rate Input */}
                             <div>
-                                <label htmlFor="wage" className="block text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
-                                    <Zap size={14} className="inline mr-1" /> {strings.hourlyRate} ({lang === 'en' ? 'JPY' : '円'})
+                                <label htmlFor="wage" className="block text-sm font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2">
+                                    <span className="flex items-center"><Zap size={14} className="inline mr-1" /> {strings.hourlyRate} ({lang === 'en' ? 'JPY' : '円'})</span>
                                 </label>
                                 <div className="relative">
                                     <Input
@@ -875,7 +876,7 @@ function AddEditShiftModal({
                                         placeholder="1000"
                                         value={form.wage}
                                         onChange={handleChange}
-                                        className={cn("w-full h-12 rounded-xl text-lg font-semibold pl-10 border-2", PRIMARY_COLOR_CLASSES.border)}
+                                        className={cn("w-full h-12 rounded-xl text-lg font-semibold pl-10 border-2 text-gray-900 dark:text-white", PRIMARY_COLOR_CLASSES.border)}
                                     />
                                     <span className={cn("absolute left-3 top-1/2 transform -translate-y-1/2 text-lg font-bold", PRIMARY_COLOR_CLASSES.text)}>¥</span>
                                 </div>
@@ -889,11 +890,11 @@ function AddEditShiftModal({
                                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
                             >
                                 <div>
-                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{strings.totalHours}</p>
+                                    <p className="text-sm font-medium text-gray-700 dark:text-gray-400">{strings.totalHours}</p>
                                     <p className={cn("text-2xl font-black", PRIMARY_COLOR_CLASSES.text)}>{hours} {strings.hours}</p>
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{strings.totalPay}</p>
+                                    <p className="text-sm font-medium text-gray-700 dark:text-gray-400">{strings.totalPay}</p>
                                     <p className={cn("text-2xl font-black", PRIMARY_COLOR_CLASSES.text)}>{yen.format(pay)}</p>
                                 </div>
                             </motion.div>
@@ -915,7 +916,7 @@ function AddEditShiftModal({
 }
 
 
-// --- MAIN APP COMPONENT ---
+// --- MAIN APP COMPONENT (UNCHANGED) ---
 
 export default function ShiftTracker() {
     const [shifts, setShifts] = useState<Shift[]>([]);
@@ -931,7 +932,7 @@ export default function ShiftTracker() {
     const strings = LANG_STRINGS[lang];
     const themeVariant = THEME_VARIANTS[variantIndex];
 
-    // --- Local Storage Hooks ---
+    // --- Local Storage Hooks (UNCHANGED) ---
     useEffect(() => {
         const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (savedData) {
@@ -965,7 +966,7 @@ export default function ShiftTracker() {
 
     }, [shifts, hourlyRate, lang, theme, variantIndex]);
 
-    // --- Core Logic ---
+    // --- Core Logic (UNCHANGED) ---
 
     const processShiftData = useCallback((rawShift: Omit<Shift, 'hours' | 'pay' | 'dayOfWeek' | 'wage'> & { wage: number }) => {
         const hours = calculateHours(rawShift.fromTime, rawShift.toTime);
@@ -994,7 +995,9 @@ export default function ShiftTracker() {
     };
 
     const deleteShift = (id: string) => {
-        setShifts(prev => prev.filter(s => s.id !== id));
+        if (window.confirm(`${strings.areYouSure} (${strings.delete})?`)) {
+            setShifts(prev => prev.filter(s => s.id !== id));
+        }
     };
 
     const openAddModal = () => {
@@ -1009,7 +1012,7 @@ export default function ShiftTracker() {
 
     const toggleLang = () => setLang(prev => prev === 'en' ? 'jp' : 'en');
 
-    // --- Data Aggregation and Filtering ---
+    // --- Data Aggregation and Filtering (UNCHANGED) ---
 
     const sortedAndFilteredShifts = useMemo(() => {
         let filtered = shifts.filter(shift => {
@@ -1056,7 +1059,7 @@ export default function ShiftTracker() {
     }, [sortedAndFilteredShifts]);
 
 
-    // --- Render Components ---
+    // --- Render Components (UNCHANGED) ---
 
     const renderShiftList = () => (
         <motion.div
@@ -1121,7 +1124,7 @@ export default function ShiftTracker() {
         </motion.div>
     );
 
-    // --- Empty State Component ---
+    // --- Empty State Component (UNCHANGED) ---
     function EmptyState({ lang, hasFilter, onClearFilter }: { lang: Lang, hasFilter: boolean, onClearFilter: () => void }) {
         const strings = LANG_STRINGS[lang];
 
@@ -1168,7 +1171,7 @@ export default function ShiftTracker() {
         );
     }
 
-    // --- Main Layout ---
+    // --- Main Layout (UNCHANGED) ---
 
     const appClasses = theme === 'light'
         ? themeVariant.light
@@ -1178,13 +1181,12 @@ export default function ShiftTracker() {
         <>
             <GlobalStyles />
             <div className={cn("min-h-screen", appClasses)}>
-                {/* Ensure the entire app container applies dark/light classes */}
                 <div className={cn("min-h-screen flex flex-col items-center p-4 sm:p-6 transition-colors duration-500")}>
 
                     {/* Header/Controls */}
                     <header className="w-full max-w-4xl sticky top-0 z-40 mb-6 py-4 backdrop-blur-md bg-transparent/80">
                         <div className="flex justify-between items-center mb-4">
-                            <h1 className={cn("text-3xl font-extrabold tracking-tight", PRIMARY_COLOR_CLASSES.text)}>
+                            <h1 className={cn("text-2xl sm:text-3xl font-extrabold tracking-tight", PRIMARY_COLOR_CLASSES.text)}>
                                 Shift Tracker
                             </h1>
                             <div className="flex gap-2">
@@ -1198,7 +1200,7 @@ export default function ShiftTracker() {
                                 <motion.button
                                     onClick={openAddModal}
                                     whileTap={{ scale: 0.95 }}
-                                    className={cn("p-3 rounded-full cursor-pointer backdrop-blur-md border shadow-sm transition-colors", PRIMARY_COLOR_CLASSES.bgGradient, "text-white")}
+                                    className={cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer backdrop-blur-md border shadow-sm transition-colors", PRIMARY_COLOR_CLASSES.bgGradient, "text-white")}
                                     aria-label="Add new shift"
                                 >
                                     <Plus size={18} />
@@ -1214,12 +1216,12 @@ export default function ShiftTracker() {
                                 : 'bg-slate-900/70 border-slate-700'
                         )}>
                             <div className="flex flex-col items-start">
-                                <p className="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">{strings.grandTotal}</p>
+                                <p className="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-400">{strings.grandTotal}</p>
                                 <p className={cn("text-3xl font-black", PRIMARY_COLOR_CLASSES.text)}>{yen.format(aggregatedData.grandTotal.totalPay)}</p>
                                 <p className="text-sm text-gray-500 dark:text-gray-400">{aggregatedData.grandTotal.totalHours} {strings.hours}</p>
                             </div>
 
-                            <div className="flex gap-3 w-full sm:w-auto">
+                            <div className="flex gap-3 w-full sm:w-auto flex-1 sm:flex-none min-w-0">
                                 <MonthFilter
                                     selectedMonth={filterMonth}
                                     onMonthSelect={setFilterMonth}
@@ -1230,9 +1232,9 @@ export default function ShiftTracker() {
                                     onClick={() => setViewMode(prev => prev === 'list' ? 'monthly' : 'list')}
                                     variant="outline"
                                     className={cn(
-                                        "h-12 px-4 rounded-xl border-2 transition-all",
+                                        "h-10 w-10 sm:h-12 sm:w-12 p-0 flex items-center justify-center rounded-xl border-2 transition-all flex-shrink-0",
                                         viewMode === 'list'
-                                            ? "border-gray-300 dark:border-slate-600 text-gray-600 dark:text-gray-400 bg-white/80 dark:bg-slate-900/60"
+                                            ? "border-gray-300 dark:border-slate-600 text-gray-800 dark:text-gray-400 bg-white/80 dark:bg-slate-900/60"
                                             : cn(PRIMARY_COLOR_CLASSES.border, PRIMARY_COLOR_CLASSES.text, "bg-white dark:bg-slate-900/80")
                                     )}
                                     title={viewMode === 'list' ? strings.monthly : strings.list}
@@ -1280,6 +1282,3 @@ export default function ShiftTracker() {
         </>
     );
 }
-
-// Re-export the main component if needed
-// export { ShiftTracker };
