@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
@@ -759,8 +759,8 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
     );
 }
 
-// --- SHIFT ITEM COMPONENT (UNCHANGED) ---
-function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate, primaryColors }: { shift: Shift, theme: 'light' | 'dark', baseLang: Lang, onDelete: (id: string) => void, onUpdate: (shift: Shift) => void, primaryColors: ReturnType<typeof getPrimaryColorClasses> }) {
+// --- SHIFT ITEM COMPONENT ---
+const ShiftItem = React.memo(function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate, primaryColors }: { shift: Shift, theme: 'light' | 'dark', baseLang: Lang, onDelete: (id: string) => void, onUpdate: (shift: Shift) => void, primaryColors: ReturnType<typeof getPrimaryColorClasses> }) {
     const [shiftLang, setShiftLang] = useState<Lang>(baseLang);
     const itemRef = useRef<HTMLDivElement>(null);
 
@@ -854,28 +854,24 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate, primaryColors }
                     </div>
 
                     <div className="flex flex-col gap-1 sm:gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
+                        <button
                             className={cn(
-                                "h-8 px-2 sm:h-9 sm:px-3 text-xs font-semibold rounded-lg sm:rounded-xl border-2 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md",
+                                "h-8 px-2 sm:h-9 sm:px-3 text-xs font-semibold rounded-lg border transition-all",
                                 primaryColors.border,
                                 primaryColors.text,
-                                theme === 'light' ? 'bg-white/60 hover:bg-white/80' : 'bg-slate-800/60 hover:bg-slate-800/80'
+                                theme === 'light' ? 'bg-white/60' : 'bg-slate-800/60'
                             )}
                             onClick={() => onUpdate(shift)}
                         >
                             <RotateCcw size={12} className="mr-1" /> {strings.update}
-                        </Button>
+                        </button>
 
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 px-2 sm:h-9 sm:px-3 text-xs font-semibold rounded-lg sm:rounded-xl border-2 border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 bg-white/60 dark:bg-slate-800/60 hover:bg-red-50 dark:hover:bg-red-900/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                        <button
+                            className="h-8 px-2 sm:h-9 sm:px-3 text-xs font-semibold rounded-lg border border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 bg-white/60 dark:bg-slate-800/60 transition-all"
                             onClick={handleDelete}
                         >
                             <Trash2 size={12} className="mr-1" /> {strings.delete}
-                        </Button>
+                        </button>
                     </div>
                 </div>
             </div>
