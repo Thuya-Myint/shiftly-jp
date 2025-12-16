@@ -1341,7 +1341,7 @@ export default function ShiftTracker() {
                     initialShift={editingShift}
                     lang={lang}
                 />
-                
+
                 {alertConfig && (
                     <CustomAlert
                         isOpen={alertConfig.isOpen}
