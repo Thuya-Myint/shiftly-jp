@@ -21,7 +21,7 @@ const getPrimaryColorClasses = (variantIndex, theme) => {
             bgLight: 'bg-cyan-100',
             bgDark: 'bg-cyan-900/60',
             border: theme === 'light' ? 'border-cyan-500' : 'border-cyan-400',
-            bgGradient: 'bg-gradient-to-r from-cyan-500 to-sky-600',
+            bgGradient: 'bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600',
             hover: 'hover:bg-cyan-500/10',
             ring: theme === 'light' ? 'ring-cyan-500' : 'ring-cyan-400',
         },
@@ -30,7 +30,7 @@ const getPrimaryColorClasses = (variantIndex, theme) => {
             bgLight: 'bg-orange-100',
             bgDark: 'bg-orange-900/60',
             border: theme === 'light' ? 'border-orange-500' : 'border-orange-400',
-            bgGradient: 'bg-gradient-to-r from-rose-500 to-orange-600',
+            bgGradient: 'bg-gradient-to-r from-rose-500 via-orange-500 to-yellow-600',
             hover: 'hover:bg-orange-500/10',
             ring: theme === 'light' ? 'ring-orange-500' : 'ring-orange-400',
         },
@@ -39,7 +39,7 @@ const getPrimaryColorClasses = (variantIndex, theme) => {
             bgLight: 'bg-emerald-100',
             bgDark: 'bg-emerald-900/60',
             border: theme === 'light' ? 'border-emerald-500' : 'border-emerald-400',
-            bgGradient: 'bg-gradient-to-r from-emerald-500 to-green-600',
+            bgGradient: 'bg-gradient-to-r from-emerald-500 via-teal-500 to-green-600',
             hover: 'hover:bg-emerald-500/10',
             ring: theme === 'light' ? 'ring-emerald-500' : 'ring-emerald-400',
         },
@@ -48,7 +48,7 @@ const getPrimaryColorClasses = (variantIndex, theme) => {
             bgLight: 'bg-violet-100',
             bgDark: 'bg-violet-900/60',
             border: theme === 'light' ? 'border-violet-500' : 'border-violet-400',
-            bgGradient: 'bg-gradient-to-r from-violet-500 to-purple-600',
+            bgGradient: 'bg-gradient-to-r from-violet-500 via-fuchsia-500 to-purple-600',
             hover: 'hover:bg-violet-500/10',
             ring: theme === 'light' ? 'ring-violet-500' : 'ring-violet-400',
         },
@@ -57,7 +57,7 @@ const getPrimaryColorClasses = (variantIndex, theme) => {
             bgLight: 'bg-blue-100',
             bgDark: 'bg-blue-900/60',
             border: theme === 'light' ? 'border-blue-500' : 'border-blue-400',
-            bgGradient: 'bg-gradient-to-r from-blue-500 to-indigo-600',
+            bgGradient: 'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600',
             hover: 'hover:bg-blue-500/10',
             ring: theme === 'light' ? 'ring-blue-500' : 'ring-blue-400',
         },
@@ -66,7 +66,7 @@ const getPrimaryColorClasses = (variantIndex, theme) => {
             bgLight: 'bg-red-100',
             bgDark: 'bg-red-900/60',
             border: theme === 'light' ? 'border-red-500' : 'border-red-400',
-            bgGradient: 'bg-gradient-to-r from-red-500 to-pink-600',
+            bgGradient: 'bg-gradient-to-r from-red-500 via-pink-500 to-orange-600',
             hover: 'hover:bg-red-500/10',
             ring: theme === 'light' ? 'ring-red-500' : 'ring-red-400',
         },
@@ -75,7 +75,7 @@ const getPrimaryColorClasses = (variantIndex, theme) => {
             bgLight: 'bg-lime-100',
             bgDark: 'bg-lime-900/60',
             border: theme === 'light' ? 'border-lime-500' : 'border-lime-400',
-            bgGradient: 'bg-gradient-to-r from-lime-500 to-yellow-500',
+            bgGradient: 'bg-gradient-to-r from-lime-500 via-yellow-500 to-green-600',
             hover: 'hover:bg-lime-500/10',
             ring: theme === 'light' ? 'ring-lime-500' : 'ring-lime-400',
         },
@@ -84,7 +84,7 @@ const getPrimaryColorClasses = (variantIndex, theme) => {
             bgLight: 'bg-purple-100',
             bgDark: 'bg-purple-900/60',
             border: theme === 'light' ? 'border-purple-500' : 'border-purple-400',
-            bgGradient: 'bg-gradient-to-r from-purple-500 to-indigo-600',
+            bgGradient: 'bg-gradient-to-r from-purple-500 via-indigo-500 to-violet-600',
             hover: 'hover:bg-purple-500/10',
             ring: theme === 'light' ? 'ring-purple-500' : 'ring-purple-400',
         },
@@ -243,6 +243,48 @@ const THEME_VARIANTS = [
         dark: 'bg-gradient-to-br from-purple-900 via-indigo-800 to-violet-800 animate-gradient-x',
         darkPreview: 'bg-gradient-to-br from-purple-600 to-indigo-600'
     },
+    {
+        name: 'Cherry Blossom',
+        light: 'bg-gradient-to-br from-pink-50 via-rose-50 to-red-50 animate-gradient-x',
+        lightPreview: 'bg-gradient-to-br from-pink-300 via-rose-300 to-red-300',
+        dark: 'bg-gradient-to-br from-pink-900 via-rose-800 to-red-900 animate-gradient-x',
+        darkPreview: 'bg-gradient-to-br from-pink-600 via-rose-600 to-red-600'
+    },
+    {
+        name: 'Forest Dawn',
+        light: 'bg-gradient-to-br from-green-50 via-teal-50 to-emerald-50 animate-gradient-x',
+        lightPreview: 'bg-gradient-to-br from-green-300 via-teal-300 to-emerald-300',
+        dark: 'bg-gradient-to-br from-green-900 via-teal-800 to-emerald-900 animate-gradient-x',
+        darkPreview: 'bg-gradient-to-br from-green-600 via-teal-600 to-emerald-600'
+    },
+    {
+        name: 'Golden Hour',
+        light: 'bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 animate-gradient-x',
+        lightPreview: 'bg-gradient-to-br from-amber-300 via-yellow-300 to-orange-300',
+        dark: 'bg-gradient-to-br from-amber-900 via-yellow-800 to-orange-900 animate-gradient-x',
+        darkPreview: 'bg-gradient-to-br from-amber-600 via-yellow-600 to-orange-600'
+    },
+    {
+        name: 'Arctic Frost',
+        light: 'bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50 animate-gradient-x',
+        lightPreview: 'bg-gradient-to-br from-slate-300 via-gray-300 to-zinc-300',
+        dark: 'bg-gradient-to-br from-slate-900 via-gray-800 to-zinc-900 animate-gradient-x',
+        darkPreview: 'bg-gradient-to-br from-slate-600 via-gray-600 to-zinc-600'
+    },
+    {
+        name: 'Tropical Sunset',
+        light: 'bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 animate-gradient-x',
+        lightPreview: 'bg-gradient-to-br from-orange-300 via-pink-300 to-purple-300',
+        dark: 'bg-gradient-to-br from-orange-900 via-pink-800 to-purple-900 animate-gradient-x',
+        darkPreview: 'bg-gradient-to-br from-orange-600 via-pink-600 to-purple-600'
+    },
+    {
+        name: 'Ocean Depths',
+        light: 'bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 animate-gradient-x',
+        lightPreview: 'bg-gradient-to-br from-blue-300 via-cyan-300 to-teal-300',
+        dark: 'bg-gradient-to-br from-blue-900 via-cyan-800 to-teal-900 animate-gradient-x',
+        darkPreview: 'bg-gradient-to-br from-blue-600 via-cyan-600 to-teal-600'
+    },
 ];
 // --- TIME LOGIC (UNCHANGED) ---
 function calculateHours(from, to) {
@@ -287,15 +329,21 @@ function PWAInstallPrompt({ isOpen, onClose, lang }) {
         onClose();
     };
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
         window.navigator.standalone === true;
     if (isStandalone)
         return null;
+    // Don't show if no install method available
+    if (!isIOS && !deferredPrompt)
+        return null;
     return (_jsx(AnimatePresence, { children: isOpen && (_jsx(motion.div, { initial: { opacity: 0, y: 50 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: 50 }, transition: { type: "tween", duration: 0.2, ease: "easeOut" }, className: "fixed bottom-4 left-4 right-4 z-[99999] bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-2xl border border-gray-200 dark:border-slate-700 gpu-accelerated", children: _jsxs("div", { className: "flex items-start gap-3", children: [_jsx("div", { className: cn("p-2 rounded-lg bg-violet-100 dark:bg-violet-900/40"), children: _jsx(Plus, { className: "text-violet-600 dark:text-violet-400", size: 20 }) }), _jsxs("div", { className: "flex-1", children: [_jsx("h3", { className: "font-bold text-gray-900 dark:text-white mb-1", children: lang === 'en' ? 'Add to Home Screen' : 'ホーム画面に追加' }), _jsx("p", { className: "text-sm text-gray-600 dark:text-gray-300 mb-3", children: lang === 'en'
                                     ? 'Install this app for quick access and better experience'
-                                    : 'より良い体験のためにこのアプリをインストールしてください' }), _jsxs("div", { className: "flex gap-2", children: [isIOS ? (_jsx("p", { className: "text-xs text-gray-500 dark:text-gray-400", children: lang === 'en'
-                                            ? 'Tap Share → Add to Home Screen'
-                                            : 'シェア → ホーム画面に追加をタップ' })) : (_jsx(Button, { onClick: handleInstall, className: cn("text-white font-semibold text-sm h-8 px-3 bg-gradient-to-r from-violet-500 to-purple-600"), children: lang === 'en' ? 'Install' : 'インストール' })), _jsx(Button, { onClick: onClose, variant: "outline", className: "text-sm h-8 px-3 border-gray-300 dark:border-slate-600 text-gray-800 dark:text-gray-200 hover:text-gray-900 dark:hover:text-gray-100", children: lang === 'en' ? 'Later' : '後で' })] })] }), _jsx(Button, { onClick: onClose, variant: "ghost", size: "sm", className: "p-1 h-6 w-6 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300", children: _jsx(X, { size: 14 }) })] }) })) }));
+                                    : 'より良い体験のためにこのアプリをインストールしてください' }), _jsxs("div", { className: "flex gap-2", children: [isIOS ? (_jsxs("div", { className: "text-center", children: [_jsx("p", { className: "text-xs text-gray-500 dark:text-gray-400 mb-2", children: lang === 'en'
+                                                    ? 'Tap Share → Add to Home Screen'
+                                                    : 'シェア → ホーム画面に追加をタップ' }), _jsx("div", { className: "text-2xl", children: "\uD83D\uDCF1 \u2197\uFE0F" })] })) : deferredPrompt ? (_jsx(Button, { onClick: handleInstall, className: cn("text-white font-semibold text-sm h-8 px-3 bg-gradient-to-r from-violet-500 to-purple-600"), children: lang === 'en' ? 'Install' : 'インストール' })) : (_jsx("p", { className: "text-xs text-gray-500 dark:text-gray-400", children: lang === 'en'
+                                            ? 'Use browser menu to add to home screen'
+                                            : 'ブラウザメニューからホーム画面に追加' })), _jsx(Button, { onClick: onClose, variant: "outline", className: "text-sm h-8 px-3 border-gray-300 dark:border-slate-600 text-gray-800 dark:text-gray-200 hover:text-gray-900 dark:hover:text-gray-100", children: lang === 'en' ? 'Later' : '後で' })] })] }), _jsx(Button, { onClick: onClose, variant: "ghost", size: "sm", className: "p-1 h-6 w-6 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300", children: _jsx(X, { size: 14 }) })] }) })) }));
 }
 // --- CUSTOM ALERT COMPONENT ---
 function CustomAlert({ isOpen, onConfirm, onCancel, title, message }) {
@@ -856,24 +904,45 @@ export default function ShiftTracker() {
         ? themeVariant.light
         : themeVariant.dark;
     if (showLaunchScreen) {
-        return (_jsxs(motion.div, { initial: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.3 }, className: cn("min-h-screen flex flex-col items-center justify-center hw-accelerate transition-all duration-300 ease-in-out relative overflow-hidden", appClasses), children: [_jsx("div", { className: "absolute inset-0 pointer-events-none", children: [...Array(6)].map((_, i) => (_jsx(motion.div, { className: cn("absolute w-3 h-3 rounded-full opacity-20", PRIMARY_COLOR_CLASSES.bgLight), animate: {
-                            x: [0, 200, -100, 0],
-                            y: [0, -150, 100, 0],
-                            opacity: [0.2, 0.6, 0.3, 0.2]
+        return (_jsxs(motion.div, { initial: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.5, ease: "easeInOut" }, className: cn("min-h-screen flex flex-col items-center justify-center hw-accelerate transition-all duration-500 ease-in-out relative overflow-hidden", appClasses), children: [_jsx("div", { className: "absolute inset-0 pointer-events-none", children: _jsx(motion.div, { className: cn("absolute inset-0 opacity-10", PRIMARY_COLOR_CLASSES.bgGradient), animate: {
+                            background: [
+                                "radial-gradient(circle at 20% 50%, currentColor 0%, transparent 50%)",
+                                "radial-gradient(circle at 80% 50%, currentColor 0%, transparent 50%)",
+                                "radial-gradient(circle at 40% 50%, currentColor 0%, transparent 50%)"
+                            ]
+                        }, transition: { duration: 4, repeat: Infinity, ease: "easeInOut" } }) }), _jsx("div", { className: "absolute inset-0 pointer-events-none", children: [...Array(8)].map((_, i) => (_jsx(motion.div, { className: cn("absolute rounded-full blur-sm", PRIMARY_COLOR_CLASSES.bgLight), style: {
+                            width: `${20 + i * 5}px`,
+                            height: `${20 + i * 5}px`,
+                            left: `${15 + i * 10}%`,
+                            top: `${10 + (i % 4) * 20}%`
+                        }, animate: {
+                            x: [0, 100, -50, 0],
+                            y: [0, -80, 60, 0],
+                            scale: [1, 1.2, 0.8, 1],
+                            opacity: [0.1, 0.3, 0.1, 0.2]
                         }, transition: {
-                            duration: 8 + i,
+                            duration: 6 + i * 0.8,
                             repeat: Infinity,
-                            delay: i * 0.5
-                        }, style: {
-                            left: `${10 + i * 15}%`,
-                            top: `${20 + (i % 3) * 25}%`
-                        } }, i))) }), _jsxs(motion.div, { initial: { scale: 0.5, opacity: 0, y: 50 }, animate: { scale: 1, opacity: 1, y: 0 }, transition: { duration: 0.8, ease: "easeOut" }, className: "text-center relative z-10", children: [_jsxs("div", { className: "relative w-20 h-20 mx-auto mb-8", children: [_jsx(motion.div, { animate: { rotate: 360 }, transition: { duration: 1.5, repeat: Infinity, ease: "linear" }, className: cn("absolute inset-0 border-4 border-t-transparent rounded-full", PRIMARY_COLOR_CLASSES.border) }), _jsx(motion.div, { animate: { rotate: -360 }, transition: { duration: 2, repeat: Infinity, ease: "linear" }, className: cn("absolute inset-2 border-2 border-r-transparent rounded-full opacity-60", PRIMARY_COLOR_CLASSES.border) }), _jsx(motion.div, { animate: { scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }, transition: { duration: 2, repeat: Infinity }, className: cn("absolute inset-6 rounded-full", PRIMARY_COLOR_CLASSES.bgLight) })] }), _jsx(motion.h1, { initial: { y: 30, opacity: 0 }, animate: { y: 0, opacity: 1 }, transition: { delay: 0.3, duration: 0.6 }, className: cn("text-4xl font-extrabold mb-3", PRIMARY_COLOR_CLASSES.text), children: "Shomyn" }), _jsx(motion.p, { initial: { y: 20, opacity: 0 }, animate: { y: 0, opacity: 1 }, transition: { delay: 0.5, duration: 0.5 }, className: "text-gray-600 dark:text-gray-400 text-lg", children: _jsx(motion.span, { animate: { opacity: [0.5, 1, 0.5] }, transition: { duration: 2, repeat: Infinity }, children: lang === 'en' ? 'Loading your shifts...' : 'シフトを読み込み中...' }) }), _jsx(motion.div, { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { delay: 0.7 }, className: "flex justify-center gap-2 mt-6", children: [...Array(3)].map((_, i) => (_jsx(motion.div, { className: cn("w-2 h-2 rounded-full", PRIMARY_COLOR_CLASSES.bgLight), animate: {
-                                    scale: [1, 1.5, 1],
-                                    opacity: [0.3, 1, 0.3]
+                            delay: i * 0.3,
+                            ease: "easeInOut"
+                        } }, i))) }), _jsxs(motion.div, { initial: { scale: 0.3, opacity: 0, y: 100 }, animate: { scale: 1, opacity: 1, y: 0 }, transition: { duration: 1, ease: "backOut" }, className: "text-center relative z-10 backdrop-blur-sm bg-white/5 dark:bg-black/5 rounded-3xl p-8 border border-white/10", children: [_jsxs("div", { className: "relative w-24 h-24 mx-auto mb-10", children: [_jsx(motion.div, { animate: { rotate: 360 }, transition: { duration: 2, repeat: Infinity, ease: "linear" }, className: cn("absolute inset-0 border-4 border-transparent rounded-full", PRIMARY_COLOR_CLASSES.bgGradient), style: { borderTopColor: 'transparent' } }), _jsx(motion.div, { animate: { rotate: -360, scale: [1, 1.1, 1] }, transition: { duration: 3, repeat: Infinity, ease: "easeInOut" }, className: cn("absolute inset-3 border-2 border-transparent rounded-full opacity-70", PRIMARY_COLOR_CLASSES.bgGradient), style: { borderRightColor: 'transparent' } }), _jsx(motion.div, { animate: {
+                                        scale: [1, 1.3, 1],
+                                        opacity: [0.3, 0.8, 0.3],
+                                        rotate: [0, 180, 360]
+                                    }, transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut" }, className: cn("absolute inset-7 rounded-full", PRIMARY_COLOR_CLASSES.bgGradient) }), _jsx(motion.div, { animate: { scale: [0.5, 1, 0.5], opacity: [1, 0.5, 1] }, transition: { duration: 1.5, repeat: Infinity, ease: "easeInOut" }, className: "absolute inset-10 bg-white rounded-full shadow-lg" })] }), _jsx(motion.h1, { initial: { y: 50, opacity: 0, scale: 0.8 }, animate: { y: 0, opacity: 1, scale: 1 }, transition: { delay: 0.4, duration: 0.8, ease: "backOut" }, className: cn("text-5xl font-black mb-4 tracking-tight", PRIMARY_COLOR_CLASSES.text), children: _jsx(motion.span, { animate: {
+                                    backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
+                                }, transition: { duration: 3, repeat: Infinity, ease: "easeInOut" }, className: cn("bg-clip-text text-transparent bg-gradient-to-r", PRIMARY_COLOR_CLASSES.bgGradient), style: { backgroundSize: "200% 200%" }, children: "Shomyn" }) }), _jsx(motion.p, { initial: { y: 30, opacity: 0 }, animate: { y: 0, opacity: 1 }, transition: { delay: 0.6, duration: 0.6, ease: "easeOut" }, className: "text-gray-600 dark:text-gray-300 text-xl font-medium mb-2", children: _jsx(motion.span, { animate: {
+                                    opacity: [0.6, 1, 0.6],
+                                    y: [0, -2, 0]
+                                }, transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut" }, children: lang === 'en' ? 'Loading your shifts...' : 'シフトを読み込み中...' }) }), _jsx(motion.div, { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.8, duration: 0.5 }, className: "flex justify-center gap-3 mt-8", children: [...Array(5)].map((_, i) => (_jsx(motion.div, { className: cn("w-3 h-3 rounded-full", PRIMARY_COLOR_CLASSES.bgGradient), animate: {
+                                    scale: [0.8, 1.4, 0.8],
+                                    opacity: [0.4, 1, 0.4],
+                                    y: [0, -8, 0]
                                 }, transition: {
-                                    duration: 1.5,
+                                    duration: 2,
                                     repeat: Infinity,
-                                    delay: i * 0.2
+                                    delay: i * 0.15,
+                                    ease: "easeInOut"
                                 } }, i))) })] })] }));
     }
     return (_jsxs(_Fragment, { children: [_jsx(GlobalStyles, {}), _jsxs("div", { className: cn("min-h-screen transition-all duration-300 ease-in-out", appClasses), children: [_jsxs("div", { className: cn("min-h-screen flex flex-col items-center sm:p-6 transition-all duration-300 ease-in-out"), children: [_jsxs("header", { className: "w-full max-w-4xl sticky p-4 top-0 z-40 mb-6 py-4 backdrop-blur-md bg-transparent/80", children: [_jsxs("div", { className: "flex justify-between items-center mb-4", children: [_jsx("h1", { className: cn("text-2xl sm:text-3xl font-extrabold tracking-tight", PRIMARY_COLOR_CLASSES.text), children: "Shomyn" }), _jsxs("div", { className: "flex gap-2", children: [_jsx(ThemeDropdown, { theme: theme, setTheme: setTheme, variantIndex: variantIndex, setVariantIndex: setVariantIndex, toggleLang: toggleLang, primaryColors: PRIMARY_COLOR_CLASSES }), _jsx("button", { onClick: openAddModal, className: cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer backdrop-blur-md border shadow-sm transition-all active:scale-95", PRIMARY_COLOR_CLASSES.bgGradient, "text-white"), "aria-label": "Add new shift", children: _jsx(Plus, { size: 18 }) })] })] }), _jsxs("div", { className: cn("p-4 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4 border", theme === 'light'
