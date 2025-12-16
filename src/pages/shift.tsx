@@ -29,16 +29,84 @@ const DAY_NAMES_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAY_NAMES_JP = ['日', '月', '火', '水', '木', '金', '土'];
 const LOCAL_STORAGE_KEY = 'shiftTrackerShifts';
 
-// --- Primary Color Class Definitions (Indigo/Violet) ---
-const PRIMARY_COLOR_CLASSES = {
-    text: 'text-indigo-600 dark:text-violet-400',
-    bgLight: 'bg-indigo-100',
-    bgDark: 'bg-violet-900/60',
-    border: 'border-indigo-500 dark:border-violet-400',
-    bgGradient: 'bg-gradient-to-r from-indigo-500 to-violet-600',
-    hover: 'hover:bg-indigo-500/10',
-    ring: 'ring-indigo-500 dark:ring-violet-400',
-}
+// --- Dynamic Primary Color Classes ---
+const getPrimaryColorClasses = (variantIndex: number, theme: 'light' | 'dark') => {
+    const variants = [
+        { // Aqua Mist
+            text: theme === 'light' ? 'text-cyan-600' : 'text-cyan-400',
+            bgLight: 'bg-cyan-100',
+            bgDark: 'bg-cyan-900/60',
+            border: theme === 'light' ? 'border-cyan-500' : 'border-cyan-400',
+            bgGradient: 'bg-gradient-to-r from-cyan-500 to-sky-600',
+            hover: 'hover:bg-cyan-500/10',
+            ring: theme === 'light' ? 'ring-cyan-500' : 'ring-cyan-400',
+        },
+        { // Coral Glow
+            text: theme === 'light' ? 'text-orange-600' : 'text-orange-400',
+            bgLight: 'bg-orange-100',
+            bgDark: 'bg-orange-900/60',
+            border: theme === 'light' ? 'border-orange-500' : 'border-orange-400',
+            bgGradient: 'bg-gradient-to-r from-rose-500 to-orange-600',
+            hover: 'hover:bg-orange-500/10',
+            ring: theme === 'light' ? 'ring-orange-500' : 'ring-orange-400',
+        },
+        { // Emerald Breeze
+            text: theme === 'light' ? 'text-emerald-600' : 'text-emerald-400',
+            bgLight: 'bg-emerald-100',
+            bgDark: 'bg-emerald-900/60',
+            border: theme === 'light' ? 'border-emerald-500' : 'border-emerald-400',
+            bgGradient: 'bg-gradient-to-r from-emerald-500 to-green-600',
+            hover: 'hover:bg-emerald-500/10',
+            ring: theme === 'light' ? 'ring-emerald-500' : 'ring-emerald-400',
+        },
+        { // Violet Horizon
+            text: theme === 'light' ? 'text-violet-600' : 'text-violet-400',
+            bgLight: 'bg-violet-100',
+            bgDark: 'bg-violet-900/60',
+            border: theme === 'light' ? 'border-violet-500' : 'border-violet-400',
+            bgGradient: 'bg-gradient-to-r from-violet-500 to-purple-600',
+            hover: 'hover:bg-violet-500/10',
+            ring: theme === 'light' ? 'ring-violet-500' : 'ring-violet-400',
+        },
+        { // Midnight Ocean
+            text: theme === 'light' ? 'text-blue-600' : 'text-blue-400',
+            bgLight: 'bg-blue-100',
+            bgDark: 'bg-blue-900/60',
+            border: theme === 'light' ? 'border-blue-500' : 'border-blue-400',
+            bgGradient: 'bg-gradient-to-r from-blue-500 to-indigo-600',
+            hover: 'hover:bg-blue-500/10',
+            ring: theme === 'light' ? 'ring-blue-500' : 'ring-blue-400',
+        },
+        { // Sunset Fire
+            text: theme === 'light' ? 'text-red-600' : 'text-red-400',
+            bgLight: 'bg-red-100',
+            bgDark: 'bg-red-900/60',
+            border: theme === 'light' ? 'border-red-500' : 'border-red-400',
+            bgGradient: 'bg-gradient-to-r from-red-500 to-pink-600',
+            hover: 'hover:bg-red-500/10',
+            ring: theme === 'light' ? 'ring-red-500' : 'ring-red-400',
+        },
+        { // Electric Lime
+            text: theme === 'light' ? 'text-lime-600' : 'text-lime-400',
+            bgLight: 'bg-lime-100',
+            bgDark: 'bg-lime-900/60',
+            border: theme === 'light' ? 'border-lime-500' : 'border-lime-400',
+            bgGradient: 'bg-gradient-to-r from-lime-500 to-yellow-500',
+            hover: 'hover:bg-lime-500/10',
+            ring: theme === 'light' ? 'ring-lime-500' : 'ring-lime-400',
+        },
+        { // Royal Purple
+            text: theme === 'light' ? 'text-purple-600' : 'text-purple-400',
+            bgLight: 'bg-purple-100',
+            bgDark: 'bg-purple-900/60',
+            border: theme === 'light' ? 'border-purple-500' : 'border-purple-400',
+            bgGradient: 'bg-gradient-to-r from-purple-500 to-indigo-600',
+            hover: 'hover:bg-purple-500/10',
+            ring: theme === 'light' ? 'ring-purple-500' : 'ring-purple-400',
+        },
+    ];
+    return variants[variantIndex] || variants[3];
+};
 
 
 // --- Language Strings (UNCHANGED) ---
@@ -154,7 +222,7 @@ const GlobalStyles = () => (
     `}</style>
 );
 
-// --- THEME VARIANTS (UNCHANGED) ---
+// --- THEME VARIANTS ---
 const THEME_VARIANTS = [
     {
         name: 'Aqua Mist',
@@ -190,6 +258,27 @@ const THEME_VARIANTS = [
         lightPreview: 'bg-gradient-to-br from-blue-300 to-indigo-300',
         dark: 'bg-gradient-to-br from-blue-800 via-indigo-700 to-sky-800 animate-gradient-x',
         darkPreview: 'bg-gradient-to-br from-blue-600 to-indigo-600'
+    },
+    {
+        name: 'Sunset Fire',
+        light: 'bg-gradient-to-br from-red-50 via-pink-50 to-rose-50 animate-gradient-x',
+        lightPreview: 'bg-gradient-to-br from-red-400 to-pink-400',
+        dark: 'bg-gradient-to-br from-red-900 via-pink-800 to-rose-800 animate-gradient-x',
+        darkPreview: 'bg-gradient-to-br from-red-600 to-pink-600'
+    },
+    {
+        name: 'Electric Lime',
+        light: 'bg-gradient-to-br from-lime-50 via-yellow-50 to-green-50 animate-gradient-x',
+        lightPreview: 'bg-gradient-to-br from-lime-400 to-yellow-400',
+        dark: 'bg-gradient-to-br from-lime-900 via-yellow-800 to-green-800 animate-gradient-x',
+        darkPreview: 'bg-gradient-to-br from-lime-600 to-yellow-600'
+    },
+    {
+        name: 'Royal Purple',
+        light: 'bg-gradient-to-br from-purple-50 via-indigo-50 to-violet-50 animate-gradient-x',
+        lightPreview: 'bg-gradient-to-br from-purple-400 to-indigo-400',
+        dark: 'bg-gradient-to-br from-purple-900 via-indigo-800 to-violet-800 animate-gradient-x',
+        darkPreview: 'bg-gradient-to-br from-purple-600 to-indigo-600'
     },
 ];
 
@@ -248,8 +337,8 @@ function PWAInstallPrompt({ isOpen, onClose, lang }: { isOpen: boolean; onClose:
                     className="fixed bottom-4 left-4 right-4 z-[99999] bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-2xl border border-gray-200 dark:border-slate-700 gpu-accelerated"
                 >
                     <div className="flex items-start gap-3">
-                        <div className={cn("p-2 rounded-lg", PRIMARY_COLOR_CLASSES.bgLight, "dark:bg-violet-900/40")}>
-                            <Plus className={PRIMARY_COLOR_CLASSES.text} size={20} />
+                        <div className={cn("p-2 rounded-lg bg-violet-100 dark:bg-violet-900/40")}>
+                            <Plus className="text-violet-600 dark:text-violet-400" size={20} />
                         </div>
                         <div className="flex-1">
                             <h3 className="font-bold text-gray-900 dark:text-white mb-1">
@@ -272,7 +361,7 @@ function PWAInstallPrompt({ isOpen, onClose, lang }: { isOpen: boolean; onClose:
                                 ) : (
                                     <Button
                                         onClick={handleInstall}
-                                        className={cn("text-white font-semibold text-sm h-8 px-3", PRIMARY_COLOR_CLASSES.bgGradient)}
+                                        className={cn("text-white font-semibold text-sm h-8 px-3 bg-gradient-to-r from-violet-500 to-purple-600")}
                                     >
                                         {lang === 'en' ? 'Install' : 'インストール'}
                                     </Button>
@@ -462,7 +551,7 @@ const ITEM_HEIGHT_LG = 40;
 const CONTAINER_HEIGHT_MULTIPLIER_SM = 5;
 const CONTAINER_HEIGHT_MULTIPLIER_LG = 3;
 
-function ScrollColumn({ options, selected, onSelect, isSmallDevice }: { options: string[]; selected: number; onSelect: (v: number) => void; isSmallDevice: boolean }) {
+function ScrollColumn({ options, selected, onSelect, isSmallDevice, primaryColors }: { options: string[]; selected: number; onSelect: (v: number) => void; isSmallDevice: boolean; primaryColors: ReturnType<typeof getPrimaryColorClasses> }) {
     const containerRef = useRef<HTMLDivElement>(null);
     const isScrolling = useRef(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -500,7 +589,7 @@ function ScrollColumn({ options, selected, onSelect, isSmallDevice }: { options:
             {/* Dynamic height for selection highlight */}
             <div
                 style={{ height: `${ITEM_HEIGHT}px`, top: `${ITEM_HEIGHT * (isSmallDevice ? 2 : 1)}px` }}
-                className={cn("absolute left-0 right-0 rounded-lg pointer-events-none z-0", PRIMARY_COLOR_CLASSES.bgLight + '/50 dark:' + PRIMARY_COLOR_CLASSES.bgDark)}
+                className={cn("absolute left-0 right-0 rounded-lg pointer-events-none z-0", primaryColors.bgLight + '/50 dark:' + primaryColors.bgDark)}
             />
             <div
                 ref={containerRef}
@@ -524,7 +613,7 @@ function ScrollColumn({ options, selected, onSelect, isSmallDevice }: { options:
                             className={cn(
                                 "flex items-center justify-center snap-center cursor-pointer transition-all duration-200",
                                 isSelected
-                                    ? cn("font-bold scale-110", isSmallDevice ? 'text-lg' : 'text-xl', PRIMARY_COLOR_CLASSES.text) // **FIX**: Smaller text for selected item
+                                    ? cn("font-bold scale-110", isSmallDevice ? 'text-lg' : 'text-xl', primaryColors.text) // **FIX**: Smaller text for selected item
                                     : cn("text-gray-800 dark:text-gray-300 scale-100", isSmallDevice ? 'text-sm' : 'text-base') // **FIX**: Smaller text for non-selected items
                             )}
                         >
@@ -538,7 +627,7 @@ function ScrollColumn({ options, selected, onSelect, isSmallDevice }: { options:
     );
 }
 
-function ScrollTimePicker({ value, onChange, label }: { value: string; onChange: (v: string) => void; label?: string }) {
+function ScrollTimePicker({ value, onChange, label, primaryColors }: { value: string; onChange: (v: string) => void; label?: string; primaryColors: ReturnType<typeof getPrimaryColorClasses> }) {
     const [hour, minute] = (value || '00:00').split(':').map(v => parseInt(v, 10));
     const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
     const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
@@ -557,10 +646,10 @@ function ScrollTimePicker({ value, onChange, label }: { value: string; onChange:
         <div className="flex flex-col items-center flex-1 min-w-0">
             {/* **FIX**: Reduced padding on small devices (p-1 vs p-2) */}
             <div className="flex items-center justify-center gap-1 p-1 sm:p-2 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 min-w-0">
-                <ScrollColumn options={hours} selected={hour} onSelect={(h) => updateTime(h, minute)} isSmallDevice={isSmallDevice} />
+                <ScrollColumn options={hours} selected={hour} onSelect={(h) => updateTime(h, minute)} isSmallDevice={isSmallDevice} primaryColors={primaryColors} />
                 {/* **FIX**: Smaller colon on small devices (text-base vs text-lg) */}
                 <span className={cn("text-gray-600 dark:text-gray-400 font-bold px-0.5", isSmallDevice ? 'text-base' : 'text-lg')}>:</span>
-                <ScrollColumn options={minutes} selected={minute} onSelect={(m) => updateTime(hour, m)} isSmallDevice={isSmallDevice} />
+                <ScrollColumn options={minutes} selected={minute} onSelect={(m) => updateTime(hour, m)} isSmallDevice={isSmallDevice} primaryColors={primaryColors} />
             </div>
             {/* **FIX**: Smaller label text on small devices (text-xs vs text-sm) */}
             <p className={cn("mt-1 text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400", isSmallDevice ? 'text-[10px] mt-1' : 'text-xs mt-2')}>{label}</p>
@@ -568,13 +657,14 @@ function ScrollTimePicker({ value, onChange, label }: { value: string; onChange:
     );
 }
 
-// --- THEME DROPDOWN (UNCHANGED) ---
-function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleLang }: {
+// --- THEME DROPDOWN ---
+function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleLang, primaryColors }: {
     theme: 'light' | 'dark';
     setTheme: (theme: 'light' | 'dark') => void;
     variantIndex: number;
     setVariantIndex: (index: number) => void;
     toggleLang: () => void;
+    primaryColors: ReturnType<typeof getPrimaryColorClasses>;
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -589,9 +679,13 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [dropdownRef]);
 
-    const handleSelectVariant = (index: number) => setVariantIndex(index);
+    const handleSelectVariant = (index: number) => {
+        setVariantIndex(index);
+        setIsOpen(false);
+    };
     const handleToggleTheme = (newTheme: 'light' | 'dark') => {
-        setTheme(newTheme)
+        setTheme(newTheme);
+        setIsOpen(false);
     };
     const handleThemeIconClick = () => setIsOpen(prev => !prev);
 
@@ -612,7 +706,7 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
                 className={cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer", frostedGlassClasses)}
                 aria-label="Toggle language"
             >
-                <Globe size={18} className={PRIMARY_COLOR_CLASSES.text} />
+                <Globe size={18} className={primaryColors.text} />
             </motion.button>
 
             <AnimatePresence>
@@ -659,7 +753,7 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
                                     onClick={() => handleSelectVariant(index)}
                                     className={cn("flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all",
                                         index === variantIndex
-                                            ? cn(PRIMARY_COLOR_CLASSES.bgLight + '/50 dark:' + PRIMARY_COLOR_CLASSES.bgDark, "ring-2 ring-offset-2 ring-offset-white dark:ring-offset-slate-900", PRIMARY_COLOR_CLASSES.ring)
+                                            ? cn(primaryColors.bgLight + '/50 dark:' + primaryColors.bgDark, "ring-2 ring-offset-2 ring-offset-white dark:ring-offset-slate-900", primaryColors.ring)
                                             : 'hover:bg-gray-100 dark:hover:bg-slate-800'
                                     )}
                                     whileTap={{ scale: 0.98 }}
@@ -680,7 +774,7 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
 }
 
 // --- SHIFT ITEM COMPONENT (UNCHANGED) ---
-function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shift, theme: 'light' | 'dark', baseLang: Lang, onDelete: (id: string) => void, onUpdate: (shift: Shift) => void }) {
+function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate, primaryColors }: { shift: Shift, theme: 'light' | 'dark', baseLang: Lang, onDelete: (id: string) => void, onUpdate: (shift: Shift) => void, primaryColors: ReturnType<typeof getPrimaryColorClasses> }) {
     const [shiftLang, setShiftLang] = useState<Lang>(baseLang);
     const itemRef = useRef<HTMLDivElement>(null);
 
@@ -721,9 +815,9 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
                         <span
                             className={cn(
                                 "text-sm font-bold px-3 py-2 rounded-xl shadow-sm",
-                                PRIMARY_COLOR_CLASSES.bgLight,
+                                primaryColors.bgLight,
                                 "dark:bg-violet-900/40",
-                                PRIMARY_COLOR_CLASSES.text
+                                primaryColors.text
                             )}
                         >
                             {displayDayOfWeek}
@@ -739,8 +833,8 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
                             onClick={() => setShiftLang(shiftLang === 'en' ? 'jp' : 'en')}
                             className={cn(
                                 "text-sm font-medium px-3 py-2 rounded-xl border-2 backdrop-blur-sm transition-all duration-300",
-                                PRIMARY_COLOR_CLASSES.border,
-                                PRIMARY_COLOR_CLASSES.text,
+                                primaryColors.border,
+                                primaryColors.text,
                                 "hover:shadow-md",
                                 theme === 'light' ? 'bg-white/60' : 'bg-slate-800/60'
                             )}
@@ -754,7 +848,7 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
                     <div className="flex items-baseline gap-4">
                         <div className="flex items-baseline gap-3">
                             <span className="text-2xl font-bold text-gray-900 dark:text-white">{shift.fromTime}</span>
-                            <span className={cn("text-lg font-medium", PRIMARY_COLOR_CLASSES.text)}>
+                            <span className={cn("text-lg font-medium", primaryColors.text)}>
                                 →
                             </span>
                             <span className="text-2xl font-bold text-gray-900 dark:text-white">{shift.toTime}</span>
@@ -770,7 +864,7 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
                     <div
                         className={cn(
                             "px-4 py-2 rounded-2xl shadow-lg backdrop-blur-sm",
-                            PRIMARY_COLOR_CLASSES.bgGradient
+                            primaryColors.bgGradient
                         )}
                     >
                         <p className="text-2xl font-black text-white">{yen.format(shift.pay)}</p>
@@ -782,8 +876,8 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
                             size="sm"
                             className={cn(
                                 "h-10 px-4 text-sm font-semibold rounded-xl border-2 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md",
-                                PRIMARY_COLOR_CLASSES.border,
-                                PRIMARY_COLOR_CLASSES.text,
+                                primaryColors.border,
+                                primaryColors.text,
                                 theme === 'light' ? 'bg-white/60 hover:bg-white/80' : 'bg-slate-800/60 hover:bg-slate-800/80'
                             )}
                             onClick={() => onUpdate(shift)}
@@ -807,7 +901,7 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
 }
 
 // --- MONTHLY GROUP COMPONENT (UNCHANGED) ---
-function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang, onDelete, onUpdate }: {
+function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang, onDelete, onUpdate, primaryColors }: {
     monthKey: string;
     totalPay: number;
     totalHours: number;
@@ -816,13 +910,14 @@ function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang,
     baseLang: Lang;
     onDelete: (id: string) => void;
     onUpdate: (shift: Shift) => void;
+    primaryColors: ReturnType<typeof getPrimaryColorClasses>;
 }) {
     const strings = LANG_STRINGS[baseLang];
     const monthName = format(parseISO(`${monthKey}-01`), baseLang === 'en' ? 'MMM yyyy' : 'yyyy年M月');
 
     const groupClasses = theme === 'light'
-        ? 'bg-indigo-50 border-l-4 border-indigo-500'
-        : 'bg-slate-800/80 border-l-4 border-violet-400';
+        ? `${primaryColors.bgLight} border-l-4 ${primaryColors.border}`
+        : `bg-slate-800/80 border-l-4 ${primaryColors.border}`;
 
     return (
         <motion.div
@@ -835,13 +930,13 @@ function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang,
                 <motion.h2
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className={cn("text-xl font-extrabold", theme === 'light' ? 'text-indigo-700' : 'text-violet-200')}
+                    className={cn("text-xl font-extrabold", primaryColors.text)}
                 >
                     {monthName}
                 </motion.h2>
                 <div className="flex flex-col items-end">
                     <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{totalHours} {strings.hours}</p>
-                    <p className={cn("text-2xl font-black", PRIMARY_COLOR_CLASSES.text)}>{yen.format(totalPay)}</p>
+                    <p className={cn("text-2xl font-black", primaryColors.text)}>{yen.format(totalPay)}</p>
                 </div>
             </div>
             <div className="space-y-3">
@@ -853,6 +948,7 @@ function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang,
                         baseLang={baseLang}
                         onDelete={onDelete}
                         onUpdate={onUpdate}
+                        primaryColors={primaryColors}
                     />
                 ))}
             </div>
@@ -861,7 +957,7 @@ function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang,
 }
 
 // --- MONTH FILTER COMPONENT (UNCHANGED) ---
-function MonthFilter({ selectedMonth, onMonthSelect, lang }: { selectedMonth: Date | undefined, onMonthSelect: (date: Date | undefined) => void, lang: Lang }) {
+function MonthFilter({ selectedMonth, onMonthSelect, lang, primaryColors }: { selectedMonth: Date | undefined, onMonthSelect: (date: Date | undefined) => void, lang: Lang, primaryColors: ReturnType<typeof getPrimaryColorClasses> }) {
     const [isOpen, setIsOpen] = useState(false);
     const strings = LANG_STRINGS[lang];
 
@@ -889,7 +985,7 @@ function MonthFilter({ selectedMonth, onMonthSelect, lang }: { selectedMonth: Da
                 className={cn(
                     "w-full h-10 sm:h-12 px-3 sm:px-4 flex items-center justify-between rounded-xl border-2 font-medium transition-all text-sm",
                     selectedMonth
-                        ? cn(PRIMARY_COLOR_CLASSES.border, PRIMARY_COLOR_CLASSES.text, "bg-white dark:bg-slate-900/80")
+                        ? cn(primaryColors.border, primaryColors.text, "bg-white dark:bg-slate-900/80")
                         : "border-gray-300 dark:border-slate-600 bg-white/80 dark:bg-slate-900/60 text-gray-800 dark:text-gray-400"
                 )}
             >
@@ -922,7 +1018,7 @@ function MonthFilter({ selectedMonth, onMonthSelect, lang }: { selectedMonth: Da
                                     className={cn(
                                         "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                                         selectedMonth && format(selectedMonth, 'yyyy-MM') === monthStr
-                                            ? cn(PRIMARY_COLOR_CLASSES.bgLight, PRIMARY_COLOR_CLASSES.text, "font-bold")
+                                            ? cn(primaryColors.bgLight, primaryColors.text, "font-bold")
                                             : "text-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800"
                                     )}
                                 >
@@ -953,13 +1049,15 @@ function AddEditShiftModal({
     onClose,
     onSubmit,
     initialShift,
-    lang
+    lang,
+    primaryColors
 }: {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (shift: Omit<Shift, 'hours' | 'pay' | 'dayOfWeek'>) => void;
     initialShift: Shift | null;
     lang: Lang;
+    primaryColors: ReturnType<typeof getPrimaryColorClasses>;
 }) {
     const strings = LANG_STRINGS[lang];
     const initialFormState = useMemo<ShiftFormState>(() => ({
@@ -1036,7 +1134,7 @@ function AddEditShiftModal({
                         className={cn("w-full max-w-md rounded-3xl p-6 relative", modalBgClasses)}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <h2 className={cn("text-2xl font-extrabold mb-6", PRIMARY_COLOR_CLASSES.text)}>{title}</h2>
+                        <h2 className={cn("text-2xl font-extrabold mb-6", primaryColors.text)}>{title}</h2>
                         <Button
                             variant="ghost"
                             size="icon"
@@ -1060,10 +1158,10 @@ function AddEditShiftModal({
                                             className={cn(
                                                 "w-full justify-start text-left font-normal h-12 rounded-xl border-2 items-center",
                                                 "text-gray-800 dark:text-gray-200",
-                                                PRIMARY_COLOR_CLASSES.border
+                                                primaryColors.border
                                             )}
                                         >
-                                            <CalendarIcon className={cn("mr-2 h-4 w-4", PRIMARY_COLOR_CLASSES.text)} />
+                                            <CalendarIcon className={cn("mr-2 h-4 w-4", primaryColors.text)} />
                                             {form.date ? format(form.date, lang === 'en' ? 'PPP' : 'yyyy年M月d日(EEE)') : <span>Pick a date</span>}
                                         </Button>
                                     </PopoverTrigger>
@@ -1086,13 +1184,15 @@ function AddEditShiftModal({
                                     value={form.fromTime}
                                     onChange={(v) => handleTimeChange('fromTime', v)}
                                     label={strings.start}
+                                    primaryColors={primaryColors}
                                 />
                                 {/* **FIX**: Smaller 'to' text on small devices (text-xl vs text-2xl) */}
-                                <span className={cn("font-bold", PRIMARY_COLOR_CLASSES.text, "text-xl sm:text-2xl")}>{strings.to}</span>
+                                <span className={cn("font-bold", primaryColors.text, "text-xl sm:text-2xl")}>{strings.to}</span>
                                 <ScrollTimePicker
                                     value={form.toTime}
                                     onChange={(v) => handleTimeChange('toTime', v)}
                                     label={strings.end}
+                                    primaryColors={primaryColors}
                                 />
                             </div>
 
@@ -1110,30 +1210,30 @@ function AddEditShiftModal({
                                         placeholder="1000"
                                         value={form.wage}
                                         onChange={handleChange}
-                                        className={cn("w-full h-12 rounded-xl text-lg font-semibold pl-10 border-2 text-gray-900 dark:text-white", PRIMARY_COLOR_CLASSES.border)}
+                                        className={cn("w-full h-12 rounded-xl text-lg font-semibold pl-10 border-2 text-gray-900 dark:text-white", primaryColors.border)}
                                     />
-                                    <span className={cn("absolute left-3 top-1/2 transform -translate-y-1/2 text-lg font-bold", PRIMARY_COLOR_CLASSES.text)}>¥</span>
+                                    <span className={cn("absolute left-3 top-1/2 transform -translate-y-1/2 text-lg font-bold", primaryColors.text)}>¥</span>
                                 </div>
                             </div>
 
                             {/* Summary */}
                             <div
-                                className={cn("p-4 rounded-xl flex justify-between items-center shadow-md", PRIMARY_COLOR_CLASSES.bgLight + '/50 dark:' + PRIMARY_COLOR_CLASSES.bgDark)}
+                                className={cn("p-4 rounded-xl flex justify-between items-center shadow-md", primaryColors.bgLight + '/50 dark:' + primaryColors.bgDark)}
                             >
                                 <div>
                                     <p className="text-sm font-medium text-gray-700 dark:text-gray-400">{strings.totalHours}</p>
-                                    <p className={cn("text-2xl font-black", PRIMARY_COLOR_CLASSES.text)}>{hours} {strings.hours}</p>
+                                    <p className={cn("text-2xl font-black", primaryColors.text)}>{hours} {strings.hours}</p>
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium text-gray-700 dark:text-gray-400">{strings.totalPay}</p>
-                                    <p className={cn("text-2xl font-black", PRIMARY_COLOR_CLASSES.text)}>{yen.format(pay)}</p>
+                                    <p className={cn("text-2xl font-black", primaryColors.text)}>{yen.format(pay)}</p>
                                 </div>
                             </div>
 
                             {/* Submit Button */}
                             <button
                                 type="submit"
-                                className={cn("w-full h-12 rounded-xl text-lg font-bold text-white transition-all shadow-lg hover:shadow-xl", PRIMARY_COLOR_CLASSES.bgGradient)}
+                                className={cn("w-full h-12 rounded-xl text-lg font-bold text-white transition-all shadow-lg hover:shadow-xl", primaryColors.bgGradient)}
                             >
                                 {submitText}
                             </button>
@@ -1182,6 +1282,7 @@ export default function ShiftTracker() {
 
     const strings = LANG_STRINGS[lang];
     const themeVariant = THEME_VARIANTS[variantIndex];
+    const PRIMARY_COLOR_CLASSES = getPrimaryColorClasses(variantIndex, theme);
 
     // --- Local Storage Hooks (UNCHANGED) ---
     // Show install prompt after 3 seconds if not installed
@@ -1274,7 +1375,18 @@ export default function ShiftTracker() {
         // Update theme color for status bar
         const themeColorMeta = document.querySelector('meta[name="theme-color"]');
         if (themeColorMeta) {
-            themeColorMeta.setAttribute('content', theme === 'dark' ? '#0f172a' : '#6366f1');
+            const colors = {
+                0: { light: '#0891b2', dark: '#0e7490' }, // cyan
+                1: { light: '#ea580c', dark: '#c2410c' }, // orange
+                2: { light: '#059669', dark: '#047857' }, // emerald
+                3: { light: '#7c3aed', dark: '#6d28d9' }, // violet
+                4: { light: '#2563eb', dark: '#1d4ed8' }, // blue
+                5: { light: '#dc2626', dark: '#b91c1c' }, // red
+                6: { light: '#65a30d', dark: '#4d7c0f' }, // lime
+                7: { light: '#9333ea', dark: '#7c2d12' }, // purple
+            };
+            const colorSet = colors[variantIndex as keyof typeof colors] || colors[3];
+            themeColorMeta.setAttribute('content', theme === 'dark' ? colorSet.dark : colorSet.light);
         }
 
     }, [shifts, hourlyRate, lang, theme, variantIndex, isLoading]);
@@ -1398,6 +1510,7 @@ export default function ShiftTracker() {
                         baseLang={lang}
                         onDelete={deleteShift}
                         onUpdate={openEditModal}
+                        primaryColors={PRIMARY_COLOR_CLASSES}
                     />
                 ))
             ) : (
@@ -1427,6 +1540,7 @@ export default function ShiftTracker() {
                         baseLang={lang}
                         onDelete={deleteShift}
                         onUpdate={openEditModal}
+                        primaryColors={PRIMARY_COLOR_CLASSES}
                     />
                 ) : (
                     <EmptyState
@@ -1522,6 +1636,7 @@ export default function ShiftTracker() {
                                     variantIndex={variantIndex}
                                     setVariantIndex={setVariantIndex}
                                     toggleLang={toggleLang}
+                                    primaryColors={PRIMARY_COLOR_CLASSES}
                                 />
                                 <motion.button
                                     onClick={openAddModal}
@@ -1552,6 +1667,7 @@ export default function ShiftTracker() {
                                     selectedMonth={filterMonth}
                                     onMonthSelect={setFilterMonth}
                                     lang={lang}
+                                    primaryColors={PRIMARY_COLOR_CLASSES}
                                 />
 
 
@@ -1565,37 +1681,39 @@ export default function ShiftTracker() {
                     </main>
 
                     {/* Footer/Clear Data */}
-                    <footer className="w-full max-w-4xl mt-8 pt-4 border-t border-gray-200 dark:border-slate-700">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200"
-                            onClick={() => {
-                                setAlertConfig({
-                                    isOpen: true,
-                                    title: strings.areYouSure,
-                                    message: strings.clearData,
-                                    onConfirm: async () => {
-                                        setShifts([]);
-                                        setHourlyRate(1000);
-                                        const emptyData = { shifts: [], hourlyRate: 1000, lang, theme, variantIndex };
+                    <footer className="w-full max-w-4xl mt-8 pt-4 pb-safe border-t border-gray-200 dark:border-slate-700">
+                        <div className="pb-4">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200"
+                                onClick={() => {
+                                    setAlertConfig({
+                                        isOpen: true,
+                                        title: strings.areYouSure,
+                                        message: strings.clearData,
+                                        onConfirm: async () => {
+                                            setShifts([]);
+                                            setHourlyRate(1000);
+                                            const emptyData = { shifts: [], hourlyRate: 1000, lang, theme, variantIndex };
 
-                                        // Clear localStorage
-                                        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(emptyData));
+                                            // Clear localStorage
+                                            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(emptyData));
 
-                                        // Try to clear IndexedDB
-                                        try {
-                                            await saveToIndexedDB('appData', emptyData);
-                                        } catch (e) {
-                                            console.warn('Failed to clear IndexedDB:', e);
+                                            // Try to clear IndexedDB
+                                            try {
+                                                await saveToIndexedDB('appData', emptyData);
+                                            } catch (e) {
+                                                console.warn('Failed to clear IndexedDB:', e);
+                                            }
+                                            setAlertConfig(null);
                                         }
-                                        setAlertConfig(null);
-                                    }
-                                });
-                            }}
-                        >
-                            <Trash2 size={16} className="mr-2" /> {strings.clearData}
-                        </Button>
+                                    });
+                                }}
+                            >
+                                <Trash2 size={16} className="mr-2" /> {strings.clearData}
+                            </Button>
+                        </div>
                     </footer>
                 </div>
 
@@ -1605,6 +1723,7 @@ export default function ShiftTracker() {
                     onSubmit={addOrUpdateShift}
                     initialShift={editingShift}
                     lang={lang}
+                    primaryColors={PRIMARY_COLOR_CLASSES}
                 />
 
                 {alertConfig && (
