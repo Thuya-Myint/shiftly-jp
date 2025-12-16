@@ -1110,34 +1110,22 @@ function AddEditShiftModal({
     const modalBgClasses = "bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700/80 shadow-2xl";
 
 
+    if (!isOpen) return null;
+
     return (
-        <AnimatePresence>
-            {isOpen && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[10000] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hw-accelerate"
-                    onClick={onClose}
-                >
-                    <motion.div
-                        initial={{ scale: 0.95, y: 20 }}
-                        animate={{ scale: 1, y: 0 }}
-                        exit={{ scale: 0.95, y: 20 }}
-                        transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
-                        className={cn("w-full max-w-md rounded-3xl p-6 relative hw-accelerate", modalBgClasses)}
-                        onClick={(e) => e.stopPropagation()}
-                    >
+        <div className="fixed inset-0 z-[10000] bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
+            <div
+                className={cn("w-full max-w-md rounded-3xl p-6 relative", modalBgClasses)}
+                onClick={(e) => e.stopPropagation()}
+            >
                         <h2 className={cn("text-2xl font-extrabold mb-6", primaryColors.text)}>{title}</h2>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-4 right-4 h-10 w-10 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                        <button
+                            className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
                             onClick={onClose}
                             aria-label="Close modal"
                         >
                             <X size={20} />
-                        </Button>
+                        </button>
 
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Date Picker */}
@@ -1147,17 +1135,17 @@ function AddEditShiftModal({
                                 </label>
                                 <Popover open={isDatePopoverOpen} onOpenChange={setIsDatePopoverOpen}>
                                     <PopoverTrigger asChild>
-                                        <Button
-                                            variant={"outline"}
+                                        <button
+                                            type="button"
                                             className={cn(
-                                                "w-full justify-start text-left font-normal h-12 rounded-xl border-2 items-center",
-                                                "text-gray-800 dark:text-gray-200",
+                                                "w-full justify-start text-left font-normal h-12 rounded-xl border-2 items-center flex px-3",
+                                                "text-gray-800 dark:text-gray-200 bg-white dark:bg-slate-900",
                                                 primaryColors.border
                                             )}
                                         >
                                             <CalendarIcon className={cn("mr-2 h-4 w-4", primaryColors.text)} />
                                             {form.date ? format(form.date, lang === 'en' ? 'PPP' : 'yyyy年M月d日(EEE)') : <span>Pick a date</span>}
-                                        </Button>
+                                        </button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-full md:w-auto p-0 z-[10001]">
                                         <Calendar
@@ -1232,10 +1220,8 @@ function AddEditShiftModal({
                                 {submitText}
                             </button>
                         </form>
-                    </motion.div>
-                </motion.div>
-            )}
-        </AnimatePresence>
+            </div>
+        </div>
     );
 }
 
