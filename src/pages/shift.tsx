@@ -707,13 +707,14 @@ function ScrollTimePicker({ value, onChange, label, primaryColors }: { value: st
 }
 
 // --- THEME DROPDOWN ---
-function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleLang, primaryColors }: {
+function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleLang, primaryColors, lang }: {
     theme: 'light' | 'dark';
     setTheme: (theme: 'light' | 'dark') => void;
     variantIndex: number;
     setVariantIndex: (index: number) => void;
     toggleLang: () => void;
     primaryColors: ReturnType<typeof getPrimaryColorClasses>;
+    lang: Lang;
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -776,7 +777,7 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
                 className={cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer", frostedGlassClasses)}
                 aria-label="Toggle language"
             >
-                <Globe size={18} className={primaryColors.text} />
+                <span className={cn("text-sm font-bold", primaryColors.text)}>{lang.toUpperCase()}</span>
             </motion.button>
 
             <AnimatePresence>
@@ -1882,6 +1883,7 @@ export default function ShiftTracker() {
                                     setVariantIndex={setVariantIndex}
                                     toggleLang={toggleLang}
                                     primaryColors={PRIMARY_COLOR_CLASSES}
+                                    lang={lang}
                                 />
                                 <button
                                     onClick={openAddModal}
