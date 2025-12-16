@@ -183,6 +183,11 @@ const GlobalStyles = () => (
         body {
           opacity: 1;
           visibility: visible;
+          background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        }
+        
+        body.dark {
+          background: linear-gradient(135deg, #0f172a, #1e293b);
         }
         
         /* Performance optimizations */
@@ -1682,14 +1687,7 @@ export default function ShiftTracker() {
     return (
         <>
             <GlobalStyles />
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key="main-app"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.2 }}
-                    className={cn("min-h-screen", appClasses)}
-                >
+            <div className={cn("min-h-screen", appClasses)}>
                     <div className={cn("min-h-screen flex flex-col items-center sm:p-6 transition-colors duration-500")}>
 
                         {/* Header/Controls */}
@@ -1811,8 +1809,7 @@ export default function ShiftTracker() {
                         lang={lang}
 
                     />
-                </motion.div>
-            </AnimatePresence>
+            </div>
         </>
     );
 }
