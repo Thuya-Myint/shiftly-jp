@@ -1285,8 +1285,7 @@ export default function ShiftTracker() {
     const [filterMonth, setFilterMonth] = useState<Date | undefined>(new Date());
     const [alertConfig, setAlertConfig] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void } | null>(null);
     const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const [showLaunchScreen, setShowLaunchScreen] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
 
     // Block overscroll when modal is open
     useEffect(() => {
@@ -1688,127 +1687,127 @@ export default function ShiftTracker() {
         <>
             <GlobalStyles />
             <div className={cn("min-h-screen", appClasses)}>
-                    <div className={cn("min-h-screen flex flex-col items-center sm:p-6 transition-colors duration-500")}>
+                <div className={cn("min-h-screen flex flex-col items-center sm:p-6 transition-colors duration-500")}>
 
-                        {/* Header/Controls */}
-                        <header className="w-full max-w-4xl sticky p-4 top-0 z-40 mb-6 py-4 backdrop-blur-md bg-transparent/80">
-                            <div className="flex justify-between items-center mb-4">
-                                <h1 className={cn("text-2xl sm:text-3xl font-extrabold tracking-tight", PRIMARY_COLOR_CLASSES.text)}>
-                                    Shomyn
-                                </h1>
-                                <div className="flex gap-2">
-                                    <ThemeDropdown
-                                        theme={theme}
-                                        setTheme={setTheme}
-                                        variantIndex={variantIndex}
-                                        setVariantIndex={setVariantIndex}
-                                        toggleLang={toggleLang}
-                                        primaryColors={PRIMARY_COLOR_CLASSES}
-                                    />
-                                    <motion.button
-                                        onClick={openAddModal}
-                                        whileTap={{ scale: 0.95 }}
-                                        className={cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer backdrop-blur-md border shadow-sm transition-colors", PRIMARY_COLOR_CLASSES.bgGradient, "text-white")}
-                                        aria-label="Add new shift"
-                                    >
-                                        <Plus size={18} />
-                                    </motion.button>
-                                </div>
-                            </div>
-
-                            {/* Totals & Filters Section */}
-                            <div className={cn(
-                                "p-4 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4 border",
-                                theme === 'light'
-                                    ? 'bg-white/80 border-gray-200'
-                                    : 'bg-slate-900/70 border-slate-700'
-                            )}>
-                                <div className="flex flex-col items-center sm:items-start">
-                                    <p className="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-400 text-center sm:text-left">{strings.grandTotal}</p>
-                                    <p className={cn("text-3xl font-black text-center sm:text-left", PRIMARY_COLOR_CLASSES.text)}>{yen.format(aggregatedData.grandTotal.totalPay)}</p>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left">{aggregatedData.grandTotal.totalHours} {strings.hours}</p>
-                                </div>
-
-                                <div className="flex gap-3 w-full sm:w-auto flex-1 sm:flex-none min-w-0">
-                                    <MonthFilter
-                                        selectedMonth={filterMonth}
-                                        onMonthSelect={setFilterMonth}
-                                        lang={lang}
-                                        primaryColors={PRIMARY_COLOR_CLASSES}
-                                    />
-
-
-                                </div>
-                            </div>
-                        </header>
-
-                        {/* Content Area */}
-                        <main className="w-full max-w-4xl pb-16 px-4">
-                            {renderMonthlyView()}
-                        </main>
-
-                        {/* Footer/Clear Data */}
-                        <footer className="w-full max-w-4xl mt-8 pt-4 pb-safe border-t border-gray-200 dark:border-slate-700">
-                            <div className="pb-4">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200"
-                                    onClick={() => {
-                                        setAlertConfig({
-                                            isOpen: true,
-                                            title: strings.areYouSure,
-                                            message: strings.clearData,
-                                            onConfirm: async () => {
-                                                setShifts([]);
-                                                setHourlyRate(1000);
-                                                const emptyData = { shifts: [], hourlyRate: 1000, lang, theme, variantIndex };
-
-                                                // Clear localStorage
-                                                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(emptyData));
-
-                                                // Try to clear IndexedDB
-                                                try {
-                                                    await saveToIndexedDB('appData', emptyData);
-                                                } catch (e) {
-                                                    console.warn('Failed to clear IndexedDB:', e);
-                                                }
-                                                setAlertConfig(null);
-                                            }
-                                        });
-                                    }}
+                    {/* Header/Controls */}
+                    <header className="w-full max-w-4xl sticky p-4 top-0 z-40 mb-6 py-4 backdrop-blur-md bg-transparent/80">
+                        <div className="flex justify-between items-center mb-4">
+                            <h1 className={cn("text-2xl sm:text-3xl font-extrabold tracking-tight", PRIMARY_COLOR_CLASSES.text)}>
+                                Shomyn
+                            </h1>
+                            <div className="flex gap-2">
+                                <ThemeDropdown
+                                    theme={theme}
+                                    setTheme={setTheme}
+                                    variantIndex={variantIndex}
+                                    setVariantIndex={setVariantIndex}
+                                    toggleLang={toggleLang}
+                                    primaryColors={PRIMARY_COLOR_CLASSES}
+                                />
+                                <motion.button
+                                    onClick={openAddModal}
+                                    whileTap={{ scale: 0.95 }}
+                                    className={cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer backdrop-blur-md border shadow-sm transition-colors", PRIMARY_COLOR_CLASSES.bgGradient, "text-white")}
+                                    aria-label="Add new shift"
                                 >
-                                    <Trash2 size={16} className="mr-2" /> {strings.clearData}
-                                </Button>
+                                    <Plus size={18} />
+                                </motion.button>
                             </div>
-                        </footer>
-                    </div>
+                        </div>
 
-                    <AddEditShiftModal
-                        isOpen={isModalOpen}
-                        onClose={() => setIsModalOpen(false)}
-                        onSubmit={addOrUpdateShift}
-                        initialShift={editingShift}
-                        lang={lang}
-                        primaryColors={PRIMARY_COLOR_CLASSES}
+                        {/* Totals & Filters Section */}
+                        <div className={cn(
+                            "p-4 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4 border",
+                            theme === 'light'
+                                ? 'bg-white/80 border-gray-200'
+                                : 'bg-slate-900/70 border-slate-700'
+                        )}>
+                            <div className="flex flex-col items-center sm:items-start">
+                                <p className="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-400 text-center sm:text-left">{strings.grandTotal}</p>
+                                <p className={cn("text-3xl font-black text-center sm:text-left", PRIMARY_COLOR_CLASSES.text)}>{yen.format(aggregatedData.grandTotal.totalPay)}</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left">{aggregatedData.grandTotal.totalHours} {strings.hours}</p>
+                            </div>
+
+                            <div className="flex gap-3 w-full sm:w-auto flex-1 sm:flex-none min-w-0">
+                                <MonthFilter
+                                    selectedMonth={filterMonth}
+                                    onMonthSelect={setFilterMonth}
+                                    lang={lang}
+                                    primaryColors={PRIMARY_COLOR_CLASSES}
+                                />
+
+
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Content Area */}
+                    <main className="w-full max-w-4xl pb-16 px-4">
+                        {renderMonthlyView()}
+                    </main>
+
+                    {/* Footer/Clear Data */}
+                    <footer className="w-full max-w-4xl mt-8 pt-4 pb-safe border-t border-gray-200 dark:border-slate-700">
+                        <div className="pb-4">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200"
+                                onClick={() => {
+                                    setAlertConfig({
+                                        isOpen: true,
+                                        title: strings.areYouSure,
+                                        message: strings.clearData,
+                                        onConfirm: async () => {
+                                            setShifts([]);
+                                            setHourlyRate(1000);
+                                            const emptyData = { shifts: [], hourlyRate: 1000, lang, theme, variantIndex };
+
+                                            // Clear localStorage
+                                            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(emptyData));
+
+                                            // Try to clear IndexedDB
+                                            try {
+                                                await saveToIndexedDB('appData', emptyData);
+                                            } catch (e) {
+                                                console.warn('Failed to clear IndexedDB:', e);
+                                            }
+                                            setAlertConfig(null);
+                                        }
+                                    });
+                                }}
+                            >
+                                <Trash2 size={16} className="mr-2" /> {strings.clearData}
+                            </Button>
+                        </div>
+                    </footer>
+                </div>
+
+                <AddEditShiftModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onSubmit={addOrUpdateShift}
+                    initialShift={editingShift}
+                    lang={lang}
+                    primaryColors={PRIMARY_COLOR_CLASSES}
+                />
+
+                {alertConfig && (
+                    <CustomAlert
+                        isOpen={alertConfig.isOpen}
+                        title={alertConfig.title}
+                        message={alertConfig.message}
+                        onConfirm={alertConfig.onConfirm}
+                        onCancel={() => setAlertConfig(null)}
                     />
+                )}
 
-                    {alertConfig && (
-                        <CustomAlert
-                            isOpen={alertConfig.isOpen}
-                            title={alertConfig.title}
-                            message={alertConfig.message}
-                            onConfirm={alertConfig.onConfirm}
-                            onCancel={() => setAlertConfig(null)}
-                        />
-                    )}
+                <PWAInstallPrompt
+                    isOpen={showInstallPrompt}
+                    onClose={handleCloseInstallPrompt}
+                    lang={lang}
 
-                    <PWAInstallPrompt
-                        isOpen={showInstallPrompt}
-                        onClose={handleCloseInstallPrompt}
-                        lang={lang}
-
-                    />
+                />
             </div>
         </>
     );
