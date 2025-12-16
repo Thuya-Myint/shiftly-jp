@@ -203,36 +203,7 @@ const GlobalStyles = () => (
           animation: gradient-x 20s ease infinite;
         }
         
-        /* Mobile performance optimizations */
-        @media (max-width: 768px) {
-          .animate-gradient-x {
-            animation: none;
-            background: linear-gradient(135deg, var(--tw-gradient-from), var(--tw-gradient-to));
-          }
-          * {
-            transition-duration: 0.15s !important;
-          }
-        }
-        
-        /* Reduce motion for accessibility and performance */
-        @media (prefers-reduced-motion: reduce) {
-          .animate-gradient-x {
-            animation: none;
-            background: linear-gradient(135deg, var(--tw-gradient-from), var(--tw-gradient-to));
-          }
-          * {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-          }
-        }
-        
-        /* Hardware acceleration for better performance */
-        .hw-accelerate {
-          transform: translate3d(0, 0, 0);
-          backface-visibility: hidden;
-          perspective: 1000px;
-        }
+       
     `}</style>
 );
 
