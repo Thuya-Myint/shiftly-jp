@@ -242,7 +242,7 @@ function PWAInstallPrompt({ isOpen, onClose, lang }: { isOpen: boolean; onClose:
                                 <Button
                                     onClick={onClose}
                                     variant="outline"
-                                    className="text-sm h-8 px-3 border-gray-300 dark:border-slate-600"
+                                    className="text-sm h-8 px-3 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300"
                                 >
                                     {lang === 'en' ? 'Later' : '後で'}
                                 </Button>
@@ -252,7 +252,7 @@ function PWAInstallPrompt({ isOpen, onClose, lang }: { isOpen: boolean; onClose:
                             onClick={onClose}
                             variant="ghost"
                             size="sm"
-                            className="p-1 h-6 w-6 text-gray-400 hover:text-gray-600"
+                            className="p-1 h-6 w-6 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
                         >
                             <X size={14} />
                         </Button>
