@@ -291,6 +291,13 @@ function PWAInstallPrompt({ isOpen, onClose, lang }: { isOpen: boolean; onClose:
             e.preventDefault();
             setDeferredPrompt(e);
         };
+        
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .catch(err => console.log('SW registration failed'));
+        }
+        
         window.addEventListener('beforeinstallprompt', handler);
         return () => window.removeEventListener('beforeinstallprompt', handler);
     }, []);
@@ -307,7 +314,8 @@ function PWAInstallPrompt({ isOpen, onClose, lang }: { isOpen: boolean; onClose:
     };
 
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                         (window.navigator as any).standalone === true;
 
     if (isStandalone) return null;
 
@@ -668,7 +676,7 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
         setVariantIndex(index);
         setIsOpen(false);
     }, [setVariantIndex]);
-    
+
     const handleToggleTheme = useCallback((newTheme: 'light' | 'dark') => {
         setTheme(newTheme);
         setIsOpen(false);
