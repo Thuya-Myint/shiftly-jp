@@ -539,7 +539,7 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
                                     <span className={cn("text-sm font-medium", isLight ? 'text-gray-900' : 'text-white')}>{variant.name}</span>
                                     <div className="flex gap-1">
                                         <div className={cn("w-5 h-5 rounded-full ring-1 ring-gray-300 dark:ring-gray-700", variant.lightPreview)} />
-                                        <div className="w-5 h-5 rounded-full ring-1 ring-gray-300 dark:ring-gray-700" />
+                                        <div className={cn("w-5 h-5 rounded-full ring-1 ring-gray-300 dark:ring-gray-700", variant.darkPreview)} />
                                     </div>
                                 </motion.div>
                             ))}
