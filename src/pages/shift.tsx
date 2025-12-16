@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, useCallback, memo } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
@@ -208,7 +208,7 @@ function calculateHours(from: string, to: string) {
 }
 
 // --- PWA INSTALL PROMPT COMPONENT ---
-const PWAInstallPrompt = memo(({ isOpen, onClose, lang }: { isOpen: boolean; onClose: () => void; lang: Lang }) => {
+function PWAInstallPrompt({ isOpen, onClose, lang }: { isOpen: boolean; onClose: () => void; lang: Lang }) {
     const strings = LANG_STRINGS[lang];
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
@@ -461,7 +461,7 @@ const ITEM_HEIGHT_SM = 32;
 const ITEM_HEIGHT_LG = 40;
 const CONTAINER_HEIGHT_MULTIPLIER = 3;
 
-const ScrollColumn = memo(({ options, selected, onSelect, isSmallDevice }: { options: string[]; selected: number; onSelect: (v: number) => void; isSmallDevice: boolean }) => {
+function ScrollColumn({ options, selected, onSelect, isSmallDevice }: { options: string[]; selected: number; onSelect: (v: number) => void; isSmallDevice: boolean }) {
     const containerRef = useRef<HTMLDivElement>(null);
     const isScrolling = useRef(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -477,7 +477,7 @@ const ScrollColumn = memo(({ options, selected, onSelect, isSmallDevice }: { opt
         }
     }, [selected, options, ITEM_HEIGHT]);
 
-    const handleScroll = useCallback(() => {
+    const handleScroll = () => {
         isScrolling.current = true;
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(() => {
@@ -489,10 +489,10 @@ const ScrollColumn = memo(({ options, selected, onSelect, isSmallDevice }: { opt
                 const value = Number(options[safeIndex]);
                 containerRef.current.scrollTo({ top: safeIndex * ITEM_HEIGHT, behavior: 'smooth' });
                 if (value !== selected) onSelect(value);
-                setTimeout(() => { isScrolling.current = false; }, 200);
+                setTimeout(() => { isScrolling.current = false; }, 300);
             }
-        }, 80);
-    }, [ITEM_HEIGHT, options.length, selected, onSelect]);
+        }, 100);
+    };
 
     return (
         <div className="relative group ">
@@ -537,28 +537,19 @@ const ScrollColumn = memo(({ options, selected, onSelect, isSmallDevice }: { opt
     );
 }
 
-const ScrollTimePicker = memo(({ value, onChange, label }: { value: string; onChange: (v: string) => void; label?: string }) => {
+function ScrollTimePicker({ value, onChange, label }: { value: string; onChange: (v: string) => void; label?: string }) {
     const [hour, minute] = (value || '00:00').split(':').map(v => parseInt(v, 10));
     const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
     const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
-    const updateTime = useCallback((newH: number, newM: number) => 
-        onChange(`${newH.toString().padStart(2, '0')}:${newM.toString().padStart(2, '0')}`),
-        [onChange]
-    );
+    const updateTime = (newH: number, newM: number) => onChange(`${newH.toString().padStart(2, '0')}:${newM.toString().padStart(2, '0')}`);
 
-    // Optimized device size check with debouncing
-    const [isSmallDevice, setIsSmallDevice] = useState(() => window.innerWidth < 640);
+    // Simple check for small device (can be replaced by a more robust custom hook if needed)
+    const [isSmallDevice, setIsSmallDevice] = useState(false);
     useEffect(() => {
-        let timeoutId: NodeJS.Timeout;
-        const checkSize = () => {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => setIsSmallDevice(window.innerWidth < 640), 100);
-        };
-        window.addEventListener('resize', checkSize, { passive: true });
-        return () => {
-            window.removeEventListener('resize', checkSize);
-            clearTimeout(timeoutId);
-        };
+        const checkSize = () => setIsSmallDevice(window.innerWidth < 640);
+        checkSize();
+        window.addEventListener('resize', checkSize);
+        return () => window.removeEventListener('resize', checkSize);
     }, []);
 
     return (
@@ -607,8 +598,7 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
         <div className="relative flex gap-2" ref={dropdownRef}>
             <motion.button
                 onClick={handleThemeIconClick}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: "tween", duration: 0.1 }}
+                whileTap={{ scale: 0.95 }}
                 className={cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer", frostedGlassClasses)}
                 aria-label="Change theme"
             >
@@ -617,8 +607,7 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
 
             <motion.button
                 onClick={toggleLang}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: "tween", duration: 0.1 }}
+                whileTap={{ scale: 0.95 }}
                 className={cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer", frostedGlassClasses)}
                 aria-label="Toggle language"
             >
@@ -709,12 +698,11 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate }: { shift: Shif
     return (
         <motion.div
             key={shift.id}
-            layout
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -20 }}
-            whileHover={{ scale: 1.01, y: -2 }}
-            transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            whileHover={{ y: -1 }}
+            transition={{ type: "tween", duration: 0.15, ease: "easeOut" }}
             className={cn(
                 "group relative overflow-hidden rounded-3xl p-4 sm:p-6 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer backdrop-blur-xl border",
                 theme === 'light'
@@ -1212,10 +1200,6 @@ export default function ShiftTracker() {
     const [showInstallPrompt, setShowInstallPrompt] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Memoize expensive calculations
-    const memoizedStrings = useMemo(() => LANG_STRINGS[lang], [lang]);
-    const memoizedThemeVariant = useMemo(() => THEME_VARIANTS[variantIndex], [variantIndex]);
-
     // Block overscroll when modal is open
     useEffect(() => {
         if (isModalOpen) {
@@ -1234,8 +1218,8 @@ export default function ShiftTracker() {
         };
     }, [isModalOpen]);
 
-    const strings = memoizedStrings;
-    const themeVariant = memoizedThemeVariant;
+    const strings = LANG_STRINGS[lang];
+    const themeVariant = THEME_VARIANTS[variantIndex];
 
     // --- Local Storage Hooks (UNCHANGED) ---
     // Show install prompt after 3 seconds if not installed
@@ -1545,12 +1529,11 @@ export default function ShiftTracker() {
         );
     }
 
-    // --- Main Layout (OPTIMIZED) ---
+    // --- Main Layout (UNCHANGED) ---
 
-    const appClasses = useMemo(() => 
-        theme === 'light' ? themeVariant.light : themeVariant.dark,
-        [theme, themeVariant]
-    );
+    const appClasses = theme === 'light'
+        ? themeVariant.light
+        : themeVariant.dark;
 
     if (isLoading) {
         return (
@@ -1567,10 +1550,10 @@ export default function ShiftTracker() {
         <>
             <GlobalStyles />
             <div className={cn("min-h-screen", appClasses)}>
-                <div className={cn("min-h-screen flex flex-col items-center p-4 sm:p-6 transition-colors duration-500")}>
+                <div className={cn("min-h-screen flex flex-col items-center sm:p-6 transition-colors duration-500")}>
 
                     {/* Header/Controls */}
-                    <header className="w-full max-w-4xl sticky top-0 z-40 mb-6 py-4 backdrop-blur-md bg-transparent/80">
+                    <header className="w-full max-w-4xl sticky p-4 top-0 z-40 mb-6 py-4 backdrop-blur-md bg-transparent/80">
                         <div className="flex justify-between items-center mb-4">
                             <h1 className={cn("text-2xl sm:text-3xl font-extrabold tracking-tight", PRIMARY_COLOR_CLASSES.text)}>
                                 Shift Tracker
@@ -1632,7 +1615,7 @@ export default function ShiftTracker() {
                     </header>
 
                     {/* Content Area */}
-                    <main className="w-full max-w-4xl pb-16">
+                    <main className="w-full max-w-4xl pb-16  px-4">
                         <AnimatePresence mode="wait">
                             {viewMode === 'list' ? renderShiftList() : renderMonthlyView()}
                         </AnimatePresence>
