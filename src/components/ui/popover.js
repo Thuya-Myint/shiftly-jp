@@ -1,6 +1,5 @@
 "use client";
 import { jsx as _jsx } from "react/jsx-runtime";
-import * as React from "react";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { cn } from "@/lib/utils";
 function Popover({ ...props }) {
