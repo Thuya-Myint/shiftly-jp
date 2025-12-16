@@ -1704,40 +1704,159 @@ export default function ShiftTracker() {
                         {renderMonthlyView()}
                     </main>
 
-                    {/* Footer/Clear Data */}
-                    <footer className="w-full max-w-4xl mt-8 pt-4 pb-safe border-t border-gray-200 dark:border-slate-700">
-                        <div className="pb-4">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200"
-                                onClick={() => {
-                                    setAlertConfig({
-                                        isOpen: true,
-                                        title: strings.areYouSure,
-                                        message: strings.clearData,
-                                        onConfirm: async () => {
-                                            setShifts([]);
-                                            setHourlyRate(1000);
-                                            const emptyData = { shifts: [], hourlyRate: 1000, lang, theme, variantIndex };
+                    {/* Enhanced Footer */}
+                    <footer className="w-full max-w-4xl mt-8 pt-6 pb-safe">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                            className={cn(
+                                "relative overflow-hidden rounded-2xl p-6 backdrop-blur-xl border shadow-xl",
+                                theme === 'light'
+                                    ? 'bg-white/80 border-gray-200/50'
+                                    : 'bg-slate-900/60 border-slate-700/50'
+                            )}
+                        >
+                            {/* Animated background gradient */}
+                            <div className={cn(
+                                "absolute inset-0 opacity-20 animate-gradient-x",
+                                PRIMARY_COLOR_CLASSES.bgGradient
+                            )} />
 
-                                            // Clear localStorage
-                                            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(emptyData));
+                            <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                {/* Left side - Clear Data Button */}
+                                <motion.div
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                >
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className={cn(
+                                            "group relative overflow-hidden px-4 py-2 rounded-xl border-2 transition-all duration-300 hover:shadow-lg",
+                                            "border-red-300 dark:border-red-600 text-red-600 dark:text-red-400",
+                                            "bg-white/60 dark:bg-slate-800/60 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                        )}
+                                        onClick={() => {
+                                            setAlertConfig({
+                                                isOpen: true,
+                                                title: strings.areYouSure,
+                                                message: strings.clearData,
+                                                onConfirm: async () => {
+                                                    setShifts([]);
+                                                    setHourlyRate(1000);
+                                                    const emptyData = { shifts: [], hourlyRate: 1000, lang, theme, variantIndex };
 
-                                            // Try to clear IndexedDB
-                                            try {
-                                                await saveToIndexedDB('appData', emptyData);
-                                            } catch (e) {
-                                                console.warn('Failed to clear IndexedDB:', e);
-                                            }
-                                            setAlertConfig(null);
-                                        }
-                                    });
-                                }}
-                            >
-                                <Trash2 size={16} className="mr-2" /> {strings.clearData}
-                            </Button>
-                        </div>
+                                                    // Clear localStorage
+                                                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(emptyData));
+
+                                                    // Try to clear IndexedDB
+                                                    try {
+                                                        await saveToIndexedDB('appData', emptyData);
+                                                    } catch (e) {
+                                                        console.warn('Failed to clear IndexedDB:', e);
+                                                    }
+                                                    setAlertConfig(null);
+                                                }
+                                            });
+                                        }}
+                                    >
+                                        <motion.div
+                                            className="flex items-center gap-2"
+                                            whileHover={{ x: 2 }}
+                                        >
+                                            <motion.div
+                                                animate={{ rotate: [0, 10, -10, 0] }}
+                                                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                                            >
+                                                <Trash2 size={16} />
+                                            </motion.div>
+                                            <span className="font-semibold">{strings.clearData}</span>
+                                        </motion.div>
+                                    </Button>
+                                </motion.div>
+
+                                {/* Right side - Copyright & Branding */}
+                                <div className="flex flex-col sm:flex-row items-center gap-3">
+                                    {/* Animated logo/icon */}
+                                    <motion.div
+                                        animate={{
+                                            rotate: [0, 5, -5, 0],
+                                            scale: [1, 1.05, 1]
+                                        }}
+                                        transition={{
+                                            duration: 3,
+                                            repeat: Infinity,
+                                            ease: "easeInOut"
+                                        }}
+                                        className={cn(
+                                            "p-2 rounded-full shadow-lg",
+                                            PRIMARY_COLOR_CLASSES.bgGradient
+                                        )}
+                                    >
+                                        <Zap size={20} className="text-white" />
+                                    </motion.div>
+
+                                    {/* Copyright text */}
+                                    <div className="text-center sm:text-right">
+                                        <motion.p
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{ delay: 0.5 }}
+                                            className={cn(
+                                                "text-sm font-bold tracking-wide",
+                                                PRIMARY_COLOR_CLASSES.text
+                                            )}
+                                        >
+                                            © 2024 Shomyn
+                                        </motion.p>
+                                        <motion.p
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{ delay: 0.7 }}
+                                            className="text-xs text-gray-500 dark:text-gray-400 font-medium"
+                                        >
+                                            {lang === 'en' ? 'Made with' : '愛を込めて'}
+                                            <motion.span
+                                                animate={{ scale: [1, 1.2, 1] }}
+                                                transition={{ duration: 1.5, repeat: Infinity }}
+                                                className="inline-block mx-1 text-red-500"
+                                            >
+                                                ♥
+                                            </motion.span>
+                                            {lang === 'en' ? 'by Shomyn Team' : 'Shomynチーム'}
+                                        </motion.p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Floating particles animation */}
+                            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                                {[...Array(3)].map((_, i) => (
+                                    <motion.div
+                                        key={i}
+                                        className={cn(
+                                            "absolute w-2 h-2 rounded-full opacity-30",
+                                            PRIMARY_COLOR_CLASSES.bgLight
+                                        )}
+                                        animate={{
+                                            x: [0, 100, 0],
+                                            y: [0, -50, 0],
+                                            opacity: [0.3, 0.7, 0.3]
+                                        }}
+                                        transition={{
+                                            duration: 4 + i,
+                                            repeat: Infinity,
+                                            delay: i * 0.5
+                                        }}
+                                        style={{
+                                            left: `${20 + i * 30}%`,
+                                            top: `${50 + i * 10}%`
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                        </motion.div>
                     </footer>
                 </div>
 

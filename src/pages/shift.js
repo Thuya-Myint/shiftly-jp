@@ -170,21 +170,7 @@ const GlobalStyles = () => (_jsx("style", { children: `
           background: linear-gradient(135deg, #0f172a, #1e293b);
         }
         
-        /* Performance optimizations */
-        * {
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-          font-family: inherit;
-        }
         
-        .gpu-accelerated {
-          transform: translateZ(0);
-          will-change: transform;
-        }
-        
-        .smooth-scroll {
-          scroll-behavior: smooth;
-        }
 
         @keyframes gradient-x {
           0% { background-position: 0% 50%; }
@@ -197,36 +183,7 @@ const GlobalStyles = () => (_jsx("style", { children: `
           animation: gradient-x 20s ease infinite;
         }
         
-        /* Mobile performance optimizations */
-        @media (max-width: 768px) {
-          .animate-gradient-x {
-            animation: none;
-            background: linear-gradient(135deg, var(--tw-gradient-from), var(--tw-gradient-to));
-          }
-          * {
-            transition-duration: 0.15s !important;
-          }
-        }
-        
-        /* Reduce motion for accessibility and performance */
-        @media (prefers-reduced-motion: reduce) {
-          .animate-gradient-x {
-            animation: none;
-            background: linear-gradient(135deg, var(--tw-gradient-from), var(--tw-gradient-to));
-          }
-          * {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-          }
-        }
-        
-        /* Hardware acceleration for better performance */
-        .hw-accelerate {
-          transform: translate3d(0, 0, 0);
-          backface-visibility: hidden;
-          perspective: 1000px;
-        }
+       
     ` }));
 // --- THEME VARIANTS ---
 const THEME_VARIANTS = [
@@ -873,26 +830,46 @@ export default function ShiftTracker() {
     }
     return (_jsxs(_Fragment, { children: [_jsx(GlobalStyles, {}), _jsxs("div", { className: cn("min-h-screen", appClasses), children: [_jsxs("div", { className: cn("min-h-screen flex flex-col items-center sm:p-6 transition-colors duration-500"), children: [_jsxs("header", { className: "w-full max-w-4xl sticky p-4 top-0 z-40 mb-6 py-4 backdrop-blur-md bg-transparent/80", children: [_jsxs("div", { className: "flex justify-between items-center mb-4", children: [_jsx("h1", { className: cn("text-2xl sm:text-3xl font-extrabold tracking-tight", PRIMARY_COLOR_CLASSES.text), children: "Shomyn" }), _jsxs("div", { className: "flex gap-2", children: [_jsx(ThemeDropdown, { theme: theme, setTheme: setTheme, variantIndex: variantIndex, setVariantIndex: setVariantIndex, toggleLang: toggleLang, primaryColors: PRIMARY_COLOR_CLASSES }), _jsx(motion.button, { onClick: openAddModal, whileTap: { scale: 0.95 }, className: cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer backdrop-blur-md border shadow-sm transition-colors", PRIMARY_COLOR_CLASSES.bgGradient, "text-white"), "aria-label": "Add new shift", children: _jsx(Plus, { size: 18 }) })] })] }), _jsxs("div", { className: cn("p-4 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4 border", theme === 'light'
                                             ? 'bg-white/80 border-gray-200'
-                                            : 'bg-slate-900/70 border-slate-700'), children: [_jsxs("div", { className: "flex flex-col items-center sm:items-start", children: [_jsx("p", { className: "text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-400 text-center sm:text-left", children: strings.grandTotal }), _jsx("p", { className: cn("text-3xl font-black text-center sm:text-left", PRIMARY_COLOR_CLASSES.text), children: yen.format(aggregatedData.grandTotal.totalPay) }), _jsxs("p", { className: "text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left", children: [aggregatedData.grandTotal.totalHours, " ", strings.hours] })] }), _jsx("div", { className: "flex gap-3 w-full sm:w-auto flex-1 sm:flex-none min-w-0", children: _jsx(MonthFilter, { selectedMonth: filterMonth, onMonthSelect: setFilterMonth, lang: lang, primaryColors: PRIMARY_COLOR_CLASSES }) })] })] }), _jsx("main", { className: "w-full max-w-4xl pb-16 px-4", children: renderMonthlyView() }), _jsx("footer", { className: "w-full max-w-4xl mt-8 pt-4 pb-safe border-t border-gray-200 dark:border-slate-700", children: _jsx("div", { className: "pb-4", children: _jsxs(Button, { variant: "ghost", size: "sm", className: "text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200", onClick: () => {
-                                            setAlertConfig({
-                                                isOpen: true,
-                                                title: strings.areYouSure,
-                                                message: strings.clearData,
-                                                onConfirm: async () => {
-                                                    setShifts([]);
-                                                    setHourlyRate(1000);
-                                                    const emptyData = { shifts: [], hourlyRate: 1000, lang, theme, variantIndex };
-                                                    // Clear localStorage
-                                                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(emptyData));
-                                                    // Try to clear IndexedDB
-                                                    try {
-                                                        await saveToIndexedDB('appData', emptyData);
-                                                    }
-                                                    catch (e) {
-                                                        console.warn('Failed to clear IndexedDB:', e);
-                                                    }
-                                                    setAlertConfig(null);
-                                                }
-                                            });
-                                        }, children: [_jsx(Trash2, { size: 16, className: "mr-2" }), " ", strings.clearData] }) }) })] }), _jsx(AddEditShiftModal, { isOpen: isModalOpen, onClose: () => setIsModalOpen(false), onSubmit: addOrUpdateShift, initialShift: editingShift, lang: lang, primaryColors: PRIMARY_COLOR_CLASSES }), alertConfig && (_jsx(CustomAlert, { isOpen: alertConfig.isOpen, title: alertConfig.title, message: alertConfig.message, onConfirm: alertConfig.onConfirm, onCancel: () => setAlertConfig(null) })), _jsx(PWAInstallPrompt, { isOpen: showInstallPrompt, onClose: handleCloseInstallPrompt, lang: lang })] })] }));
+                                            : 'bg-slate-900/70 border-slate-700'), children: [_jsxs("div", { className: "flex flex-col items-center sm:items-start", children: [_jsx("p", { className: "text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-400 text-center sm:text-left", children: strings.grandTotal }), _jsx("p", { className: cn("text-3xl font-black text-center sm:text-left", PRIMARY_COLOR_CLASSES.text), children: yen.format(aggregatedData.grandTotal.totalPay) }), _jsxs("p", { className: "text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left", children: [aggregatedData.grandTotal.totalHours, " ", strings.hours] })] }), _jsx("div", { className: "flex gap-3 w-full sm:w-auto flex-1 sm:flex-none min-w-0", children: _jsx(MonthFilter, { selectedMonth: filterMonth, onMonthSelect: setFilterMonth, lang: lang, primaryColors: PRIMARY_COLOR_CLASSES }) })] })] }), _jsx("main", { className: "w-full max-w-4xl pb-16 px-4", children: renderMonthlyView() }), _jsx("footer", { className: "w-full max-w-4xl mt-8 pt-6 pb-safe", children: _jsxs(motion.div, { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.5, delay: 0.2 }, className: cn("relative overflow-hidden rounded-2xl p-6 backdrop-blur-xl border shadow-xl", theme === 'light'
+                                        ? 'bg-white/80 border-gray-200/50'
+                                        : 'bg-slate-900/60 border-slate-700/50'), children: [_jsx("div", { className: cn("absolute inset-0 opacity-20 animate-gradient-x", PRIMARY_COLOR_CLASSES.bgGradient) }), _jsxs("div", { className: "relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4", children: [_jsx(motion.div, { whileHover: { scale: 1.02 }, whileTap: { scale: 0.98 }, children: _jsx(Button, { variant: "outline", size: "sm", className: cn("group relative overflow-hidden px-4 py-2 rounded-xl border-2 transition-all duration-300 hover:shadow-lg", "border-red-300 dark:border-red-600 text-red-600 dark:text-red-400", "bg-white/60 dark:bg-slate-800/60 hover:bg-red-50 dark:hover:bg-red-900/20"), onClick: () => {
+                                                            setAlertConfig({
+                                                                isOpen: true,
+                                                                title: strings.areYouSure,
+                                                                message: strings.clearData,
+                                                                onConfirm: async () => {
+                                                                    setShifts([]);
+                                                                    setHourlyRate(1000);
+                                                                    const emptyData = { shifts: [], hourlyRate: 1000, lang, theme, variantIndex };
+                                                                    // Clear localStorage
+                                                                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(emptyData));
+                                                                    // Try to clear IndexedDB
+                                                                    try {
+                                                                        await saveToIndexedDB('appData', emptyData);
+                                                                    }
+                                                                    catch (e) {
+                                                                        console.warn('Failed to clear IndexedDB:', e);
+                                                                    }
+                                                                    setAlertConfig(null);
+                                                                }
+                                                            });
+                                                        }, children: _jsxs(motion.div, { className: "flex items-center gap-2", whileHover: { x: 2 }, children: [_jsx(motion.div, { animate: { rotate: [0, 10, -10, 0] }, transition: { duration: 2, repeat: Infinity, ease: "easeInOut" }, children: _jsx(Trash2, { size: 16 }) }), _jsx("span", { className: "font-semibold", children: strings.clearData })] }) }) }), _jsxs("div", { className: "flex flex-col sm:flex-row items-center gap-3", children: [_jsx(motion.div, { animate: {
+                                                                rotate: [0, 5, -5, 0],
+                                                                scale: [1, 1.05, 1]
+                                                            }, transition: {
+                                                                duration: 3,
+                                                                repeat: Infinity,
+                                                                ease: "easeInOut"
+                                                            }, className: cn("p-2 rounded-full shadow-lg", PRIMARY_COLOR_CLASSES.bgGradient), children: _jsx(Zap, { size: 20, className: "text-white" }) }), _jsxs("div", { className: "text-center sm:text-right", children: [_jsx(motion.p, { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { delay: 0.5 }, className: cn("text-sm font-bold tracking-wide", PRIMARY_COLOR_CLASSES.text), children: "\u00A9 2024 Shomyn" }), _jsxs(motion.p, { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { delay: 0.7 }, className: "text-xs text-gray-500 dark:text-gray-400 font-medium", children: [lang === 'en' ? 'Made with' : '愛を込めて', _jsx(motion.span, { animate: { scale: [1, 1.2, 1] }, transition: { duration: 1.5, repeat: Infinity }, className: "inline-block mx-1 text-red-500", children: "\u2665" }), lang === 'en' ? 'by Shomyn Team' : 'Shomynチーム'] })] })] })] }), _jsx("div", { className: "absolute inset-0 pointer-events-none overflow-hidden", children: [...Array(3)].map((_, i) => (_jsx(motion.div, { className: cn("absolute w-2 h-2 rounded-full opacity-30", PRIMARY_COLOR_CLASSES.bgLight), animate: {
+                                                    x: [0, 100, 0],
+                                                    y: [0, -50, 0],
+                                                    opacity: [0.3, 0.7, 0.3]
+                                                }, transition: {
+                                                    duration: 4 + i,
+                                                    repeat: Infinity,
+                                                    delay: i * 0.5
+                                                }, style: {
+                                                    left: `${20 + i * 30}%`,
+                                                    top: `${50 + i * 10}%`
+                                                } }, i))) })] }) })] }), _jsx(AddEditShiftModal, { isOpen: isModalOpen, onClose: () => setIsModalOpen(false), onSubmit: addOrUpdateShift, initialShift: editingShift, lang: lang, primaryColors: PRIMARY_COLOR_CLASSES }), alertConfig && (_jsx(CustomAlert, { isOpen: alertConfig.isOpen, title: alertConfig.title, message: alertConfig.message, onConfirm: alertConfig.onConfirm, onCancel: () => setAlertConfig(null) })), _jsx(PWAInstallPrompt, { isOpen: showInstallPrompt, onClose: handleCloseInstallPrompt, lang: lang })] })] }));
 }
