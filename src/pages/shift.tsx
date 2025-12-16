@@ -892,7 +892,14 @@ function MonthFilter({ selectedMonth, onMonthSelect, lang }: { selectedMonth: Da
     const strings = LANG_STRINGS[lang];
 
     const allShiftMonths = useMemo(() => {
-        return [];
+        const months = new Set<string>();
+        const currentYear = new Date().getFullYear();
+        for (let i = 0; i < 12; i++) {
+            months.add(format(new Date(currentYear, i, 1), 'yyyy-MM'));
+        }
+
+        return Array.from(months)
+            .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
     }, []);
 
     const handleSelectMonth = (monthStr: string | undefined) => {
@@ -932,14 +939,6 @@ function MonthFilter({ selectedMonth, onMonthSelect, lang }: { selectedMonth: Da
                         className="absolute top-full mt-2 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-xl shadow-2xl border border-gray-200/50 dark:border-slate-700/50 max-h-60 overflow-y-auto"
                     >
                         <div className="p-2">
-                            <motion.button
-                                onClick={() => handleSelectMonth(undefined)}
-                                whileHover={{ scale: 1.02, backgroundColor: "rgba(99, 102, 241, 0.1)" }}
-                                whileTap={{ scale: 0.98 }}
-                                className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
-                            >
-                                {strings.allMonths}
-                            </motion.button>
                             {allShiftMonths.map((monthStr) => (
                                 <motion.button
                                     key={monthStr}
