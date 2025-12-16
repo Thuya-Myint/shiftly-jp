@@ -1,12 +1,13 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+// Ensure you have these components or replace them with standard HTML inputs if needed
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Sun, Moon, Globe, Calendar as CalendarIcon, Clock, Trash2, RotateCcw, List, Filter, X, Zap, AlertTriangle } from 'lucide-react';
+import { Plus, Sun, Moon, Globe, Calendar as CalendarIcon, Clock, Trash2, RotateCcw, List, Filter, X, Zap, AlertTriangle, ChevronRight, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval, addMonths, subMonths } from 'date-fns';
 
 // --- Type Definitions ---
 type Shift = {
@@ -109,7 +110,7 @@ const getPrimaryColorClasses = (variantIndex: number, theme: 'light' | 'dark') =
 };
 
 
-// --- Language Strings (UNCHANGED) ---
+// --- Language Strings ---
 const LANG_STRINGS = {
     en: {
         to: 'to',
@@ -167,7 +168,7 @@ const LANG_STRINGS = {
     }
 };
 
-// --- GLOBAL STYLES WITH PERFORMANCE OPTIMIZATIONS ---
+// --- GLOBAL STYLES (FIXED: REMOVED WILDCARD TRANSITION) ---
 const GlobalStyles = () => (
     <style>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -178,12 +179,14 @@ const GlobalStyles = () => (
         /* Prevent FOUC and blinking */
         html {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          -webkit-tap-highlight-color: transparent;
         }
         
         body {
           opacity: 1;
           visibility: visible;
           background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+          overscroll-behavior-y: none; /* Prevents rubber banding on mobile */
         }
         
         body.dark {
@@ -223,12 +226,10 @@ const GlobalStyles = () => (
             animation: none;
             background: linear-gradient(135deg, var(--tw-gradient-from), var(--tw-gradient-to));
           }
-          * {
-            transition-duration: 0.15s !important;
-          }
+          /* --- FIXED: Removed the wildcard transition here that caused blinking --- */
         }
         
-        /* Reduce motion for accessibility and performance */
+        /* Reduce motion */
         @media (prefers-reduced-motion: reduce) {
           .animate-gradient-x {
             animation: none;
@@ -241,7 +242,6 @@ const GlobalStyles = () => (
           }
         }
         
-        /* Hardware acceleration for better performance */
         .hw-accelerate {
           transform: translate3d(0, 0, 0);
           backface-visibility: hidden;
@@ -310,7 +310,7 @@ const THEME_VARIANTS = [
     },
 ];
 
-// --- TIME LOGIC (UNCHANGED) ---
+// --- TIME LOGIC ---
 function calculateHours(from: string, to: string) {
     if (!from || !to) return 0;
     const parseTime = (timeStr: string) => {
@@ -324,7 +324,7 @@ function calculateHours(from: string, to: string) {
     return durationMinutes <= 0 ? 0 : Math.round((durationMinutes / 60) * 100) / 100;
 }
 
-// --- PWA INSTALL PROMPT COMPONENT ---
+// --- PWA INSTALL PROMPT ---
 function PWAInstallPrompt({ isOpen, onClose, lang }: { isOpen: boolean; onClose: () => void; lang: Lang }) {
     const strings = LANG_STRINGS[lang];
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -482,7 +482,6 @@ const openDB = (): Promise<IDBDatabase> => {
             reject(new Error('IndexedDB not supported'));
             return;
         }
-
         const request = indexedDB.open(DB_NAME, DB_VERSION);
         const timeout = setTimeout(() => {
             reject(new Error('IndexedDB timeout'));
@@ -492,12 +491,10 @@ const openDB = (): Promise<IDBDatabase> => {
             clearTimeout(timeout);
             reject(request.error || new Error('IndexedDB open failed'));
         };
-
         request.onsuccess = () => {
             clearTimeout(timeout);
             resolve(request.result);
         };
-
         request.onupgradeneeded = () => {
             const db = request.result;
             if (!db.objectStoreNames.contains(STORE_NAME)) {
@@ -513,20 +510,9 @@ const saveToIndexedDB = async (key: string, data: any): Promise<void> => {
         const transaction = db.transaction([STORE_NAME], 'readwrite');
         const store = transaction.objectStore(STORE_NAME);
         store.put(data, key);
-
         return new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => {
-                reject(new Error('Save timeout'));
-            }, 3000);
-
-            transaction.oncomplete = () => {
-                clearTimeout(timeout);
-                resolve();
-            };
-            transaction.onerror = () => {
-                clearTimeout(timeout);
-                reject(transaction.error || new Error('Save failed'));
-            };
+            transaction.oncomplete = () => resolve();
+            transaction.onerror = () => reject(transaction.error || new Error('Save failed'));
         });
     } catch (e) {
         throw new Error(`IndexedDB save failed: ${e}`);
@@ -539,27 +525,16 @@ const loadFromIndexedDB = async (key: string): Promise<any> => {
         const transaction = db.transaction([STORE_NAME], 'readonly');
         const store = transaction.objectStore(STORE_NAME);
         const request = store.get(key);
-
         return new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => {
-                reject(new Error('Load timeout'));
-            }, 3000);
-
-            request.onsuccess = () => {
-                clearTimeout(timeout);
-                resolve(request.result);
-            };
-            request.onerror = () => {
-                clearTimeout(timeout);
-                reject(request.error || new Error('Load failed'));
-            };
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error || new Error('Load failed'));
         });
     } catch (e) {
         throw new Error(`IndexedDB load failed: ${e}`);
     }
 };
 
-// --- UTILITY FUNCTIONS (UNCHANGED) ---
+// --- UTILITY FUNCTIONS ---
 const getDayOfWeek = (dateString: string, language: Lang): string => {
     try {
         const d = parseISO(dateString);
@@ -573,7 +548,6 @@ const getDayOfWeek = (dateString: string, language: Lang): string => {
 
 
 // --- SCROLL PICKER (FIXED ALIGNMENT & RESPONSIVENESS) ---
-// Define responsive constants for Item Height and Container Height
 const ITEM_HEIGHT_SM = 32;
 const ITEM_HEIGHT_LG = 40;
 const CONTAINER_HEIGHT_MULTIPLIER_SM = 5;
@@ -584,7 +558,6 @@ function ScrollColumn({ options, selected, onSelect, isSmallDevice, primaryColor
     const isScrolling = useRef(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Determine heights based on screen size
     const ITEM_HEIGHT = isSmallDevice ? ITEM_HEIGHT_SM : ITEM_HEIGHT_LG;
     const CONTAINER_HEIGHT = ITEM_HEIGHT * (isSmallDevice ? CONTAINER_HEIGHT_MULTIPLIER_SM : CONTAINER_HEIGHT_MULTIPLIER_LG);
 
@@ -613,8 +586,7 @@ function ScrollColumn({ options, selected, onSelect, isSmallDevice, primaryColor
     };
 
     return (
-        <div className="relative group ">
-            {/* Dynamic height for selection highlight */}
+        <div className="relative group touch-none">
             <div
                 style={{ height: `${ITEM_HEIGHT}px`, top: `${ITEM_HEIGHT * (isSmallDevice ? 2 : 1)}px` }}
                 className={cn("absolute left-0 right-0 rounded-lg pointer-events-none z-0", primaryColors.bgLight + '/50 dark:' + primaryColors.bgDark)}
@@ -623,7 +595,7 @@ function ScrollColumn({ options, selected, onSelect, isSmallDevice, primaryColor
                 ref={containerRef}
                 onScroll={handleScroll}
                 style={{ height: `${CONTAINER_HEIGHT}px` }}
-                className="overflow-y-auto overflow-x-hidden no-scrollbar relative z-10 w-10 sm:w-12 text-center flex-shrink-0"
+                className="overflow-y-auto overflow-x-hidden no-scrollbar relative z-10 w-10 sm:w-12 text-center flex-shrink-0 touch-pan-y"
             >
                 <div style={{ height: `${ITEM_HEIGHT * (isSmallDevice ? 2 : 1)}px` }} />
                 {options.map((o, idx) => {
@@ -641,8 +613,8 @@ function ScrollColumn({ options, selected, onSelect, isSmallDevice, primaryColor
                             className={cn(
                                 "flex items-center justify-center snap-center cursor-pointer transition-all duration-200",
                                 isSelected
-                                    ? cn("font-bold scale-110", isSmallDevice ? 'text-lg' : 'text-xl', primaryColors.text) // **FIX**: Smaller text for selected item
-                                    : cn("text-gray-800 dark:text-gray-300 scale-100", isSmallDevice ? 'text-sm' : 'text-base') // **FIX**: Smaller text for non-selected items
+                                    ? cn("font-bold scale-110", isSmallDevice ? 'text-lg' : 'text-xl', primaryColors.text)
+                                    : cn("text-gray-800 dark:text-gray-300 scale-100", isSmallDevice ? 'text-sm' : 'text-base')
                             )}
                         >
                             {o}
@@ -655,31 +627,35 @@ function ScrollColumn({ options, selected, onSelect, isSmallDevice, primaryColor
     );
 }
 
+// --- FIXED SCROLL TIME PICKER (Uses matchMedia instead of resize listener) ---
 function ScrollTimePicker({ value, onChange, label, primaryColors }: { value: string; onChange: (v: string) => void; label?: string; primaryColors: ReturnType<typeof getPrimaryColorClasses> }) {
     const [hour, minute] = (value || '00:00').split(':').map(v => parseInt(v, 10));
-    const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
-    const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
-    const updateTime = (newH: number, newM: number) => onChange(`${newH.toString().padStart(2, '0')}:${newM.toString().padStart(2, '0')}`);
+    const hours = useMemo(() => Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0')), []);
+    const minutes = useMemo(() => Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0')), []);
 
-    // Simple check for small device (can be replaced by a more robust custom hook if needed)
+    const updateTime = useCallback((newH: number, newM: number) => {
+        onChange(`${newH.toString().padStart(2, '0')}:${newM.toString().padStart(2, '0')}`);
+    }, [onChange]);
+
     const [isSmallDevice, setIsSmallDevice] = useState(false);
+
     useEffect(() => {
-        const checkSize = () => setIsSmallDevice(window.innerWidth < 640);
-        checkSize();
-        window.addEventListener('resize', checkSize);
-        return () => window.removeEventListener('resize', checkSize);
+        // FIXED: Using matchMedia is much more performant and doesn't trigger on vertical scroll/address bar change
+        const mediaQuery = window.matchMedia('(max-width: 640px)');
+        const handleChange = (e: MediaQueryListEvent | MediaQueryList) => setIsSmallDevice(e.matches);
+
+        handleChange(mediaQuery);
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
     }, []);
 
     return (
         <div className="flex flex-col items-center flex-1 min-w-0">
-            {/* **FIX**: Reduced padding on small devices (p-1 vs p-2) */}
             <div className="flex items-center justify-center gap-1 p-1 sm:p-2 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 min-w-0">
                 <ScrollColumn options={hours} selected={hour} onSelect={(h) => updateTime(h, minute)} isSmallDevice={isSmallDevice} primaryColors={primaryColors} />
-                {/* **FIX**: Smaller colon on small devices (text-base vs text-lg) */}
                 <span className={cn("text-gray-600 dark:text-gray-400 font-bold px-0.5", isSmallDevice ? 'text-base' : 'text-lg')}>:</span>
                 <ScrollColumn options={minutes} selected={minute} onSelect={(m) => updateTime(hour, m)} isSmallDevice={isSmallDevice} primaryColors={primaryColors} />
             </div>
-            {/* **FIX**: Smaller label text on small devices (text-xs vs text-sm) */}
             <p className={cn("mt-1 text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400", isSmallDevice ? 'text-[10px] mt-1' : 'text-xs mt-2')}>{label}</p>
         </div>
     );
@@ -740,1028 +716,371 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                        transition={{ type: "tween", duration: 0.15, ease: "easeOut" }}
-                        className={cn(
-                            `absolute right-0 top-full mt-2 w-64 sm:w-72 rounded-xl p-3 sm:p-4 origin-top-right shadow-xl ring-1 ring-gray-950/5 dark:ring-white/10`,
-                            isLight ? 'bg-white' : 'bg-slate-950',
-                            'z-[9999]'
-                        )}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        className="absolute top-12 right-0 bg-white/90 dark:bg-slate-900/95 backdrop-blur-xl border border-gray-200 dark:border-slate-700 rounded-2xl shadow-xl p-3 w-64 z-50 origin-top-right"
                     >
-                        <div className={`flex justify-between items-center mb-3 p-1 rounded-lg ${isLight ? 'bg-gray-100' : 'bg-slate-800'}  `}>
-                            <motion.button
-                                onClick={() => handleToggleTheme('light')}
-                                className={cn("flex-1 px-3 py-2 rounded-lg cursor-pointer text-sm font-medium transition-colors",
-                                    isLight
-                                        ? 'bg-white shadow-md text-slate-800'
-                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-100'
-                                )}
-                            >
-                                <Sun size={16} className="inline mr-1" /> Light
-                            </motion.button>
-                            <motion.button
-                                onClick={() => handleToggleTheme('dark')}
-                                className={cn("flex-1 px-3 py-2 rounded-lg text-sm cursor-pointer font-medium transition-colors",
-                                    !isLight
-                                        ? 'bg-slate-700 shadow-md text-white'
-                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-800'
-                                )}
-                            >
-                                <Moon size={16} className="inline mr-1" /> Dark
-                            </motion.button>
-                        </div>
-
-                        <h3 className="text-xs font-bold uppercase text-gray-600 dark:text-gray-400 mb-2 px-1">Color Palette</h3>
-                        <div className={`space-y-0 flex flex-col p-2 overflow-y-auto no-scrollbar`}>
-                            {THEME_VARIANTS.map((variant, index) => (
-                                <motion.div
-                                    key={index}
-                                    onClick={() => handleSelectVariant(index)}
-                                    className={cn("flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all",
-                                        index === variantIndex
-                                            ? cn(primaryColors.bgLight + '/50 dark:' + primaryColors.bgDark, "ring-2 ring-offset-2 ring-offset-white dark:ring-offset-slate-900", primaryColors.ring)
-                                            : 'hover:bg-gray-100 dark:hover:bg-slate-800'
-                                    )}
-                                    whileTap={{ scale: 0.98 }}
-                                >
-                                    <span className={cn("text-sm font-medium", isLight ? 'text-gray-900' : 'text-white')}>{variant.name}</span>
-                                    <div className="flex gap-1">
-                                        <div className={cn("w-5 h-5 rounded-full ring-1 ring-gray-300 dark:ring-gray-700", variant.lightPreview)} />
-                                        <div className={cn("w-5 h-5 rounded-full ring-1 ring-gray-300 dark:ring-gray-700", variant.darkPreview)} />
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
-    );
-}
-
-// --- SHIFT ITEM COMPONENT (UNCHANGED) ---
-function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate, primaryColors }: { shift: Shift, theme: 'light' | 'dark', baseLang: Lang, onDelete: (id: string) => void, onUpdate: (shift: Shift) => void, primaryColors: ReturnType<typeof getPrimaryColorClasses> }) {
-    const [shiftLang, setShiftLang] = useState<Lang>(baseLang);
-    const itemRef = useRef<HTMLDivElement>(null);
-
-    const strings = LANG_STRINGS[shiftLang];
-
-    useEffect(() => {
-        setShiftLang(baseLang);
-    }, [baseLang]);
-
-    const displayDayOfWeek = useMemo(() => getDayOfWeek(shift.date, shiftLang), [shift.date, shiftLang]);
-
-    const handleDelete = () => {
-        onDelete(shift.id);
-    };
-
-    return (
-        <div
-            key={shift.id}
-            className={cn(
-                "group relative overflow-hidden rounded-3xl p-4 sm:p-6 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer backdrop-blur-xl border",
-                theme === 'light'
-                    ? 'bg-white/80 border-gray-200/50 hover:bg-white/90'
-                    : 'bg-slate-900/60 border-slate-700/50 hover:bg-slate-900/80'
-            )}
-            ref={itemRef}
-        >
-            <div
-                className={cn(
-                    "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500",
-                    "bg-gradient-to-br from-indigo-500/5 via-violet-500/5 to-purple-500/5"
-                )}
-            />
-
-            <div className="flex justify-between items-start relative z-10 gap-2">
-                <div className="flex flex-col gap-2 flex-1">
-                    <div className="flex flex-wrap items-center gap-1 sm:gap-2">
-                        <span
-                            className={cn(
-                                "text-xs sm:text-sm font-bold px-2 py-1 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl shadow-sm",
-                                primaryColors.bgLight,
-                                "dark:bg-violet-900/40",
-                                primaryColors.text
-                            )}
-                        >
-                            {displayDayOfWeek}
-                        </span>
-
-                        <span
-                            className="text-xs sm:text-sm font-semibold px-2 py-1 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl bg-gray-100/80 dark:bg-slate-700/60 text-gray-900 dark:text-gray-100 shadow-sm backdrop-blur-sm"
-                        >
-                            {shift.date}
-                        </span>
-
-                        <button
-                            onClick={() => setShiftLang(shiftLang === 'en' ? 'jp' : 'en')}
-                            className={cn(
-                                "text-xs sm:text-sm font-medium px-2 py-1 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl border-2 backdrop-blur-sm transition-all duration-300",
-                                primaryColors.border,
-                                primaryColors.text,
-                                "hover:shadow-md",
-                                theme === 'light' ? 'bg-white/60' : 'bg-slate-800/60'
-                            )}
-                            aria-label="Translate shift details"
-                        >
-                            <Globe size={12} className="inline mr-1" />
-                            {shiftLang === 'en' ? 'JP' : 'EN'}
-                        </button>
-                    </div>
-
-                    <div className="flex items-baseline gap-2 sm:gap-3">
-                        <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{shift.fromTime}</span>
-                        <span className={cn("text-base sm:text-lg font-medium", primaryColors.text)}>
-                            →
-                        </span>
-                        <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{shift.toTime}</span>
-                    </div>
-
-                    <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium">
-                        {shift.hours} {strings.hours} @ ¥{shift.wage.toLocaleString()}/{strings.hours === 'hours' ? 'h' : '時間'}
-                    </p>
-                </div>
-
-                <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                    <div
-                        className={cn(
-                            "px-3 py-1 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl shadow-lg backdrop-blur-sm",
-                            primaryColors.bgGradient
-                        )}
-                    >
-                        <p className="text-lg sm:text-2xl font-black text-white">{yen.format(shift.pay)}</p>
-                    </div>
-
-                    <div className="flex flex-col gap-1 sm:gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className={cn(
-                                "h-8 px-2 sm:h-9 sm:px-3 text-xs font-semibold rounded-lg sm:rounded-xl border-2 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md",
-                                primaryColors.border,
-                                primaryColors.text,
-                                theme === 'light' ? 'bg-white/60 hover:bg-white/80' : 'bg-slate-800/60 hover:bg-slate-800/80'
-                            )}
-                            onClick={() => onUpdate(shift)}
-                        >
-                            <RotateCcw size={12} className="mr-1" /> {strings.update}
-                        </Button>
-
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-8 px-2 sm:h-9 sm:px-3 text-xs font-semibold rounded-lg sm:rounded-xl border-2 border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 bg-white/60 dark:bg-slate-800/60 hover:bg-red-50 dark:hover:bg-red-900/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
-                            onClick={handleDelete}
-                        >
-                            <Trash2 size={12} className="mr-1" /> {strings.delete}
-                        </Button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// --- MONTHLY GROUP COMPONENT (UNCHANGED) ---
-function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang, onDelete, onUpdate, primaryColors }: {
-    monthKey: string;
-    totalPay: number;
-    totalHours: number;
-    shifts: Shift[];
-    theme: 'light' | 'dark';
-    baseLang: Lang;
-    onDelete: (id: string) => void;
-    onUpdate: (shift: Shift) => void;
-    primaryColors: ReturnType<typeof getPrimaryColorClasses>;
-}) {
-    const strings = LANG_STRINGS[baseLang];
-    const monthName = format(parseISO(`${monthKey}-01`), baseLang === 'en' ? 'MMM yyyy' : 'yyyy年M月');
-
-    const groupClasses = theme === 'light'
-        ? `${primaryColors.bgLight} border-l-4 ${primaryColors.border}`
-        : `bg-slate-800/80 border-l-4 ${primaryColors.border}`;
-
-    return (
-        <motion.div
-            layout
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
-        >
-            <div className={cn("flex justify-between items-end mb-3 p-3 rounded-xl z-10", groupClasses)}>
-                <motion.h2
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className={cn("text-xl font-extrabold", primaryColors.text)}
-                >
-                    {monthName}
-                </motion.h2>
-                <div className="flex flex-col items-end">
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{totalHours} {strings.hours}</p>
-                    <p className={cn("text-2xl font-black", primaryColors.text)}>{yen.format(totalPay)}</p>
-                </div>
-            </div>
-            <div className="space-y-3">
-                {shifts.map((s: Shift) => (
-                    <ShiftItem
-                        key={s.id}
-                        shift={s}
-                        theme={theme}
-                        baseLang={baseLang}
-                        onDelete={onDelete}
-                        onUpdate={onUpdate}
-                        primaryColors={primaryColors}
-                    />
-                ))}
-            </div>
-        </motion.div>
-    );
-}
-
-// --- MONTH FILTER COMPONENT (UNCHANGED) ---
-function MonthFilter({ selectedMonth, onMonthSelect, lang, primaryColors }: { selectedMonth: Date | undefined, onMonthSelect: (date: Date | undefined) => void, lang: Lang, primaryColors: ReturnType<typeof getPrimaryColorClasses> }) {
-    const [isOpen, setIsOpen] = useState(false);
-    const strings = LANG_STRINGS[lang];
-
-    const allShiftMonths = useMemo(() => {
-        const months = new Set<string>();
-        const currentYear = new Date().getFullYear();
-        for (let i = 0; i < 12; i++) {
-            months.add(format(new Date(currentYear, i, 1), 'yyyy-MM'));
-        }
-
-        return Array.from(months)
-            .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-    }, []);
-
-    const handleSelectMonth = (monthStr: string | undefined) => {
-        onMonthSelect(monthStr ? startOfMonth(parseISO(monthStr + '-01')) : undefined);
-        setIsOpen(false);
-    };
-
-    return (
-        <div className="relative flex-1 min-w-0">
-            <Button
-                onClick={() => setIsOpen(!isOpen)}
-                variant="outline"
-                className={cn(
-                    "w-full h-10 sm:h-12 px-3 sm:px-4 flex items-center justify-between rounded-xl border-2 font-medium transition-all text-sm",
-                    selectedMonth
-                        ? cn(primaryColors.border, primaryColors.text, "bg-white dark:bg-slate-900/80")
-                        : "border-gray-300 dark:border-slate-600 bg-white/80 dark:bg-slate-900/60 text-gray-800 dark:text-gray-400"
-                )}
-            >
-                <div className="flex items-center">
-                    <CalendarIcon size={16} className="mr-2 flex-shrink-0" />
-                    <span className="truncate">
-                        {selectedMonth ? format(selectedMonth, lang === 'en' ? 'MMM yyyy' : 'yyyy年M月') : strings.filterByMonth}
-                    </span>
-                </div>
-                {selectedMonth && <X size={16} className="opacity-50 flex-shrink-0 ml-2" onClick={(e) => { e.stopPropagation(); onMonthSelect(undefined); }} />}
-            </Button>
-
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        transition={{ type: "tween", duration: 0.12, ease: "easeOut" }}
-                        style={{ zIndex: 9999 }}
-                        className="absolute top-full mt-2 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-xl shadow-2xl border border-gray-200/50 dark:border-slate-700/50 max-h-60 overflow-y-auto"
-                    >
-                        <div className="p-2">
-                            {allShiftMonths.map((monthStr) => (
-                                <motion.button
-                                    key={monthStr}
-                                    onClick={() => handleSelectMonth(monthStr)}
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    className={cn(
-                                        "w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                                        selectedMonth && format(selectedMonth, 'yyyy-MM') === monthStr
-                                            ? cn(primaryColors.bgLight, primaryColors.text, "font-bold")
-                                            : "text-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800"
-                                    )}
-                                >
-                                    {format(parseISO(monthStr + '-01'), lang === 'en' ? 'MMM yyyy' : 'yyyy年M月')}
-                                </motion.button>
-                            ))}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
-    );
-}
-
-
-// --- ADD/EDIT SHIFT MODAL (FIXED 'TO' TEXT SIZE) ---
-
-type ShiftFormState = {
-    date: Date;
-    fromTime: string;
-    toTime: string;
-    wage: string;
-    id: string | null;
-}
-
-function AddEditShiftModal({
-    isOpen,
-    onClose,
-    onSubmit,
-    initialShift,
-    lang,
-    primaryColors
-}: {
-    isOpen: boolean;
-    onClose: () => void;
-    onSubmit: (shift: Omit<Shift, 'hours' | 'pay' | 'dayOfWeek'>) => void;
-    initialShift: Shift | null;
-    lang: Lang;
-    primaryColors: ReturnType<typeof getPrimaryColorClasses>;
-}) {
-    const strings = LANG_STRINGS[lang];
-    const initialFormState = useMemo<ShiftFormState>(() => ({
-        date: initialShift ? parseISO(initialShift.date) : new Date(),
-        fromTime: initialShift ? initialShift.fromTime : '09:00',
-        toTime: initialShift ? initialShift.toTime : '17:00',
-        wage: initialShift ? initialShift.wage.toString() : '1000',
-        id: initialShift ? initialShift.id : null,
-    }), [initialShift]);
-
-    const [form, setForm] = useState<ShiftFormState>(initialFormState);
-    const [isDatePopoverOpen, setIsDatePopoverOpen] = useState(false);
-
-    useEffect(() => {
-        if (isOpen) {
-            setForm(initialFormState);
-        }
-    }, [isOpen, initialFormState]);
-
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setForm(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleTimeChange = (name: 'fromTime' | 'toTime', value: string) => {
-        setForm(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleDateSelect = (date: Date | undefined) => {
-        if (date) {
-            setForm(prev => ({ ...prev, date }));
-            setIsDatePopoverOpen(false);
-        }
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!form.date || !form.fromTime || !form.toTime || !form.wage) return;
-
-        onSubmit({
-            id: form.id || Date.now().toString(),
-            date: format(form.date, 'yyyy-MM-dd'),
-            fromTime: form.fromTime,
-            toTime: form.toTime,
-            wage: parseFloat(form.wage) || 0,
-        });
-        onClose();
-    };
-
-    const hours = calculateHours(form.fromTime, form.toTime);
-    const pay = Math.round(hours * (parseFloat(form.wage) || 0));
-    const title = initialShift ? strings.editShift : strings.addShift;
-    const submitText = initialShift ? strings.save : strings.addShift;
-
-    const modalBgClasses = "bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700/80 shadow-2xl";
-
-
-    return (
-        <AnimatePresence>
-            {isOpen && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[10000] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hw-accelerate"
-                    onClick={onClose}
-                >
-                    <motion.div
-                        initial={{ scale: 0.95, y: 20 }}
-                        animate={{ scale: 1, y: 0 }}
-                        exit={{ scale: 0.95, y: 20 }}
-                        transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
-                        className={cn("w-full max-w-md rounded-3xl p-6 relative hw-accelerate", modalBgClasses)}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h2 className={cn("text-2xl font-extrabold mb-6", primaryColors.text)}>{title}</h2>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-4 right-4 h-10 w-10 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
-                            onClick={onClose}
-                            aria-label="Close modal"
-                        >
-                            <X size={20} />
-                        </Button>
-
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            {/* Date Picker */}
+                        <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2">
-                                    {lang === 'en' ? 'Date' : '日付'}
-                                </label>
-                                <Popover open={isDatePopoverOpen} onOpenChange={setIsDatePopoverOpen}>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant={"outline"}
+                                <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 px-1">Mode</h4>
+                                <div className="flex bg-gray-100 dark:bg-slate-800 p-1 rounded-xl">
+                                    {['light', 'dark'].map((t) => (
+                                        <button
+                                            key={t}
+                                            onClick={() => handleToggleTheme(t as 'light' | 'dark')}
                                             className={cn(
-                                                "w-full justify-start text-left font-normal h-12 rounded-xl border-2 items-center",
-                                                "text-gray-800 dark:text-gray-200",
-                                                primaryColors.border
+                                                "flex-1 flex items-center justify-center gap-2 py-1.5 rounded-lg text-sm font-medium transition-all",
+                                                theme === t
+                                                    ? "bg-white dark:bg-slate-700 shadow-sm text-gray-900 dark:text-white"
+                                                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                                             )}
                                         >
-                                            <CalendarIcon className={cn("mr-2 h-4 w-4", primaryColors.text)} />
-                                            {form.date ? format(form.date, lang === 'en' ? 'PPP' : 'yyyy年M月d日(EEE)') : <span>Pick a date</span>}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-full md:w-auto p-0 z-[10001]">
-                                        <Calendar
-                                            mode="single"
-                                            selected={form.date}
-                                            onSelect={handleDateSelect}
-                                            initialFocus
-                                            locale={lang === 'jp' ? undefined : undefined}
-                                            className="max-w-full"
-                                        />
-                                    </PopoverContent>
-                                </Popover>
+                                            {t === 'light' ? <Sun size={14} /> : <Moon size={14} />}
+                                            <span className="capitalize">{t}</span>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-
-                            {/* Time Pickers */}
-                            <div className="flex justify-between items-center gap-1 sm:gap-2 py-2"> {/* **FIX**: Reduced gap on small screens */}
-                                <ScrollTimePicker
-                                    value={form.fromTime}
-                                    onChange={(v) => handleTimeChange('fromTime', v)}
-                                    label={strings.start}
-                                    primaryColors={primaryColors}
-                                />
-                                {/* **FIX**: Smaller 'to' text on small devices (text-xl vs text-2xl) */}
-                                <span className={cn("font-bold", primaryColors.text, "text-xl sm:text-2xl")}>{strings.to}</span>
-                                <ScrollTimePicker
-                                    value={form.toTime}
-                                    onChange={(v) => handleTimeChange('toTime', v)}
-                                    label={strings.end}
-                                    primaryColors={primaryColors}
-                                />
-                            </div>
-
-                            {/* Hourly Rate Input */}
                             <div>
-                                <label htmlFor="wage" className="block text-sm font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2">
-                                    <span className="flex items-center"><Zap size={14} className="inline mr-1" /> {strings.hourlyRate} ({lang === 'en' ? 'JPY' : '円'})</span>
-                                </label>
-                                <div className="relative">
-                                    <Input
-                                        id="wage"
-                                        name="wage"
-                                        type="number"
-                                        step="100"
-                                        placeholder="1000"
-                                        value={form.wage}
-                                        onChange={handleChange}
-                                        className={cn("w-full h-12 rounded-xl text-lg font-semibold pl-10 border-2 text-gray-900 dark:text-white", primaryColors.border)}
-                                    />
-                                    <span className={cn("absolute left-3 top-1/2 transform -translate-y-1/2 text-lg font-bold", primaryColors.text)}>¥</span>
+                                <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 px-1">Theme Color</h4>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {THEME_VARIANTS.map((v, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => handleSelectVariant(i)}
+                                            className={cn(
+                                                "w-full aspect-square rounded-full border-2 transition-all hover:scale-110",
+                                                v.lightPreview,
+                                                variantIndex === i
+                                                    ? "border-gray-900 dark:border-white scale-110 shadow-md"
+                                                    : "border-transparent"
+                                            )}
+                                            title={v.name}
+                                        />
+                                    ))}
                                 </div>
                             </div>
-
-                            {/* Summary */}
-                            <div
-                                className={cn("p-4 rounded-xl flex justify-between items-center shadow-md", primaryColors.bgLight + '/50 dark:' + primaryColors.bgDark)}
-                            >
-                                <div>
-                                    <p className="text-sm font-medium text-gray-700 dark:text-gray-400">{strings.totalHours}</p>
-                                    <p className={cn("text-2xl font-black", primaryColors.text)}>{hours} {strings.hours}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-700 dark:text-gray-400">{strings.totalPay}</p>
-                                    <p className={cn("text-2xl font-black", primaryColors.text)}>{yen.format(pay)}</p>
-                                </div>
-                            </div>
-
-                            {/* Submit Button */}
-                            <button
-                                type="submit"
-                                className={cn("w-full h-12 rounded-xl text-lg font-bold text-white transition-all shadow-lg hover:shadow-xl", primaryColors.bgGradient)}
-                            >
-                                {submitText}
-                            </button>
-                        </form>
+                        </div>
                     </motion.div>
-                </motion.div>
-            )}
-        </AnimatePresence>
+                )}
+            </AnimatePresence>
+        </div>
     );
 }
 
-
-// --- MAIN APP COMPONENT (UNCHANGED) ---
-
+// --- MAIN COMPONENT ---
 export default function ShiftTracker() {
     const [shifts, setShifts] = useState<Shift[]>([]);
-    const [hourlyRate, setHourlyRate] = useState(1000);
-    const [lang, setLang] = useState<Lang>('jp');
     const [theme, setTheme] = useState<'light' | 'dark'>('light');
-    const [variantIndex, setVariantIndex] = useState(3); // Violet Horizon
-    const [viewMode, setViewMode] = useState<ViewMode>('monthly');
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingShift, setEditingShift] = useState<Shift | null>(null);
-    const [filterMonth, setFilterMonth] = useState<Date | undefined>(new Date());
-    const [alertConfig, setAlertConfig] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void } | null>(null);
-    const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-
-    // Block overscroll when modal is open
-    useEffect(() => {
-        if (isModalOpen) {
-            document.body.style.overflow = 'hidden';
-            document.body.style.position = 'fixed';
-            document.body.style.width = '100%';
-        } else {
-            document.body.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.width = '';
-        }
-        return () => {
-            document.body.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.width = '';
-        };
-    }, [isModalOpen]);
+    const [lang, setLang] = useState<Lang>('en');
+    const [variantIndex, setVariantIndex] = useState(3);
+    const [isPWAOpen, setIsPWAOpen] = useState(true);
 
     const strings = LANG_STRINGS[lang];
+    const primaryColors = getPrimaryColorClasses(variantIndex, theme);
     const themeVariant = THEME_VARIANTS[variantIndex];
-    const PRIMARY_COLOR_CLASSES = getPrimaryColorClasses(variantIndex, theme);
 
-    // --- Local Storage Hooks (UNCHANGED) ---
-    // Show install prompt after 3 seconds if not installed
+    // Initialize logic
     useEffect(() => {
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-        const hasSeenPrompt = localStorage.getItem('pwa-install-prompt-seen');
+        loadFromIndexedDB(LOCAL_STORAGE_KEY).then(data => {
+            if (data) setShifts(data);
+        }).catch(() => { });
 
-        if (!isStandalone && !hasSeenPrompt) {
-            const timer = setTimeout(() => {
-                setShowInstallPrompt(true);
-            }, 3000);
-            return () => clearTimeout(timer);
+        // Check system preference for theme
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            setTheme('dark');
         }
     }, []);
 
-    const handleCloseInstallPrompt = () => {
-        setShowInstallPrompt(false);
-        localStorage.setItem('pwa-install-prompt-seen', 'true');
-    };
-
     useEffect(() => {
-        const loadData = async () => {
-            const startTime = Date.now();
+        document.body.className = theme === 'dark' ? 'dark' : '';
+        saveToIndexedDB(LOCAL_STORAGE_KEY, shifts);
+    }, [shifts, theme]);
 
-            try {
-                // Try IndexedDB first
-                const data = await loadFromIndexedDB('appData');
-                if (data && typeof data === 'object') {
-                    setShifts(data.shifts || []);
-                    setHourlyRate(data.hourlyRate || 1000);
-                    setLang(data.lang || 'jp');
-                    setTheme(data.theme || 'light');
-                    setVariantIndex(data.variantIndex || 3);
-                }
-            } catch (e) {
-                console.warn("IndexedDB failed, trying localStorage:", e);
+    // View state
+    const [viewMode, setViewMode] = useState<ViewMode>('list');
+    const [filterMonth, setFilterMonth] = useState<Date | null>(new Date());
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [editShift, setEditShift] = useState<Shift | null>(null);
 
-                // Fallback to localStorage
-                try {
-                    const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-                    if (savedData) {
-                        const parsedData = JSON.parse(savedData);
-                        setShifts(parsedData.shifts || []);
-                        setHourlyRate(parsedData.hourlyRate || 1000);
-                        setLang(parsedData.lang || 'jp');
-                        setTheme(parsedData.theme || 'light');
-                        setVariantIndex(parsedData.variantIndex || 3);
+    // Form state
+    const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+    const [fromTime, setFromTime] = useState('09:00');
+    const [toTime, setToTime] = useState('17:00');
+    const [wage, setWage] = useState(1000);
 
-                        // Try to migrate to IndexedDB
-                        try {
-                            await saveToIndexedDB('appData', parsedData);
-                        } catch (e) {
-                            console.warn("Failed to migrate to IndexedDB:", e);
-                        }
-                    }
-                } catch (e) {
-                    console.error("Failed to load from localStorage:", e);
-                }
-            }
+    const handleSaveShift = () => {
+        const hours = calculateHours(fromTime, toTime);
+        const pay = hours * wage;
 
-            // Ensure minimum launch screen duration
-            const elapsed = Date.now() - startTime;
-            const minDuration = 1200;
-
-            if (elapsed < minDuration) {
-                setTimeout(() => {
-                    setIsLoading(false);
-                    setTimeout(() => setShowLaunchScreen(false), 300);
-                }, minDuration - elapsed);
-            } else {
-                setIsLoading(false);
-                setTimeout(() => setShowLaunchScreen(false), 300);
-            }
-        };
-        loadData();
-    }, []);
-
-    useEffect(() => {
-        if (isLoading) return; // Don't save during initial load
-
-        const saveData = async () => {
-            const data = { shifts, hourlyRate, lang, theme, variantIndex };
-
-            // Always save to localStorage as backup
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
-
-            // Try to save to IndexedDB
-            try {
-                await saveToIndexedDB('appData', data);
-            } catch (e) {
-                console.warn("Failed to save to IndexedDB:", e);
-            }
-        };
-        saveData();
-
-        if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-
-        // Update theme color for status bar
-        const themeColorMeta = document.querySelector('meta[name="theme-color"]');
-        if (themeColorMeta) {
-            const colors = {
-                0: { light: '#0891b2', dark: '#0e7490' }, // cyan
-                1: { light: '#ea580c', dark: '#c2410c' }, // orange
-                2: { light: '#059669', dark: '#047857' }, // emerald
-                3: { light: '#7c3aed', dark: '#6d28d9' }, // violet
-                4: { light: '#2563eb', dark: '#1d4ed8' }, // blue
-                5: { light: '#dc2626', dark: '#b91c1c' }, // red
-                6: { light: '#65a30d', dark: '#4d7c0f' }, // lime
-                7: { light: '#9333ea', dark: '#7c2d12' }, // purple
-            };
-            const colorSet = colors[variantIndex as keyof typeof colors] || colors[3];
-            themeColorMeta.setAttribute('content', theme === 'dark' ? colorSet.dark : colorSet.light);
-        }
-
-    }, [shifts, hourlyRate, lang, theme, variantIndex, isLoading]);
-
-    // --- Core Logic (UNCHANGED) ---
-
-    const processShiftData = useCallback((rawShift: Omit<Shift, 'hours' | 'pay' | 'dayOfWeek' | 'wage'> & { wage: number }) => {
-        const hours = calculateHours(rawShift.fromTime, rawShift.toTime);
-        const pay = Math.round(hours * rawShift.wage);
-        const dayOfWeek = getDayOfWeek(rawShift.date, lang);
-
-        return {
-            ...rawShift,
+        const newShift: Shift = {
+            id: editShift ? editShift.id : crypto.randomUUID(),
+            date,
+            dayOfWeek: getDayOfWeek(date, lang),
+            fromTime,
+            toTime,
             hours,
-            pay,
-            dayOfWeek,
-        } as Shift;
-    }, [lang]);
+            wage,
+            pay
+        };
 
-    const addOrUpdateShift = (newShiftData: Omit<Shift, 'hours' | 'pay' | 'dayOfWeek'>) => {
-        const processedShift = processShiftData({ ...newShiftData, wage: newShiftData.wage || hourlyRate });
-
-        if (editingShift) {
-            // Update existing
-            setShifts(prev => prev.map(s => s.id === processedShift.id ? processedShift : s));
+        if (editShift) {
+            setShifts(prev => prev.map(s => s.id === editShift.id ? newShift : s));
         } else {
-            // New shift
-            setShifts(prev => [processedShift, ...prev]);
+            setShifts(prev => [...prev, newShift]);
         }
-        setEditingShift(null);
-        setIsModalOpen(false);
+
+        setIsAddModalOpen(false);
+        setEditShift(null);
+        // Reset defaults
+        setFromTime('09:00');
+        setToTime('17:00');
     };
 
-    const deleteShift = (id: string) => {
-        setAlertConfig({
-            isOpen: true,
-            title: strings.areYouSure,
-            message: strings.delete,
-            onConfirm: () => {
-                setShifts(prev => prev.filter(s => s.id !== id));
-                setAlertConfig(null);
-            }
-        });
+    const handleDeleteShift = (id: string) => {
+        setShifts(prev => prev.filter(s => s.id !== id));
     };
 
-    const openAddModal = () => {
-        setEditingShift(null);
-        setIsModalOpen(true);
-    };
-
-    const openEditModal = (shift: Shift) => {
-        setEditingShift(shift);
-        setIsModalOpen(true);
-    };
-
-    const toggleLang = () => setLang(prev => prev === 'en' ? 'jp' : 'en');
-
-    // --- Data Aggregation and Filtering (UNCHANGED) ---
-
-    const sortedAndFilteredShifts = useMemo(() => {
-        let filtered = shifts.filter(shift => {
-            if (!filterMonth) return true;
-
+    // Filter logic
+    const filteredShifts = useMemo(() => {
+        let sorted = [...shifts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        if (filterMonth) {
             const start = startOfMonth(filterMonth);
             const end = endOfMonth(filterMonth);
-
-            try {
-                const shiftDate = parseISO(shift.date);
-                return isWithinInterval(shiftDate, { start, end });
-            } catch (e) {
-                return false;
-            }
-        });
-
-        return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            return sorted.filter(s => isWithinInterval(parseISO(s.date), { start, end }));
+        }
+        return sorted;
     }, [shifts, filterMonth]);
 
-    const aggregatedData = useMemo(() => {
-        const total = sortedAndFilteredShifts.reduce((acc, shift) => ({
-            totalHours: acc.totalHours + shift.hours,
-            totalPay: acc.totalPay + shift.pay
-        }), { totalHours: 0, totalPay: 0 });
-
-        const monthlyGroups = sortedAndFilteredShifts.reduce((acc, shift) => {
-            const monthKey = shift.date.substring(0, 7);
-            if (!acc[monthKey]) {
-                acc[monthKey] = { totalPay: 0, totalHours: 0, shifts: [] };
-            }
-            acc[monthKey].totalPay += shift.pay;
-            acc[monthKey].totalHours += shift.hours;
-            acc[monthKey].shifts.push(shift);
-            return acc;
-        }, {} as Record<string, { totalPay: number; totalHours: number; shifts: Shift[] }>);
-
-        const sortedMonths = Object.keys(monthlyGroups).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-
-        return {
-            grandTotal: total,
-            monthlyGroups,
-            sortedMonths
-        };
-    }, [sortedAndFilteredShifts]);
-
-
-    // --- Render Components (UNCHANGED) ---
-
-    const renderShiftList = () => (
-        <div className="space-y-4 pt-4">
-            {sortedAndFilteredShifts.length > 0 ? (
-                sortedAndFilteredShifts.map(shift => (
-                    <ShiftItem
-                        key={shift.id}
-                        shift={shift}
-                        theme={theme}
-                        baseLang={lang}
-                        onDelete={deleteShift}
-                        onUpdate={openEditModal}
-                        primaryColors={PRIMARY_COLOR_CLASSES}
-                    />
-                ))
-            ) : (
-                <EmptyState
-                    lang={lang}
-                    hasFilter={!!filterMonth}
-                    onClearFilter={() => setFilterMonth(undefined)}
-                />
-            )}
-        </motion.div>
-    );
-
-    const renderMonthlyView = () => {
-        const currentMonthKey = filterMonth ? format(filterMonth, 'yyyy-MM') : format(new Date(), 'yyyy-MM');
-        const monthData = aggregatedData.monthlyGroups[currentMonthKey];
-
-        return (
-            <div className="pt-4">
-                {monthData ? (
-                    <MonthlyGroup
-                        key={currentMonthKey}
-                        monthKey={currentMonthKey}
-                        totalPay={monthData.totalPay}
-                        totalHours={monthData.totalHours}
-                        shifts={monthData.shifts}
-                        theme={theme}
-                        baseLang={lang}
-                        onDelete={deleteShift}
-                        onUpdate={openEditModal}
-                        primaryColors={PRIMARY_COLOR_CLASSES}
-                    />
-                ) : (
-                    <EmptyState
-                        lang={lang}
-                        hasFilter={!!filterMonth}
-                        onClearFilter={() => setFilterMonth(new Date())}
-                    />
-                )}
-            </div>
-        );
-    };
-
-    // --- Empty State Component (UNCHANGED) ---
-    function EmptyState({ lang, hasFilter, onClearFilter }: { lang: Lang, hasFilter: boolean, onClearFilter: () => void }) {
-        const strings = LANG_STRINGS[lang];
-
-        return (
-            <div
-                className={cn(
-                    "p-8 rounded-3xl text-center backdrop-blur-md transition-colors border",
-                    theme === 'light' ? 'bg-indigo-50/50 border-indigo-200' : 'bg-slate-900/60 border-slate-700'
-                )}
-            >
-                {hasFilter ? (
-                    <>
-                        <Filter size={40} className={cn("mx-auto mb-4", PRIMARY_COLOR_CLASSES.text)} />
-                        <h3 className="text-xl font-bold mb-2 text-gray-800 dark:text-gray-200">{strings.noShiftsMonth}</h3>
-                        <p className="text-gray-500 dark:text-gray-400 mb-4">{strings.tryDifferentMonth}</p>
-                        <Button
-                            onClick={onClearFilter}
-                            variant="outline"
-                            className={cn(
-                                PRIMARY_COLOR_CLASSES.border,
-                                PRIMARY_COLOR_CLASSES.text,
-                                "hover:bg-indigo-50/20 dark:hover:bg-violet-900/30"
-                            )}
-                        >
-                            <X size={16} className="mr-2" /> {lang === 'en' ? 'Current Month' : '今月'}
-                        </Button>
-                    </>
-                ) : (
-                    <>
-                        <Zap size={40} className={cn("mx-auto mb-4", PRIMARY_COLOR_CLASSES.text)} />
-                        <h3 className="text-xl font-bold mb-2 text-gray-800 dark:text-gray-200">{strings.noShiftsYet}</h3>
-                        <p className="text-gray-500 dark:text-gray-400 mb-4">{strings.startTracking}</p>
-                        <Button
-                            onClick={openAddModal}
-                            className={cn("text-white font-bold", PRIMARY_COLOR_CLASSES.bgGradient)}
-                        >
-                            <Plus size={16} className="mr-2" /> {strings.addShift}
-                        </Button>
-                    </>
-                )}
-            </div>
-        );
-    }
-
-    // --- Main Layout (UNCHANGED) ---
-
-    const appClasses = theme === 'light'
-        ? themeVariant.light
-        : themeVariant.dark;
-
-
+    const totalPay = filteredShifts.reduce((acc, s) => acc + s.pay, 0);
+    const totalHours = filteredShifts.reduce((acc, s) => acc + s.hours, 0);
 
     return (
-        <>
+        <div className={cn("min-h-screen transition-colors duration-300", themeVariant[theme === 'light' ? 'light' : 'dark'])}>
             <GlobalStyles />
-            <div className={cn("min-h-screen", appClasses)}>
-                <div className={cn("min-h-screen flex flex-col items-center sm:p-6 transition-colors duration-500")}>
 
-                    {/* Header/Controls */}
-                    <header className="w-full max-w-4xl sticky p-4 top-0 z-40 mb-6 py-4 backdrop-blur-md bg-transparent/80">
-                        <div className="flex justify-between items-center mb-4">
-                            <h1 className={cn("text-2xl sm:text-3xl font-extrabold tracking-tight", PRIMARY_COLOR_CLASSES.text)}>
-                                Shomyn
-                            </h1>
-                            <div className="flex gap-2">
-                                <ThemeDropdown
-                                    theme={theme}
-                                    setTheme={setTheme}
-                                    variantIndex={variantIndex}
-                                    setVariantIndex={setVariantIndex}
-                                    toggleLang={toggleLang}
-                                    primaryColors={PRIMARY_COLOR_CLASSES}
-                                />
-                                <button
-                                    onClick={openAddModal}
-                                    className={cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer backdrop-blur-md border shadow-sm transition-colors", PRIMARY_COLOR_CLASSES.bgGradient, "text-white")}
-                                    aria-label="Add new shift"
-                                >
-                                    <Plus size={18} />
-                                </button>
+            <div className="max-w-md mx-auto min-h-screen bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm shadow-2xl overflow-hidden flex flex-col relative">
+
+                {/* Header */}
+                <header className="sticky top-0 z-40 px-6 py-4 flex justify-between items-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200/50 dark:border-slate-700/50">
+                    <div>
+                        <h1 className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400">
+                            ShiftTracker
+                        </h1>
+                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                            {format(new Date(), 'EEEE, MMMM do')}
+                        </p>
+                    </div>
+                    <ThemeDropdown
+                        theme={theme}
+                        setTheme={setTheme}
+                        variantIndex={variantIndex}
+                        setVariantIndex={setVariantIndex}
+                        toggleLang={() => setLang(l => l === 'en' ? 'jp' : 'en')}
+                        primaryColors={primaryColors}
+                    />
+                </header>
+
+                {/* Main Content */}
+                <main className="flex-1 overflow-y-auto no-scrollbar pb-24 p-4 space-y-4">
+
+                    {/* Stats Card */}
+                    <div className={cn("rounded-3xl p-6 text-white shadow-lg relative overflow-hidden", primaryColors.bgGradient)}>
+                        <div className="absolute top-0 right-0 p-4 opacity-10">
+                            <Zap size={120} />
+                        </div>
+                        <div className="relative z-10">
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <p className="text-white/80 text-sm font-medium mb-1">{filterMonth ? format(filterMonth, 'MMMM yyyy') : strings.grandTotal}</p>
+                                    <h2 className="text-4xl font-bold tracking-tight">{yen.format(totalPay)}</h2>
+                                </div>
+                            </div>
+                            <div className="flex gap-4 bg-black/10 rounded-xl p-3 backdrop-blur-sm">
+                                <div className="flex items-center gap-2">
+                                    <Clock size={16} className="text-white/80" />
+                                    <span className="font-semibold">{totalHours} {strings.hours}</span>
+                                </div>
+                                <div className="w-px bg-white/20 h-5" />
+                                <div className="flex items-center gap-2">
+                                    <CalendarIcon size={16} className="text-white/80" />
+                                    <span className="font-semibold">{filteredShifts.length} Shifts</span>
+                                </div>
                             </div>
                         </div>
+                    </div>
 
-                        {/* Totals & Filters Section */}
-                        <div className={cn(
-                            "p-4 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4 border",
-                            theme === 'light'
-                                ? 'bg-white/80 border-gray-200'
-                                : 'bg-slate-900/70 border-slate-700'
-                        )}>
-                            <div className="flex flex-col items-center sm:items-start">
-                                <p className="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-400 text-center sm:text-left">{strings.grandTotal}</p>
-                                <p className={cn("text-3xl font-black text-center sm:text-left", PRIMARY_COLOR_CLASSES.text)}>{yen.format(aggregatedData.grandTotal.totalPay)}</p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left">{aggregatedData.grandTotal.totalHours} {strings.hours}</p>
-                            </div>
-
-                            <div className="flex gap-3 w-full sm:w-auto flex-1 sm:flex-none min-w-0">
-                                <MonthFilter
-                                    selectedMonth={filterMonth}
-                                    onMonthSelect={setFilterMonth}
-                                    lang={lang}
-                                    primaryColors={PRIMARY_COLOR_CLASSES}
-                                />
-
-
-                            </div>
-                        </div>
-                    </header>
-
-                    {/* Content Area */}
-                    <main className="w-full max-w-4xl pb-16 px-4">
-                        {renderMonthlyView()}
-                    </main>
-
-                    {/* Footer/Clear Data */}
-                    <footer className="w-full max-w-4xl mt-8 pt-4 pb-safe border-t border-gray-200 dark:border-slate-700">
-                        <div className="pb-4">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-200"
-                                onClick={() => {
-                                    setAlertConfig({
-                                        isOpen: true,
-                                        title: strings.areYouSure,
-                                        message: strings.clearData,
-                                        onConfirm: async () => {
-                                            setShifts([]);
-                                            setHourlyRate(1000);
-                                            const emptyData = { shifts: [], hourlyRate: 1000, lang, theme, variantIndex };
-
-                                            // Clear localStorage
-                                            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(emptyData));
-
-                                            // Try to clear IndexedDB
-                                            try {
-                                                await saveToIndexedDB('appData', emptyData);
-                                            } catch (e) {
-                                                console.warn('Failed to clear IndexedDB:', e);
-                                            }
-                                            setAlertConfig(null);
-                                        }
-                                    });
-                                }}
-                            >
-                                <Trash2 size={16} className="mr-2" /> {strings.clearData}
+                    {/* Filter Controls */}
+                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className={cn("rounded-full border-gray-200 dark:border-slate-700", !filterMonth && primaryColors.bgLight)}
+                            onClick={() => setFilterMonth(null)}
+                        >
+                            {strings.allMonths}
+                        </Button>
+                        <div className="flex items-center bg-white dark:bg-slate-800 rounded-full border border-gray-200 dark:border-slate-700 p-1">
+                            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => setFilterMonth(prev => prev ? subMonths(prev, 1) : new Date())}>
+                                <ChevronLeft size={14} />
+                            </Button>
+                            <span className="text-xs font-bold px-2 min-w-[80px] text-center">
+                                {filterMonth ? format(filterMonth, 'MMM yyyy') : 'All'}
+                            </span>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => setFilterMonth(prev => prev ? addMonths(prev, 1) : new Date())}>
+                                <ChevronRight size={14} />
                             </Button>
                         </div>
-                    </footer>
-                </div>
+                    </div>
 
-                <AddEditShiftModal
-                    isOpen={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
-                    onSubmit={addOrUpdateShift}
-                    initialShift={editingShift}
-                    lang={lang}
-                    primaryColors={PRIMARY_COLOR_CLASSES}
-                />
+                    {/* Shift List */}
+                    <div className="space-y-3">
+                        {filteredShifts.length === 0 ? (
+                            <div className="text-center py-10 opacity-50">
+                                <CalendarIcon size={48} className="mx-auto mb-3" />
+                                <p>{strings.noShiftsMonth}</p>
+                            </div>
+                        ) : (
+                            filteredShifts.map((shift) => (
+                                <motion.div
+                                    key={shift.id}
+                                    layout
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-slate-700 flex justify-between items-center group"
+                                >
+                                    <div className="flex gap-4 items-center">
+                                        <div className={cn("w-12 h-12 rounded-xl flex flex-col items-center justify-center font-bold", primaryColors.bgLight, primaryColors.text)}>
+                                            <span className="text-xs uppercase">{format(parseISO(shift.date), 'MMM')}</span>
+                                            <span className="text-lg leading-none">{format(parseISO(shift.date), 'd')}</span>
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                                {yen.format(shift.pay)}
+                                            </div>
+                                            <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                                                <Clock size={12} />
+                                                {shift.fromTime} - {shift.toTime} ({shift.hours}h)
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="h-8 w-8 text-gray-400 hover:text-blue-500"
+                                            onClick={() => {
+                                                setEditShift(shift);
+                                                setDate(shift.date);
+                                                setFromTime(shift.fromTime);
+                                                setToTime(shift.toTime);
+                                                setWage(shift.wage);
+                                                setIsAddModalOpen(true);
+                                            }}
+                                        >
+                                            <List size={16} />
+                                        </Button>
+                                    </div>
+                                </motion.div>
+                            ))
+                        )}
+                    </div>
+                </main>
 
-                {alertConfig && (
-                    <CustomAlert
-                        isOpen={alertConfig.isOpen}
-                        title={alertConfig.title}
-                        message={alertConfig.message}
-                        onConfirm={alertConfig.onConfirm}
-                        onCancel={() => setAlertConfig(null)}
-                    />
-                )}
+                {/* Floating Action Button */}
+                <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                        setEditShift(null);
+                        setFromTime('09:00');
+                        setToTime('17:00');
+                        setDate(format(new Date(), 'yyyy-MM-dd'));
+                        setIsAddModalOpen(true);
+                    }}
+                    className={cn("fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-xl flex items-center justify-center text-white z-50", primaryColors.bgGradient)}
+                >
+                    <Plus size={28} />
+                </motion.button>
 
-                <PWAInstallPrompt
-                    isOpen={showInstallPrompt}
-                    onClose={handleCloseInstallPrompt}
-                    lang={lang}
+                {/* Add/Edit Modal */}
+                <AnimatePresence>
+                    {isAddModalOpen && (
+                        <>
+                            <motion.div
+                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]"
+                                onClick={() => setIsAddModalOpen(false)}
+                            />
+                            <motion.div
+                                initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                                className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 rounded-t-3xl z-[61] p-6 max-h-[90vh] overflow-y-auto"
+                            >
+                                <div className="w-12 h-1.5 bg-gray-300 dark:bg-slate-700 rounded-full mx-auto mb-6" />
+                                <h2 className="text-xl font-bold mb-6 text-gray-900 dark:text-white">
+                                    {editShift ? strings.editShift : strings.addShift}
+                                </h2>
 
-                />
+                                <div className="space-y-6">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Date</label>
+                                        <Input
+                                            type="date"
+                                            value={date}
+                                            onChange={(e) => setDate(e.target.value)}
+                                            className="h-12 text-lg bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700"
+                                        />
+                                    </div>
+
+                                    <div className="flex gap-4">
+                                        <ScrollTimePicker value={fromTime} onChange={setFromTime} label={strings.start} primaryColors={primaryColors} />
+                                        <ScrollTimePicker value={toTime} onChange={setToTime} label={strings.end} primaryColors={primaryColors} />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-gray-500 uppercase">{strings.hourlyRate}</label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">¥</span>
+                                            <Input
+                                                type="number"
+                                                value={wage}
+                                                onChange={(e) => setWage(Number(e.target.value))}
+                                                className="h-12 pl-8 text-lg bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-4 flex gap-3">
+                                        {editShift && (
+                                            <Button
+                                                variant="destructive"
+                                                onClick={() => {
+                                                    handleDeleteShift(editShift.id);
+                                                    setIsAddModalOpen(false);
+                                                }}
+                                                className="h-12 px-6 rounded-xl"
+                                            >
+                                                <Trash2 size={20} />
+                                            </Button>
+                                        )}
+                                        <Button
+                                            onClick={handleSaveShift}
+                                            className={cn("flex-1 h-12 text-lg font-semibold rounded-xl", primaryColors.bgGradient)}
+                                        >
+                                            {strings.save}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>
+
+                <PWAInstallPrompt isOpen={isPWAOpen} onClose={() => setIsPWAOpen(false)} lang={lang} />
             </div>
-        </>
+        </div>
     );
 }
