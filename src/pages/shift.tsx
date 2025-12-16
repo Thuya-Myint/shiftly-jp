@@ -688,10 +688,18 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
             <motion.button
                 onClick={handleThemeIconClick}
                 whileTap={{ scale: 0.95 }}
-                className={cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer", frostedGlassClasses)}
+                className={cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer transition-all duration-200", frostedGlassClasses)}
                 aria-label="Change theme"
             >
-                {isOpen || isLight ? <Sun size={18} className="text-orange-500" /> : <Moon size={18} className="text-indigo-400" />}
+                <motion.div
+                    key={isLight ? 'sun' : 'moon'}
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    exit={{ scale: 0, rotate: 180 }}
+                    transition={{ duration: 0.2, ease: "easeInOut" }}
+                >
+                    {isLight ? <Sun size={18} className="text-orange-500" /> : <Moon size={18} className="text-indigo-400" />}
+                </motion.div>
             </motion.button>
 
             <motion.button
@@ -917,35 +925,19 @@ const MonthlyGroup = React.memo(function MonthlyGroup({ monthKey, totalPay, tota
                     <p className={cn("text-2xl font-black", primaryColors.text)}>{yen.format(totalPay)}</p>
                 </div>
             </div>
-            {shifts.length > 5 ? (
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {shifts.map((s: Shift) => (
-                        <ShiftItem
-                            key={s.id}
-                            shift={s}
-                            theme={theme}
-                            baseLang={baseLang}
-                            onDelete={onDelete}
-                            onUpdate={onUpdate}
-                            primaryColors={primaryColors}
-                        />
-                    ))}
-                </div>
-            ) : (
-                <div className="space-y-3">
-                    {shifts.map((s: Shift) => (
-                        <ShiftItem
-                            key={s.id}
-                            shift={s}
-                            theme={theme}
-                            baseLang={baseLang}
-                            onDelete={onDelete}
-                            onUpdate={onUpdate}
-                            primaryColors={primaryColors}
-                        />
-                    ))}
-                </div>
-            )}
+            <div className="space-y-3">
+                {shifts.map((s: Shift) => (
+                    <ShiftItem
+                        key={s.id}
+                        shift={s}
+                        theme={theme}
+                        baseLang={baseLang}
+                        onDelete={onDelete}
+                        onUpdate={onUpdate}
+                        primaryColors={primaryColors}
+                    />
+                ))}
+            </div>
         </div>
     );
 });
