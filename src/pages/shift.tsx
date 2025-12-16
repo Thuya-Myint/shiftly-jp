@@ -677,9 +677,14 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
         setIsOpen(false);
     }, [setVariantIndex]);
 
-    const handleToggleTheme = useCallback((newTheme: 'light' | 'dark') => {
+    const [isThemeChanging, setIsThemeChanging] = useState(false);
+
+    const handleToggleTheme = useCallback(async (newTheme: 'light' | 'dark') => {
+        setIsThemeChanging(true);
+        await new Promise(resolve => setTimeout(resolve, 300));
         setTheme(newTheme);
         setIsOpen(false);
+        setIsThemeChanging(false);
     }, [setTheme]);
     const handleThemeIconClick = () => setIsOpen(prev => !prev);
 
@@ -691,15 +696,22 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
                 className={cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer transition-all duration-200", frostedGlassClasses)}
                 aria-label="Change theme"
             >
-                <motion.div
-                    key={isLight ? 'sun' : 'moon'}
-                    initial={{ scale: 0, rotate: -180 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    exit={{ scale: 0, rotate: 180 }}
-                    transition={{ duration: 0.2, ease: "easeInOut" }}
-                >
-                    {isLight ? <Sun size={18} className="text-orange-500" /> : <Moon size={18} className="text-indigo-400" />}
-                </motion.div>
+                {isThemeChanging ? (
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 0.5, ease: "linear", repeat: Infinity }}
+                        className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full"
+                    />
+                ) : (
+                    <motion.div
+                        key={isLight ? 'sun' : 'moon'}
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                    >
+                        {isLight ? <Sun size={18} className="text-orange-500" /> : <Moon size={18} className="text-indigo-400" />}
+                    </motion.div>
+                )}
             </motion.button>
 
             <motion.button
@@ -727,23 +739,43 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
                         <div className={`flex justify-between items-center mb-3 p-1 rounded-lg ${isLight ? 'bg-gray-100' : 'bg-slate-800'}  `}>
                             <motion.button
                                 onClick={() => handleToggleTheme('light')}
+                                disabled={isThemeChanging}
                                 className={cn("flex-1 px-3 py-2 rounded-lg cursor-pointer text-sm font-medium transition-colors",
                                     isLight
                                         ? 'bg-white shadow-md text-slate-800'
-                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-100'
+                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-100',
+                                    isThemeChanging && 'opacity-50 cursor-not-allowed'
                                 )}
                             >
-                                <Sun size={16} className="inline mr-1" /> Light
+                                {isThemeChanging ? (
+                                    <motion.div
+                                        animate={{ rotate: 360 }}
+                                        transition={{ duration: 0.5, ease: "linear", repeat: Infinity }}
+                                        className="inline-block w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full mr-1"
+                                    />
+                                ) : (
+                                    <Sun size={16} className="inline mr-1" />
+                                )} Light
                             </motion.button>
                             <motion.button
                                 onClick={() => handleToggleTheme('dark')}
+                                disabled={isThemeChanging}
                                 className={cn("flex-1 px-3 py-2 rounded-lg text-sm cursor-pointer font-medium transition-colors",
                                     !isLight
                                         ? 'bg-slate-700 shadow-md text-white'
-                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-800'
+                                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-800',
+                                    isThemeChanging && 'opacity-50 cursor-not-allowed'
                                 )}
                             >
-                                <Moon size={16} className="inline mr-1" /> Dark
+                                {isThemeChanging ? (
+                                    <motion.div
+                                        animate={{ rotate: 360 }}
+                                        transition={{ duration: 0.5, ease: "linear", repeat: Infinity }}
+                                        className="inline-block w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full mr-1"
+                                    />
+                                ) : (
+                                    <Moon size={16} className="inline mr-1" />
+                                )} Dark
                             </motion.button>
                         </div>
 
@@ -1597,7 +1629,7 @@ export default function ShiftTracker() {
                 initial={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className={cn("min-h-screen flex flex-col items-center justify-center hw-accelerate", appClasses)}
+                className={cn("min-h-screen flex flex-col items-center justify-center hw-accelerate transition-all duration-300 ease-in-out", appClasses)}
             >
                 <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
@@ -1634,8 +1666,8 @@ export default function ShiftTracker() {
     return (
         <>
             <GlobalStyles />
-            <div className={cn("min-h-screen", appClasses)}>
-                <div className={cn("min-h-screen flex flex-col items-center sm:p-6 transition-colors duration-200")}>
+            <div className={cn("min-h-screen transition-all duration-300 ease-in-out", appClasses)}>
+                <div className={cn("min-h-screen flex flex-col items-center sm:p-6 transition-all duration-300 ease-in-out")}>
 
                     {/* Header/Controls */}
                     <header className="w-full max-w-4xl sticky p-4 top-0 z-40 mb-6 py-4 backdrop-blur-md bg-transparent/80">
