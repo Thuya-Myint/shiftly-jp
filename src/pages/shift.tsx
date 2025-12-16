@@ -904,7 +904,7 @@ const ShiftItem = React.memo(function ShiftItem({ shift, theme, baseLang, onDele
                     <div className="flex flex-col gap-1 sm:gap-2">
                         <button
                             className={cn(
-                                "h-8 px-2 sm:h-9 sm:px-3 text-xs font-semibold rounded-lg border transition-all",
+                                "h-8 px-2 sm:h-9 sm:px-3 text-xs font-semibold rounded-lg border transition-all flex items-center",
                                 primaryColors.border,
                                 primaryColors.text,
                                 theme === 'light' ? 'bg-white/60' : 'bg-slate-800/60'
@@ -915,7 +915,7 @@ const ShiftItem = React.memo(function ShiftItem({ shift, theme, baseLang, onDele
                         </button>
 
                         <button
-                            className="h-8 px-2 sm:h-9 sm:px-3 text-xs font-semibold rounded-lg border border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 bg-white/60 dark:bg-slate-800/60 transition-all"
+                            className="h-8 px-2 sm:h-9 sm:px-3 text-xs font-semibold rounded-lg border border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 bg-white/60 dark:bg-slate-800/60 transition-all flex items-center"
                             onClick={handleDelete}
                         >
                             <Trash2 size={12} className="mr-1" /> {strings.delete}
@@ -1308,6 +1308,23 @@ export default function ShiftTracker() {
         localStorage.setItem('pwa-install-prompt-seen', 'true');
     };
 
+    // Apply theme immediately to prevent flash
+    useEffect(() => {
+        const savedTheme = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (savedTheme) {
+            try {
+                const data = JSON.parse(savedTheme);
+                if (data.theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch (e) {
+                // Ignore parsing errors
+            }
+        }
+    }, []);
+
     useEffect(() => {
         const loadData = async () => {
             const startTime = Date.now();
@@ -1629,35 +1646,103 @@ export default function ShiftTracker() {
                 initial={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className={cn("min-h-screen flex flex-col items-center justify-center hw-accelerate transition-all duration-300 ease-in-out", appClasses)}
+                className={cn("min-h-screen flex flex-col items-center justify-center hw-accelerate transition-all duration-300 ease-in-out relative overflow-hidden", appClasses)}
             >
+                {/* Floating particles background */}
+                <div className="absolute inset-0 pointer-events-none">
+                    {[...Array(6)].map((_, i) => (
+                        <motion.div
+                            key={i}
+                            className={cn("absolute w-3 h-3 rounded-full opacity-20", PRIMARY_COLOR_CLASSES.bgLight)}
+                            animate={{
+                                x: [0, 200, -100, 0],
+                                y: [0, -150, 100, 0],
+                                opacity: [0.2, 0.6, 0.3, 0.2]
+                            }}
+                            transition={{
+                                duration: 8 + i,
+                                repeat: Infinity,
+                                delay: i * 0.5
+                            }}
+                            style={{
+                                left: `${10 + i * 15}%`,
+                                top: `${20 + (i % 3) * 25}%`
+                            }}
+                        />
+                    ))}
+                </div>
+
                 <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
-                    className="text-center"
+                    initial={{ scale: 0.5, opacity: 0, y: 50 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    className="text-center relative z-10"
                 >
-                    <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                        className={cn("w-16 h-16 border-4 border-t-transparent rounded-full mx-auto mb-6", PRIMARY_COLOR_CLASSES.border)}
-                    />
+                    {/* Enhanced loading spinner */}
+                    <div className="relative w-20 h-20 mx-auto mb-8">
+                        <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                            className={cn("absolute inset-0 border-4 border-t-transparent rounded-full", PRIMARY_COLOR_CLASSES.border)}
+                        />
+                        <motion.div
+                            animate={{ rotate: -360 }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                            className={cn("absolute inset-2 border-2 border-r-transparent rounded-full opacity-60", PRIMARY_COLOR_CLASSES.border)}
+                        />
+                        <motion.div
+                            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                            className={cn("absolute inset-6 rounded-full", PRIMARY_COLOR_CLASSES.bgLight)}
+                        />
+                    </div>
+
                     <motion.h1
-                        initial={{ y: 20, opacity: 0 }}
+                        initial={{ y: 30, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.2, duration: 0.5 }}
-                        className={cn("text-3xl font-extrabold mb-2", PRIMARY_COLOR_CLASSES.text)}
+                        transition={{ delay: 0.3, duration: 0.6 }}
+                        className={cn("text-4xl font-extrabold mb-3", PRIMARY_COLOR_CLASSES.text)}
                     >
                         Shomyn
                     </motion.h1>
+
                     <motion.p
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.4, duration: 0.5 }}
-                        className="text-gray-600 dark:text-gray-400"
+                        transition={{ delay: 0.5, duration: 0.5 }}
+                        className="text-gray-600 dark:text-gray-400 text-lg"
                     >
-                        {lang === 'en' ? 'Loading your shifts...' : 'シフトを読み込み中...'}
+                        <motion.span
+                            animate={{ opacity: [0.5, 1, 0.5] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                        >
+                            {lang === 'en' ? 'Loading your shifts...' : 'シフトを読み込み中...'}
+                        </motion.span>
                     </motion.p>
+
+                    {/* Progress dots */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.7 }}
+                        className="flex justify-center gap-2 mt-6"
+                    >
+                        {[...Array(3)].map((_, i) => (
+                            <motion.div
+                                key={i}
+                                className={cn("w-2 h-2 rounded-full", PRIMARY_COLOR_CLASSES.bgLight)}
+                                animate={{
+                                    scale: [1, 1.5, 1],
+                                    opacity: [0.3, 1, 0.3]
+                                }}
+                                transition={{
+                                    duration: 1.5,
+                                    repeat: Infinity,
+                                    delay: i * 0.2
+                                }}
+                            />
+                        ))}
+                    </motion.div>
                 </motion.div>
             </motion.div>
         );
