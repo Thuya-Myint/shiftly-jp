@@ -1643,45 +1643,7 @@ export default function ShiftTracker() {
         ? themeVariant.light
         : themeVariant.dark;
 
-    if (showLaunchScreen) {
-        return (
-            <motion.div
-                initial={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className={cn("min-h-screen flex flex-col items-center justify-center hw-accelerate", appClasses)}
-            >
-                <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
-                    className="text-center"
-                >
-                    <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                        className={cn("w-16 h-16 border-4 border-t-transparent rounded-full mx-auto mb-6", PRIMARY_COLOR_CLASSES.border)}
-                    />
-                    <motion.h1
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.2, duration: 0.5 }}
-                        className={cn("text-3xl font-extrabold mb-2", PRIMARY_COLOR_CLASSES.text)}
-                    >
-                        Shomyn
-                    </motion.h1>
-                    <motion.p
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.4, duration: 0.5 }}
-                        className="text-gray-600 dark:text-gray-400"
-                    >
-                        {lang === 'en' ? 'Loading your shifts...' : 'シフトを読み込み中...'}
-                    </motion.p>
-                </motion.div>
-            </motion.div>
-        );
-    }
+
 
     return (
         <>
