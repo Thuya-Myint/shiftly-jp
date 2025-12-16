@@ -291,13 +291,13 @@ function PWAInstallPrompt({ isOpen, onClose, lang }: { isOpen: boolean; onClose:
             e.preventDefault();
             setDeferredPrompt(e);
         };
-        
+
         // Register service worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/sw.js')
                 .catch(err => console.log('SW registration failed'));
         }
-        
+
         window.addEventListener('beforeinstallprompt', handler);
         return () => window.removeEventListener('beforeinstallprompt', handler);
     }, []);
@@ -314,8 +314,8 @@ function PWAInstallPrompt({ isOpen, onClose, lang }: { isOpen: boolean; onClose:
     };
 
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                         (window.navigator as any).standalone === true;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as any).standalone === true;
 
     if (isStandalone) return null;
 
@@ -885,7 +885,7 @@ const ShiftItem = React.memo(function ShiftItem({ shift, theme, baseLang, onDele
             </div>
         </div>
     );
-}
+});
 
 // --- MONTHLY GROUP COMPONENT ---
 const MonthlyGroup = React.memo(function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang, onDelete, onUpdate, primaryColors }: {
@@ -1118,108 +1118,108 @@ function AddEditShiftModal({
                 className={cn("w-full max-w-md rounded-3xl p-6 relative", modalBgClasses)}
                 onClick={(e) => e.stopPropagation()}
             >
-                        <h2 className={cn("text-2xl font-extrabold mb-6", primaryColors.text)}>{title}</h2>
-                        <button
-                            className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-                            onClick={onClose}
-                            aria-label="Close modal"
-                        >
-                            <X size={20} />
-                        </button>
+                <h2 className={cn("text-2xl font-extrabold mb-6", primaryColors.text)}>{title}</h2>
+                <button
+                    className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                    onClick={onClose}
+                    aria-label="Close modal"
+                >
+                    <X size={20} />
+                </button>
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            {/* Date Picker */}
-                            <div>
-                                <label className="block text-sm font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2">
-                                    {lang === 'en' ? 'Date' : '日付'}
-                                </label>
-                                <Popover open={isDatePopoverOpen} onOpenChange={setIsDatePopoverOpen}>
-                                    <PopoverTrigger asChild>
-                                        <button
-                                            type="button"
-                                            className={cn(
-                                                "w-full justify-start text-left font-normal h-12 rounded-xl border-2 items-center flex px-3",
-                                                "text-gray-800 dark:text-gray-200 bg-white dark:bg-slate-900",
-                                                primaryColors.border
-                                            )}
-                                        >
-                                            <CalendarIcon className={cn("mr-2 h-4 w-4", primaryColors.text)} />
-                                            {form.date ? format(form.date, lang === 'en' ? 'PPP' : 'yyyy年M月d日(EEE)') : <span>Pick a date</span>}
-                                        </button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-full md:w-auto p-0 z-[10001]">
-                                        <Calendar
-                                            mode="single"
-                                            selected={form.date}
-                                            onSelect={handleDateSelect}
-                                            initialFocus
-                                            locale={lang === 'jp' ? undefined : undefined}
-                                            className="max-w-full"
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
-
-                            {/* Time Pickers */}
-                            <div className="flex justify-between items-center gap-1 sm:gap-2 py-2"> {/* **FIX**: Reduced gap on small screens */}
-                                <ScrollTimePicker
-                                    value={form.fromTime}
-                                    onChange={(v) => handleTimeChange('fromTime', v)}
-                                    label={strings.start}
-                                    primaryColors={primaryColors}
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Date Picker */}
+                    <div>
+                        <label className="block text-sm font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2">
+                            {lang === 'en' ? 'Date' : '日付'}
+                        </label>
+                        <Popover open={isDatePopoverOpen} onOpenChange={setIsDatePopoverOpen}>
+                            <PopoverTrigger asChild>
+                                <button
+                                    type="button"
+                                    className={cn(
+                                        "w-full justify-start text-left font-normal h-12 rounded-xl border-2 items-center flex px-3",
+                                        "text-gray-800 dark:text-gray-200 bg-white dark:bg-slate-900",
+                                        primaryColors.border
+                                    )}
+                                >
+                                    <CalendarIcon className={cn("mr-2 h-4 w-4", primaryColors.text)} />
+                                    {form.date ? format(form.date, lang === 'en' ? 'PPP' : 'yyyy年M月d日(EEE)') : <span>Pick a date</span>}
+                                </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full md:w-auto p-0 z-[10001]">
+                                <Calendar
+                                    mode="single"
+                                    selected={form.date}
+                                    onSelect={handleDateSelect}
+                                    initialFocus
+                                    locale={lang === 'jp' ? undefined : undefined}
+                                    className="max-w-full"
                                 />
-                                {/* **FIX**: Smaller 'to' text on small devices (text-xl vs text-2xl) */}
-                                <span className={cn("font-bold", primaryColors.text, "text-xl sm:text-2xl")}>{strings.to}</span>
-                                <ScrollTimePicker
-                                    value={form.toTime}
-                                    onChange={(v) => handleTimeChange('toTime', v)}
-                                    label={strings.end}
-                                    primaryColors={primaryColors}
-                                />
-                            </div>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
 
-                            {/* Hourly Rate Input */}
-                            <div>
-                                <label htmlFor="wage" className="block text-sm font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2">
-                                    <span className="flex items-center"><Zap size={14} className="inline mr-1" /> {strings.hourlyRate} ({lang === 'en' ? 'JPY' : '円'})</span>
-                                </label>
-                                <div className="relative">
-                                    <Input
-                                        id="wage"
-                                        name="wage"
-                                        type="number"
-                                        step="100"
-                                        placeholder="1000"
-                                        value={form.wage}
-                                        onChange={handleChange}
-                                        className={cn("w-full h-12 rounded-xl text-lg font-semibold pl-10 border-2 text-gray-900 dark:text-white", primaryColors.border)}
-                                    />
-                                    <span className={cn("absolute left-3 top-1/2 transform -translate-y-1/2 text-lg font-bold", primaryColors.text)}>¥</span>
-                                </div>
-                            </div>
+                    {/* Time Pickers */}
+                    <div className="flex justify-between items-center gap-1 sm:gap-2 py-2"> {/* **FIX**: Reduced gap on small screens */}
+                        <ScrollTimePicker
+                            value={form.fromTime}
+                            onChange={(v) => handleTimeChange('fromTime', v)}
+                            label={strings.start}
+                            primaryColors={primaryColors}
+                        />
+                        {/* **FIX**: Smaller 'to' text on small devices (text-xl vs text-2xl) */}
+                        <span className={cn("font-bold", primaryColors.text, "text-xl sm:text-2xl")}>{strings.to}</span>
+                        <ScrollTimePicker
+                            value={form.toTime}
+                            onChange={(v) => handleTimeChange('toTime', v)}
+                            label={strings.end}
+                            primaryColors={primaryColors}
+                        />
+                    </div>
 
-                            {/* Summary */}
-                            <div
-                                className={cn("p-4 rounded-xl flex justify-between items-center shadow-md", primaryColors.bgLight + '/50 dark:' + primaryColors.bgDark)}
-                            >
-                                <div>
-                                    <p className="text-sm font-medium text-gray-700 dark:text-gray-400">{strings.totalHours}</p>
-                                    <p className={cn("text-2xl font-black", primaryColors.text)}>{hours} {strings.hours}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-700 dark:text-gray-400">{strings.totalPay}</p>
-                                    <p className={cn("text-2xl font-black", primaryColors.text)}>{yen.format(pay)}</p>
-                                </div>
-                            </div>
+                    {/* Hourly Rate Input */}
+                    <div>
+                        <label htmlFor="wage" className="block text-sm font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2">
+                            <span className="flex items-center"><Zap size={14} className="inline mr-1" /> {strings.hourlyRate} ({lang === 'en' ? 'JPY' : '円'})</span>
+                        </label>
+                        <div className="relative">
+                            <Input
+                                id="wage"
+                                name="wage"
+                                type="number"
+                                step="100"
+                                placeholder="1000"
+                                value={form.wage}
+                                onChange={handleChange}
+                                className={cn("w-full h-12 rounded-xl text-lg font-semibold pl-10 border-2 text-gray-900 dark:text-white", primaryColors.border)}
+                            />
+                            <span className={cn("absolute left-3 top-1/2 transform -translate-y-1/2 text-lg font-bold", primaryColors.text)}>¥</span>
+                        </div>
+                    </div>
 
-                            {/* Submit Button */}
-                            <button
-                                type="submit"
-                                className={cn("w-full h-12 rounded-xl text-lg font-bold text-white transition-all shadow-lg hover:shadow-xl", primaryColors.bgGradient)}
-                            >
-                                {submitText}
-                            </button>
-                        </form>
+                    {/* Summary */}
+                    <div
+                        className={cn("p-4 rounded-xl flex justify-between items-center shadow-md", primaryColors.bgLight + '/50 dark:' + primaryColors.bgDark)}
+                    >
+                        <div>
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-400">{strings.totalHours}</p>
+                            <p className={cn("text-2xl font-black", primaryColors.text)}>{hours} {strings.hours}</p>
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-400">{strings.totalPay}</p>
+                            <p className={cn("text-2xl font-black", primaryColors.text)}>{yen.format(pay)}</p>
+                        </div>
+                    </div>
+
+                    {/* Submit Button */}
+                    <button
+                        type="submit"
+                        className={cn("w-full h-12 rounded-xl text-lg font-bold text-white transition-all shadow-lg hover:shadow-xl", primaryColors.bgGradient)}
+                    >
+                        {submitText}
+                    </button>
+                </form>
             </div>
         </div>
     );
@@ -1880,7 +1880,6 @@ export default function ShiftTracker() {
                     isOpen={showInstallPrompt}
                     onClose={handleCloseInstallPrompt}
                     lang={lang}
-
                 />
             </div>
         </>
