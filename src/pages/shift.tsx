@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
@@ -167,11 +167,6 @@ const LANG_STRINGS = {
     }
 };
 
-// --- MOBILE DETECTION ---
-const isMobile = () => {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-};
-
 // --- GLOBAL STYLES WITH PERFORMANCE OPTIMIZATIONS ---
 const GlobalStyles = () => (
     <style>{`
@@ -195,13 +190,7 @@ const GlobalStyles = () => (
           background: linear-gradient(135deg, #0f172a, #1e293b);
         }
         
-        /* Mobile performance optimizations */
-        @media (max-width: 768px) {
-          * {
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-          }
-        }
+        
 
         @keyframes gradient-x {
           0% { background-position: 0% 50%; }
@@ -214,12 +203,6 @@ const GlobalStyles = () => (
           animation: gradient-x 20s ease infinite;
         }
         
-        /* Disable animations on mobile for better performance */
-        @media (max-width: 768px) {
-          .animate-gradient-x {
-            animation: none;
-          }
-        }
        
     `}</style>
 );
@@ -899,67 +882,7 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate, primaryColors }
     );
 }
 
-// --- VIRTUAL SCROLL COMPONENT ---
-function VirtualShiftList({ shifts, theme, baseLang, onDelete, onUpdate, primaryColors }: {
-    shifts: Shift[];
-    theme: 'light' | 'dark';
-    baseLang: Lang;
-    onDelete: (id: string) => void;
-    onUpdate: (shift: Shift) => void;
-    primaryColors: ReturnType<typeof getPrimaryColorClasses>;
-}) {
-    const [scrollTop, setScrollTop] = useState(0);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const ITEM_HEIGHT = 200; // Approximate height of each shift item
-    const BUFFER = 3; // Render extra items for smooth scrolling
-    
-    const containerHeight = 600; // Fixed height for virtual scroll container
-    const visibleCount = Math.ceil(containerHeight / ITEM_HEIGHT);
-    const startIndex = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - BUFFER);
-    const endIndex = Math.min(shifts.length, startIndex + visibleCount + BUFFER * 2);
-    const visibleShifts = shifts.slice(startIndex, endIndex);
-    
-    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-        setScrollTop(e.currentTarget.scrollTop);
-    };
-    
-    return (
-        <div 
-            ref={containerRef}
-            className="relative overflow-auto"
-            style={{ height: containerHeight }}
-            onScroll={handleScroll}
-        >
-            <div style={{ height: shifts.length * ITEM_HEIGHT, position: 'relative' }}>
-                <div 
-                    style={{ 
-                        transform: `translateY(${startIndex * ITEM_HEIGHT}px)`,
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0
-                    }}
-                >
-                    <div className="space-y-3">
-                        {visibleShifts.map((shift) => (
-                            <ShiftItem
-                                key={shift.id}
-                                shift={shift}
-                                theme={theme}
-                                baseLang={baseLang}
-                                onDelete={onDelete}
-                                onUpdate={onUpdate}
-                                primaryColors={primaryColors}
-                            />
-                        ))}
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// --- MONTHLY GROUP COMPONENT ---
+// --- MONTHLY GROUP COMPONENT (UNCHANGED) ---
 function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang, onDelete, onUpdate, primaryColors }: {
     monthKey: string;
     totalPay: number;
@@ -998,30 +921,19 @@ function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang,
                     <p className={cn("text-2xl font-black", primaryColors.text)}>{yen.format(totalPay)}</p>
                 </div>
             </div>
-            {shifts.length > 20 ? (
-                <VirtualShiftList
-                    shifts={shifts}
-                    theme={theme}
-                    baseLang={baseLang}
-                    onDelete={onDelete}
-                    onUpdate={onUpdate}
-                    primaryColors={primaryColors}
-                />
-            ) : (
-                <div className="space-y-3">
-                    {shifts.map((s: Shift) => (
-                        <ShiftItem
-                            key={s.id}
-                            shift={s}
-                            theme={theme}
-                            baseLang={baseLang}
-                            onDelete={onDelete}
-                            onUpdate={onUpdate}
-                            primaryColors={primaryColors}
-                        />
-                    ))}
-                </div>
-            )}
+            <div className="space-y-3">
+                {shifts.map((s: Shift) => (
+                    <ShiftItem
+                        key={s.id}
+                        shift={s}
+                        theme={theme}
+                        baseLang={baseLang}
+                        onDelete={onDelete}
+                        onUpdate={onUpdate}
+                        primaryColors={primaryColors}
+                    />
+                ))}
+            </div>
         </motion.div>
     );
 }
@@ -1193,7 +1105,6 @@ function AddEditShiftModal({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.1 }}
                     className="fixed inset-0 z-[10000] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hw-accelerate"
                     onClick={onClose}
                 >
@@ -1201,18 +1112,20 @@ function AddEditShiftModal({
                         initial={{ scale: 0.95, y: 20 }}
                         animate={{ scale: 1, y: 0 }}
                         exit={{ scale: 0.95, y: 20 }}
-                        transition={{ type: "tween", duration: 0.1, ease: "easeOut" }}
+                        transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
                         className={cn("w-full max-w-md rounded-3xl p-6 relative hw-accelerate", modalBgClasses)}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h2 className={cn("text-2xl font-extrabold mb-6", primaryColors.text)}>{title}</h2>
-                        <button
-                            className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-4 right-4 h-10 w-10 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
                             onClick={onClose}
                             aria-label="Close modal"
                         >
                             <X size={20} />
-                        </button>
+                        </Button>
 
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Date Picker */}
@@ -1331,11 +1244,6 @@ export default function ShiftTracker() {
     const [showInstallPrompt, setShowInstallPrompt] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [showLaunchScreen, setShowLaunchScreen] = useState(true);
-    const [isMobileDevice, setIsMobileDevice] = useState(false);
-
-    useEffect(() => {
-        setIsMobileDevice(isMobile());
-    }, []);
 
     // Block overscroll when modal is open
     useEffect(() => {
@@ -1799,9 +1707,9 @@ export default function ShiftTracker() {
                     {/* Enhanced Footer */}
                     <footer className="w-full max-w-4xl mt-8 pt-6 pb-safe">
                         <motion.div
-                            initial={isMobileDevice ? {} : { opacity: 0, y: 20 }}
-                            animate={isMobileDevice ? {} : { opacity: 1, y: 0 }}
-                            transition={isMobileDevice ? {} : { duration: 0.5, delay: 0.2 }}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
                             className={cn(
                                 "relative overflow-hidden rounded-2xl p-6 backdrop-blur-xl border shadow-xl",
                                 theme === 'light'
@@ -1809,18 +1717,16 @@ export default function ShiftTracker() {
                                     : 'bg-slate-900/60 border-slate-700/50'
                             )}
                         >
-                            {/* Animated background gradient - disabled on mobile */}
-                            {!isMobileDevice && (
-                                <div className={cn(
-                                    "absolute inset-0 opacity-20 animate-gradient-x",
-                                    PRIMARY_COLOR_CLASSES.bgGradient
-                                )} />
-                            )}
+                            {/* Animated background gradient */}
+                            <div className={cn(
+                                "absolute inset-0 opacity-20 animate-gradient-x",
+                                PRIMARY_COLOR_CLASSES.bgGradient
+                            )} />
 
                             <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4">
                                 {/* Left side - Clear Data Button */}
                                 <motion.div
-                                    whileHover={isMobileDevice ? {} : { scale: 1.02 }}
+                                    whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                 >
                                     <Button
@@ -1855,53 +1761,113 @@ export default function ShiftTracker() {
                                             });
                                         }}
                                     >
-                                        <div className="flex items-center gap-2">
-                                            <Trash2 size={16} />
+                                        <motion.div
+                                            className="flex items-center gap-2"
+                                            whileHover={{ x: 2 }}
+                                        >
+                                            <motion.div
+                                                animate={{ rotate: [0, 10, -10, 0] }}
+                                                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                                            >
+                                                <Trash2 size={16} />
+                                            </motion.div>
                                             <span className="font-semibold">{strings.clearData}</span>
-                                        </div>
+                                        </motion.div>
                                     </Button>
                                 </motion.div>
 
                                 {/* Right side - Copyright & Branding */}
                                 <div className="flex flex-col sm:flex-row items-center gap-3">
-                                    {/* Logo/icon - simplified on mobile */}
-                                    <div className={cn(
-                                        "p-2 rounded-full shadow-lg",
-                                        PRIMARY_COLOR_CLASSES.bgGradient
-                                    )}>
+                                    {/* Animated logo/icon */}
+                                    <motion.div
+                                        animate={{
+                                            rotate: [0, 5, -5, 0],
+                                            scale: [1, 1.05, 1]
+                                        }}
+                                        transition={{
+                                            duration: 3,
+                                            repeat: Infinity,
+                                            ease: "easeInOut"
+                                        }}
+                                        className={cn(
+                                            "p-2 rounded-full shadow-lg",
+                                            PRIMARY_COLOR_CLASSES.bgGradient
+                                        )}
+                                    >
                                         <Zap size={20} className="text-white" />
-                                    </div>
+                                    </motion.div>
 
                                     {/* Copyright text */}
                                     <div className="text-center sm:text-right">
-                                        <p className={cn(
-                                            "text-sm font-bold tracking-wide",
-                                            PRIMARY_COLOR_CLASSES.text
-                                        )}>
+                                        <motion.p
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{ delay: 0.5 }}
+                                            className={cn(
+                                                "text-sm font-bold tracking-wide",
+                                                PRIMARY_COLOR_CLASSES.text
+                                            )}
+                                        >
                                             © 2024 Shomyn
-                                        </p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                                        </motion.p>
+                                        <motion.p
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{ delay: 0.7 }}
+                                            className="text-xs text-gray-500 dark:text-gray-400 font-medium"
+                                        >
                                             {lang === 'en' ? 'Made with' : '愛を込めて'}
-                                            <span className="inline-block mx-1 text-red-500">♥</span>
+                                            <motion.span
+                                                animate={{ scale: [1, 1.2, 1] }}
+                                                transition={{ duration: 1.5, repeat: Infinity }}
+                                                className="inline-block mx-1 text-red-500"
+                                            >
+                                                ♥
+                                            </motion.span>
                                             {lang === 'en' ? 'by Shomyn Team' : 'Shomynチーム'}
-                                        </p>
+                                        </motion.p>
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* Floating particles animation */}
+                            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                                {[...Array(3)].map((_, i) => (
+                                    <motion.div
+                                        key={i}
+                                        className={cn(
+                                            "absolute w-2 h-2 rounded-full opacity-30",
+                                            PRIMARY_COLOR_CLASSES.bgLight
+                                        )}
+                                        animate={{
+                                            x: [0, 100, 0],
+                                            y: [0, -50, 0],
+                                            opacity: [0.3, 0.7, 0.3]
+                                        }}
+                                        transition={{
+                                            duration: 4 + i,
+                                            repeat: Infinity,
+                                            delay: i * 0.5
+                                        }}
+                                        style={{
+                                            left: `${20 + i * 30}%`,
+                                            top: `${50 + i * 10}%`
+                                        }}
+                                    />
+                                ))}
                             </div>
                         </motion.div>
                     </footer>
                 </div>
 
-                {isModalOpen && (
-                    <AddEditShiftModal
-                        isOpen={isModalOpen}
-                        onClose={() => setIsModalOpen(false)}
-                        onSubmit={addOrUpdateShift}
-                        initialShift={editingShift}
-                        lang={lang}
-                        primaryColors={PRIMARY_COLOR_CLASSES}
-                    />
-                )}
+                <AddEditShiftModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onSubmit={addOrUpdateShift}
+                    initialShift={editingShift}
+                    lang={lang}
+                    primaryColors={PRIMARY_COLOR_CLASSES}
+                />
 
                 {alertConfig && (
                     <CustomAlert
