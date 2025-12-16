@@ -1193,6 +1193,7 @@ function AddEditShiftModal({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
+                    transition={{ duration: 0.1 }}
                     className="fixed inset-0 z-[10000] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hw-accelerate"
                     onClick={onClose}
                 >
@@ -1200,20 +1201,18 @@ function AddEditShiftModal({
                         initial={{ scale: 0.95, y: 20 }}
                         animate={{ scale: 1, y: 0 }}
                         exit={{ scale: 0.95, y: 20 }}
-                        transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
+                        transition={{ type: "tween", duration: 0.1, ease: "easeOut" }}
                         className={cn("w-full max-w-md rounded-3xl p-6 relative hw-accelerate", modalBgClasses)}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h2 className={cn("text-2xl font-extrabold mb-6", primaryColors.text)}>{title}</h2>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-4 right-4 h-10 w-10 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                        <button
+                            className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
                             onClick={onClose}
                             aria-label="Close modal"
                         >
                             <X size={20} />
-                        </Button>
+                        </button>
 
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Date Picker */}
