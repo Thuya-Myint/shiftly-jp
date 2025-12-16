@@ -148,6 +148,38 @@ function calculateHours(from, to) {
     const durationMinutes = endMinutes - startMinutes;
     return durationMinutes <= 0 ? 0 : Math.round((durationMinutes / 60) * 100) / 100;
 }
+// --- PWA INSTALL PROMPT COMPONENT ---
+function PWAInstallPrompt({ isOpen, onClose, lang }) {
+    const strings = LANG_STRINGS[lang];
+    const [deferredPrompt, setDeferredPrompt] = useState(null);
+    useEffect(() => {
+        const handler = (e) => {
+            e.preventDefault();
+            setDeferredPrompt(e);
+        };
+        window.addEventListener('beforeinstallprompt', handler);
+        return () => window.removeEventListener('beforeinstallprompt', handler);
+    }, []);
+    const handleInstall = async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                setDeferredPrompt(null);
+            }
+        }
+        onClose();
+    };
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    if (isStandalone)
+        return null;
+    return (_jsx(AnimatePresence, { children: isOpen && (_jsx(motion.div, { initial: { opacity: 0, y: 100 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: 100 }, className: "fixed bottom-4 left-4 right-4 z-[99999] bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-2xl border border-gray-200 dark:border-slate-700", children: _jsxs("div", { className: "flex items-start gap-3", children: [_jsx("div", { className: cn("p-2 rounded-lg", PRIMARY_COLOR_CLASSES.bgLight, "dark:bg-violet-900/40"), children: _jsx(Plus, { className: PRIMARY_COLOR_CLASSES.text, size: 20 }) }), _jsxs("div", { className: "flex-1", children: [_jsx("h3", { className: "font-bold text-gray-900 dark:text-white mb-1", children: lang === 'en' ? 'Add to Home Screen' : 'ホーム画面に追加' }), _jsx("p", { className: "text-sm text-gray-600 dark:text-gray-300 mb-3", children: lang === 'en'
+                                    ? 'Install this app for quick access and better experience'
+                                    : 'より良い体験のためにこのアプリをインストールしてください' }), _jsxs("div", { className: "flex gap-2", children: [isIOS ? (_jsx("p", { className: "text-xs text-gray-500 dark:text-gray-400", children: lang === 'en'
+                                            ? 'Tap Share → Add to Home Screen'
+                                            : 'シェア → ホーム画面に追加をタップ' })) : (_jsx(Button, { onClick: handleInstall, className: cn("text-white font-semibold text-sm h-8 px-3", PRIMARY_COLOR_CLASSES.bgGradient), children: lang === 'en' ? 'Install' : 'インストール' })), _jsx(Button, { onClick: onClose, variant: "outline", className: "text-sm h-8 px-3 border-gray-300 dark:border-slate-600", children: lang === 'en' ? 'Later' : '後で' })] })] }), _jsx(Button, { onClick: onClose, variant: "ghost", size: "sm", className: "p-1 h-6 w-6 text-gray-400 hover:text-gray-600", children: _jsx(X, { size: 14 }) })] }) })) }));
+}
 // --- CUSTOM ALERT COMPONENT ---
 function CustomAlert({ isOpen, onConfirm, onCancel, title, message }) {
     return (_jsx(AnimatePresence, { children: isOpen && (_jsx(motion.div, { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, className: "fixed inset-0 z-[99999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4", onClick: onCancel, children: _jsxs(motion.div, { initial: { scale: 0.9, y: 20 }, animate: { scale: 1, y: 0 }, exit: { scale: 0.9, y: 20 }, className: "bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-gray-200 dark:border-slate-700", onClick: (e) => e.stopPropagation(), children: [_jsxs("div", { className: "flex items-center gap-3 mb-4", children: [_jsx(AlertTriangle, { className: "text-red-500 flex-shrink-0", size: 24 }), _jsx("h3", { className: "text-lg font-bold text-gray-900 dark:text-white", children: title })] }), _jsx("p", { className: "text-gray-600 dark:text-gray-300 mb-6", children: message }), _jsxs("div", { className: "flex gap-3", children: [_jsx(Button, { onClick: onCancel, variant: "outline", className: "flex-1 h-10 rounded-xl border-gray-300 dark:border-slate-600 text-gray-600 dark:text-gray-400", children: "Cancel" }), _jsx(Button, { onClick: onConfirm, className: cn("flex-1 h-10 rounded-xl text-white font-semibold", "bg-red-500 hover:bg-red-600"), children: "Delete" })] })] }) })) }));
@@ -365,9 +397,25 @@ export default function ShiftTracker() {
     const [editingShift, setEditingShift] = useState(null);
     const [filterMonth, setFilterMonth] = useState(undefined);
     const [alertConfig, setAlertConfig] = useState(null);
+    const [showInstallPrompt, setShowInstallPrompt] = useState(false);
     const strings = LANG_STRINGS[lang];
     const themeVariant = THEME_VARIANTS[variantIndex];
     // --- Local Storage Hooks (UNCHANGED) ---
+    // Show install prompt after 3 seconds if not installed
+    useEffect(() => {
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+        const hasSeenPrompt = localStorage.getItem('pwa-install-prompt-seen');
+        if (!isStandalone && !hasSeenPrompt) {
+            const timer = setTimeout(() => {
+                setShowInstallPrompt(true);
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, []);
+    const handleCloseInstallPrompt = () => {
+        setShowInstallPrompt(false);
+        localStorage.setItem('pwa-install-prompt-seen', 'true');
+    };
     useEffect(() => {
         const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (savedData) {
@@ -397,6 +445,11 @@ export default function ShiftTracker() {
         }
         else {
             document.documentElement.classList.remove('dark');
+        }
+        // Update theme color for status bar
+        const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+        if (themeColorMeta) {
+            themeColorMeta.setAttribute('content', theme === 'dark' ? '#0f172a' : '#6366f1');
         }
     }, [shifts, hourlyRate, lang, theme, variantIndex]);
     // --- Core Logic (UNCHANGED) ---
@@ -511,5 +564,5 @@ export default function ShiftTracker() {
                                                 setAlertConfig(null);
                                             }
                                         });
-                                    }, children: [_jsx(Trash2, { size: 16, className: "mr-2" }), " ", strings.clearData] }) })] }), _jsx(AddEditShiftModal, { isOpen: isModalOpen, onClose: () => setIsModalOpen(false), onSubmit: addOrUpdateShift, initialShift: editingShift, lang: lang }), alertConfig && (_jsx(CustomAlert, { isOpen: alertConfig.isOpen, title: alertConfig.title, message: alertConfig.message, onConfirm: alertConfig.onConfirm, onCancel: () => setAlertConfig(null) }))] })] }));
+                                    }, children: [_jsx(Trash2, { size: 16, className: "mr-2" }), " ", strings.clearData] }) })] }), _jsx(AddEditShiftModal, { isOpen: isModalOpen, onClose: () => setIsModalOpen(false), onSubmit: addOrUpdateShift, initialShift: editingShift, lang: lang }), alertConfig && (_jsx(CustomAlert, { isOpen: alertConfig.isOpen, title: alertConfig.title, message: alertConfig.message, onConfirm: alertConfig.onConfirm, onCancel: () => setAlertConfig(null) })), _jsx(PWAInstallPrompt, { isOpen: showInstallPrompt, onClose: handleCloseInstallPrompt, lang: lang })] })] }));
 }

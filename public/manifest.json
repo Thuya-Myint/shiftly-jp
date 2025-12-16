@@ -9,16 +9,22 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/shomyn.png",
+      "src": "/shomynLogo-7FEuR7Ac.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/shomyn.png",
+      "src": "/shomynLogo-7FEuR7Ac.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/shomynLogo-7FEuR7Ac.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

@@ -170,6 +170,99 @@ function calculateHours(from: string, to: string) {
     return durationMinutes <= 0 ? 0 : Math.round((durationMinutes / 60) * 100) / 100;
 }
 
+// --- PWA INSTALL PROMPT COMPONENT ---
+function PWAInstallPrompt({ isOpen, onClose, lang }: { isOpen: boolean; onClose: () => void; lang: Lang }) {
+    const strings = LANG_STRINGS[lang];
+    const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+    useEffect(() => {
+        const handler = (e: any) => {
+            e.preventDefault();
+            setDeferredPrompt(e);
+        };
+        window.addEventListener('beforeinstallprompt', handler);
+        return () => window.removeEventListener('beforeinstallprompt', handler);
+    }, []);
+
+    const handleInstall = async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                setDeferredPrompt(null);
+            }
+        }
+        onClose();
+    };
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+
+    if (isStandalone) return null;
+
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div
+                    initial={{ opacity: 0, y: 100 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 100 }}
+                    className="fixed bottom-4 left-4 right-4 z-[99999] bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-2xl border border-gray-200 dark:border-slate-700"
+                >
+                    <div className="flex items-start gap-3">
+                        <div className={cn("p-2 rounded-lg", PRIMARY_COLOR_CLASSES.bgLight, "dark:bg-violet-900/40")}>
+                            <Plus className={PRIMARY_COLOR_CLASSES.text} size={20} />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="font-bold text-gray-900 dark:text-white mb-1">
+                                {lang === 'en' ? 'Add to Home Screen' : 'ホーム画面に追加'}
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                                {lang === 'en'
+                                    ? 'Install this app for quick access and better experience'
+                                    : 'より良い体験のためにこのアプリをインストールしてください'
+                                }
+                            </p>
+                            <div className="flex gap-2">
+                                {isIOS ? (
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        {lang === 'en'
+                                            ? 'Tap Share → Add to Home Screen'
+                                            : 'シェア → ホーム画面に追加をタップ'
+                                        }
+                                    </p>
+                                ) : (
+                                    <Button
+                                        onClick={handleInstall}
+                                        className={cn("text-white font-semibold text-sm h-8 px-3", PRIMARY_COLOR_CLASSES.bgGradient)}
+                                    >
+                                        {lang === 'en' ? 'Install' : 'インストール'}
+                                    </Button>
+                                )}
+                                <Button
+                                    onClick={onClose}
+                                    variant="outline"
+                                    className="text-sm h-8 px-3 border-gray-300 dark:border-slate-600"
+                                >
+                                    {lang === 'en' ? 'Later' : '後で'}
+                                </Button>
+                            </div>
+                        </div>
+                        <Button
+                            onClick={onClose}
+                            variant="ghost"
+                            size="sm"
+                            className="p-1 h-6 w-6 text-gray-400 hover:text-gray-600"
+                        >
+                            <X size={14} />
+                        </Button>
+                    </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+    );
+}
+
 // --- CUSTOM ALERT COMPONENT ---
 function CustomAlert({ isOpen, onConfirm, onCancel, title, message }: {
     isOpen: boolean;
@@ -978,11 +1071,30 @@ export default function ShiftTracker() {
     const [editingShift, setEditingShift] = useState<Shift | null>(null);
     const [filterMonth, setFilterMonth] = useState<Date | undefined>(undefined);
     const [alertConfig, setAlertConfig] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void } | null>(null);
+    const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
     const strings = LANG_STRINGS[lang];
     const themeVariant = THEME_VARIANTS[variantIndex];
 
     // --- Local Storage Hooks (UNCHANGED) ---
+    // Show install prompt after 3 seconds if not installed
+    useEffect(() => {
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+        const hasSeenPrompt = localStorage.getItem('pwa-install-prompt-seen');
+        
+        if (!isStandalone && !hasSeenPrompt) {
+            const timer = setTimeout(() => {
+                setShowInstallPrompt(true);
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, []);
+
+    const handleCloseInstallPrompt = () => {
+        setShowInstallPrompt(false);
+        localStorage.setItem('pwa-install-prompt-seen', 'true');
+    };
+
     useEffect(() => {
         const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (savedData) {
@@ -1012,6 +1124,12 @@ export default function ShiftTracker() {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
+        }
+
+        // Update theme color for status bar
+        const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+        if (themeColorMeta) {
+            themeColorMeta.setAttribute('content', theme === 'dark' ? '#0f172a' : '#6366f1');
         }
 
     }, [shifts, hourlyRate, lang, theme, variantIndex]);
@@ -1351,6 +1469,12 @@ export default function ShiftTracker() {
                         onCancel={() => setAlertConfig(null)}
                     />
                 )}
+                
+                <PWAInstallPrompt
+                    isOpen={showInstallPrompt}
+                    onClose={handleCloseInstallPrompt}
+                    lang={lang}
+                />
             </div>
         </>
     );
