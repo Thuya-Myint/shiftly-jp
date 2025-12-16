@@ -808,13 +808,12 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate, primaryColors }
                 )}
             />
 
-            <div className="flex flex-col lg:flex-row justify-between items-start relative z-10 gap-3 sm:gap-4 lg:gap-0">
-                <div className="flex flex-col space-y-3 sm:space-y-4 w-full lg:w-auto">
-
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <div className="flex justify-between items-start relative z-10 gap-2">
+                <div className="flex flex-col gap-2 flex-1">
+                    <div className="flex flex-wrap items-center gap-1 sm:gap-2">
                         <span
                             className={cn(
-                                "text-sm font-bold px-3 py-2 rounded-xl shadow-sm",
+                                "text-xs sm:text-sm font-bold px-2 py-1 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl shadow-sm",
                                 primaryColors.bgLight,
                                 "dark:bg-violet-900/40",
                                 primaryColors.text
@@ -824,7 +823,7 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate, primaryColors }
                         </span>
 
                         <span
-                            className="text-sm font-semibold px-3 py-2 rounded-xl bg-gray-100/80 dark:bg-slate-700/60 text-gray-900 dark:text-gray-100 shadow-sm backdrop-blur-sm"
+                            className="text-xs sm:text-sm font-semibold px-2 py-1 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl bg-gray-100/80 dark:bg-slate-700/60 text-gray-900 dark:text-gray-100 shadow-sm backdrop-blur-sm"
                         >
                             {shift.date}
                         </span>
@@ -832,7 +831,7 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate, primaryColors }
                         <button
                             onClick={() => setShiftLang(shiftLang === 'en' ? 'jp' : 'en')}
                             className={cn(
-                                "text-sm font-medium px-3 py-2 rounded-xl border-2 backdrop-blur-sm transition-all duration-300",
+                                "text-xs sm:text-sm font-medium px-2 py-1 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl border-2 backdrop-blur-sm transition-all duration-300",
                                 primaryColors.border,
                                 primaryColors.text,
                                 "hover:shadow-md",
@@ -840,58 +839,56 @@ function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate, primaryColors }
                             )}
                             aria-label="Translate shift details"
                         >
-                            <Globe size={14} className="inline mr-2" />
+                            <Globe size={12} className="inline mr-1" />
                             {shiftLang === 'en' ? 'JP' : 'EN'}
                         </button>
                     </div>
 
-                    <div className="flex items-baseline gap-4">
-                        <div className="flex items-baseline gap-3">
-                            <span className="text-2xl font-bold text-gray-900 dark:text-white">{shift.fromTime}</span>
-                            <span className={cn("text-lg font-medium", primaryColors.text)}>
-                                →
-                            </span>
-                            <span className="text-2xl font-bold text-gray-900 dark:text-white">{shift.toTime}</span>
-                        </div>
+                    <div className="flex items-baseline gap-2 sm:gap-3">
+                        <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{shift.fromTime}</span>
+                        <span className={cn("text-base sm:text-lg font-medium", primaryColors.text)}>
+                            →
+                        </span>
+                        <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{shift.toTime}</span>
                     </div>
 
-                    <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                    <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium">
                         {shift.hours} {strings.hours} @ ¥{shift.wage.toLocaleString()}/{strings.hours === 'hours' ? 'h' : '時間'}
                     </p>
                 </div>
 
-                <div className="flex flex-col items-start lg:items-end space-y-3 sm:space-y-4 w-full lg:w-auto">
+                <div className="flex flex-col items-end gap-2 flex-shrink-0">
                     <div
                         className={cn(
-                            "px-4 py-2 rounded-2xl shadow-lg backdrop-blur-sm",
+                            "px-3 py-1 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl shadow-lg backdrop-blur-sm",
                             primaryColors.bgGradient
                         )}
                     >
-                        <p className="text-2xl font-black text-white">{yen.format(shift.pay)}</p>
+                        <p className="text-lg sm:text-2xl font-black text-white">{yen.format(shift.pay)}</p>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 sm:gap-3 w-full lg:w-auto justify-start lg:justify-end">
+                    <div className="flex flex-col gap-1 sm:gap-2">
                         <Button
                             variant="outline"
                             size="sm"
                             className={cn(
-                                "h-10 px-4 text-sm font-semibold rounded-xl border-2 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md",
+                                "h-8 px-2 sm:h-9 sm:px-3 text-xs font-semibold rounded-lg sm:rounded-xl border-2 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md",
                                 primaryColors.border,
                                 primaryColors.text,
                                 theme === 'light' ? 'bg-white/60 hover:bg-white/80' : 'bg-slate-800/60 hover:bg-slate-800/80'
                             )}
                             onClick={() => onUpdate(shift)}
                         >
-                            <RotateCcw size={16} className="mr-2" /> {strings.update}
+                            <RotateCcw size={12} className="mr-1" /> {strings.update}
                         </Button>
 
                         <Button
                             variant="outline"
                             size="sm"
-                            className="h-10 px-4 text-sm font-semibold rounded-xl border-2 border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 bg-white/60 dark:bg-slate-800/60 hover:bg-red-50 dark:hover:bg-red-900/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
+                            className="h-8 px-2 sm:h-9 sm:px-3 text-xs font-semibold rounded-lg sm:rounded-xl border-2 border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 bg-white/60 dark:bg-slate-800/60 hover:bg-red-50 dark:hover:bg-red-900/20 backdrop-blur-sm transition-all duration-300 shadow-sm hover:shadow-md"
                             onClick={handleDelete}
                         >
-                            <Trash2 size={16} className="mr-2" /> {strings.delete}
+                            <Trash2 size={12} className="mr-1" /> {strings.delete}
                         </Button>
                     </div>
                 </div>
