@@ -173,10 +173,13 @@ const GlobalStyles = () => (
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        
         /* Performance optimizations */
         * {
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
         
         .gpu-accelerated {
@@ -196,7 +199,18 @@ const GlobalStyles = () => (
         
         .animate-gradient-x {
           background-size: 200% 200%;
-          animation: gradient-x 15s ease infinite;
+          animation: gradient-x 20s ease infinite;
+        }
+        
+        /* Mobile performance optimizations */
+        @media (max-width: 768px) {
+          .animate-gradient-x {
+            animation: none;
+            background: linear-gradient(135deg, var(--tw-gradient-from), var(--tw-gradient-to));
+          }
+          * {
+            transition-duration: 0.15s !important;
+          }
         }
         
         /* Reduce motion for accessibility and performance */
@@ -212,12 +226,11 @@ const GlobalStyles = () => (
           }
         }
         
-        /* Low power mode optimizations */
-        @media (prefers-reduced-motion: reduce), (update: slow) {
-          .motion-safe {
-            animation: none !important;
-            transition: none !important;
-          }
+        /* Hardware acceleration for better performance */
+        .hw-accelerate {
+          transform: translate3d(0, 0, 0);
+          backface-visibility: hidden;
+          perspective: 1000px;
         }
     `}</style>
 );
@@ -712,10 +725,10 @@ function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, toggleL
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: -20, scale: 0.9 }}
+                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -20, scale: 0.9 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                        transition={{ type: "tween", duration: 0.15, ease: "easeOut" }}
                         className={cn(
                             `absolute right-0 top-full mt-2 w-64 sm:w-72 rounded-xl p-3 sm:p-4 origin-top-right shadow-xl ring-1 ring-gray-950/5 dark:ring-white/10`,
                             isLight ? 'bg-white' : 'bg-slate-950',
@@ -998,10 +1011,10 @@ function MonthFilter({ selectedMonth, onMonthSelect, lang, primaryColors }: { se
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ type: "tween", duration: 0.12, ease: "easeOut" }}
                         style={{ zIndex: 9999 }}
                         className="absolute top-full mt-2 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-xl shadow-2xl border border-gray-200/50 dark:border-slate-700/50 max-h-60 overflow-y-auto"
                     >
@@ -1120,15 +1133,15 @@ function AddEditShiftModal({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[10000] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+                    className="fixed inset-0 z-[10000] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 hw-accelerate"
                     onClick={onClose}
                 >
                     <motion.div
-                        initial={{ scale: 0.9, y: 50 }}
+                        initial={{ scale: 0.95, y: 20 }}
                         animate={{ scale: 1, y: 0 }}
-                        exit={{ scale: 0.9, y: 50 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        className={cn("w-full max-w-md rounded-3xl p-6 relative", modalBgClasses)}
+                        exit={{ scale: 0.95, y: 20 }}
+                        transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
+                        className={cn("w-full max-w-md rounded-3xl p-6 relative hw-accelerate", modalBgClasses)}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h2 className={cn("text-2xl font-extrabold mb-6", primaryColors.text)}>{title}</h2>
@@ -1258,6 +1271,7 @@ export default function ShiftTracker() {
     const [alertConfig, setAlertConfig] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void } | null>(null);
     const [showInstallPrompt, setShowInstallPrompt] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [showLaunchScreen, setShowLaunchScreen] = useState(true);
 
     // Block overscroll when modal is open
     useEffect(() => {
@@ -1302,6 +1316,8 @@ export default function ShiftTracker() {
 
     useEffect(() => {
         const loadData = async () => {
+            const startTime = Date.now();
+
             try {
                 // Try IndexedDB first
                 const data = await loadFromIndexedDB('appData');
@@ -1311,36 +1327,46 @@ export default function ShiftTracker() {
                     setLang(data.lang || 'jp');
                     setTheme(data.theme || 'light');
                     setVariantIndex(data.variantIndex || 3);
-                    setIsLoading(false);
-                    return;
                 }
             } catch (e) {
                 console.warn("IndexedDB failed, trying localStorage:", e);
-            }
 
-            // Fallback to localStorage
-            try {
-                const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-                if (savedData) {
-                    const parsedData = JSON.parse(savedData);
-                    setShifts(parsedData.shifts || []);
-                    setHourlyRate(parsedData.hourlyRate || 1000);
-                    setLang(parsedData.lang || 'jp');
-                    setTheme(parsedData.theme || 'light');
-                    setVariantIndex(parsedData.variantIndex || 3);
+                // Fallback to localStorage
+                try {
+                    const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+                    if (savedData) {
+                        const parsedData = JSON.parse(savedData);
+                        setShifts(parsedData.shifts || []);
+                        setHourlyRate(parsedData.hourlyRate || 1000);
+                        setLang(parsedData.lang || 'jp');
+                        setTheme(parsedData.theme || 'light');
+                        setVariantIndex(parsedData.variantIndex || 3);
 
-                    // Try to migrate to IndexedDB
-                    try {
-                        await saveToIndexedDB('appData', parsedData);
-                    } catch (e) {
-                        console.warn("Failed to migrate to IndexedDB:", e);
+                        // Try to migrate to IndexedDB
+                        try {
+                            await saveToIndexedDB('appData', parsedData);
+                        } catch (e) {
+                            console.warn("Failed to migrate to IndexedDB:", e);
+                        }
                     }
+                } catch (e) {
+                    console.error("Failed to load from localStorage:", e);
                 }
-            } catch (e) {
-                console.error("Failed to load from localStorage:", e);
             }
 
-            setIsLoading(false);
+            // Ensure minimum launch screen duration
+            const elapsed = Date.now() - startTime;
+            const minDuration = 1200;
+
+            if (elapsed < minDuration) {
+                setTimeout(() => {
+                    setIsLoading(false);
+                    setTimeout(() => setShowLaunchScreen(false), 300);
+                }, minDuration - elapsed);
+            } else {
+                setIsLoading(false);
+                setTimeout(() => setShowLaunchScreen(false), 300);
+            }
         };
         loadData();
     }, []);
@@ -1603,14 +1629,43 @@ export default function ShiftTracker() {
         ? themeVariant.light
         : themeVariant.dark;
 
-    if (isLoading) {
+    if (showLaunchScreen) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-slate-900 dark:to-slate-800">
-                <div className="text-center">
-                    <div className={cn("w-12 h-12 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4", PRIMARY_COLOR_CLASSES.border)}></div>
-                    <p className={cn("text-lg font-semibold", PRIMARY_COLOR_CLASSES.text)}>Loading...</p>
-                </div>
-            </div>
+            <motion.div
+                initial={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className={cn("min-h-screen flex flex-col items-center justify-center hw-accelerate", appClasses)}
+            >
+                <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    className="text-center"
+                >
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                        className={cn("w-16 h-16 border-4 border-t-transparent rounded-full mx-auto mb-6", PRIMARY_COLOR_CLASSES.border)}
+                    />
+                    <motion.h1
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.2, duration: 0.5 }}
+                        className={cn("text-3xl font-extrabold mb-2", PRIMARY_COLOR_CLASSES.text)}
+                    >
+                        Shomyn
+                    </motion.h1>
+                    <motion.p
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.4, duration: 0.5 }}
+                        className="text-gray-600 dark:text-gray-400"
+                    >
+                        {lang === 'en' ? 'Loading your shifts...' : 'シフトを読み込み中...'}
+                    </motion.p>
+                </motion.div>
+            </motion.div>
         );
     }
 
@@ -1624,7 +1679,7 @@ export default function ShiftTracker() {
                     <header className="w-full max-w-4xl sticky p-4 top-0 z-40 mb-6 py-4 backdrop-blur-md bg-transparent/80">
                         <div className="flex justify-between items-center mb-4">
                             <h1 className={cn("text-2xl sm:text-3xl font-extrabold tracking-tight", PRIMARY_COLOR_CLASSES.text)}>
-                                Shift Tracker
+                                Shomyn
                             </h1>
                             <div className="flex gap-2">
                                 <ThemeDropdown
