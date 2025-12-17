@@ -79,19 +79,14 @@ export function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, 
                 <span className={cn("text-sm font-bold", primaryColors.text)}>{lang.toUpperCase()}</span>
             </motion.button>
 
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                        transition={{ type: "tween", duration: 0.15, ease: "easeOut" }}
-                        className={cn(
-                            `absolute right-0 top-full mt-2 w-64 sm:w-72 rounded-xl p-3 sm:p-4 origin-top-right shadow-xl ring-1 ring-gray-950/5 dark:ring-white/10`,
-                            isLight ? 'bg-white' : 'bg-slate-950',
-                            'z-[9999]'
-                        )}
-                    >
+            {isOpen && (
+                <div
+                    className={cn(
+                        `absolute right-0 top-full mt-2 w-64 sm:w-72 rounded-xl p-3 sm:p-4 origin-top-right shadow-xl ring-1 ring-gray-950/5 dark:ring-white/10`,
+                        isLight ? 'bg-white' : 'bg-slate-950',
+                        'z-[9999]'
+                    )}
+                >
                         <div className={`flex justify-between items-center mb-3 p-1 rounded-lg ${isLight ? 'bg-gray-100' : 'bg-slate-800'}  `}>
                             <motion.button
                                 onClick={() => handleToggleTheme('light')}
@@ -138,7 +133,7 @@ export function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, 
                         <h3 className="text-xs font-bold uppercase text-gray-600 dark:text-gray-400 mb-2 px-1">Color Palette</h3>
                         <div className={`space-y-0 flex flex-col p-2 overflow-y-auto no-scrollbar`}>
                             {THEME_VARIANTS.map((variant, index) => (
-                                <motion.div
+                                <div
                                     key={index}
                                     onClick={() => handleSelectVariant(index)}
                                     className={cn("flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all",
@@ -146,19 +141,17 @@ export function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, 
                                             ? cn(primaryColors.bgLight + '/50 dark:' + primaryColors.bgDark, "ring-2 ring-offset-2 ring-offset-white dark:ring-offset-slate-900", primaryColors.ring)
                                             : 'hover:bg-gray-100 dark:hover:bg-slate-800'
                                     )}
-                                    whileTap={{ scale: 0.98 }}
                                 >
                                     <span className={cn("text-sm font-medium", isLight ? 'text-gray-900' : 'text-white')}>{variant.name}</span>
                                     <div className="flex gap-1">
                                         <div className={cn("w-5 h-5 rounded-full ring-1 ring-gray-300 dark:ring-gray-700", variant.lightPreview)} />
                                         <div className={cn("w-5 h-5 rounded-full ring-1 ring-gray-300 dark:ring-gray-700", variant.darkPreview)} />
                                     </div>
-                                </motion.div>
+                                </div>
                             ))}
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                </div>
+            )}
         </div>
     );
 }
