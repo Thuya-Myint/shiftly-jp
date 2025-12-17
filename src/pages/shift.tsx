@@ -531,7 +531,7 @@ export default function ShiftTracker() {
                                                 PRIMARY_COLOR_CLASSES.text
                                             )}
                                         >
-                                            © 2024 Shomyn
+                                            © {new Date().getFullYear()} Shomyn
                                         </motion.p>
                                         <motion.p
                                             initial={{ opacity: 0 }}
