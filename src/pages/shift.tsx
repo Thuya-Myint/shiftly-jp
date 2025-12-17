@@ -19,7 +19,7 @@ import { saveToIndexedDB, loadFromIndexedDB } from '@/utils/storage';
 
 // Components
 import { GlobalStyles } from '@/components/GlobalStyles';
-import { ThemeDropdown } from '@/components/shift/ThemeDropdown';
+import { Header } from '@/components/Header';
 import { MonthFilter } from '@/components/shift/MonthFilter';
 
 import { MonthlyGroup } from '@/components/shift/MonthlyGroup';
@@ -32,7 +32,7 @@ export default function ShiftTracker() {
     const [hourlyRate, setHourlyRate] = useState(1000);
     const [lang, setLang] = useState<Lang>('jp');
     const [theme, setTheme] = useState<'light' | 'dark'>('light');
-    const [variantIndex, setVariantIndex] = useState(3); // Violet Horizon
+    const [variantIndex, setVariantIndex] = useState(0); // Default to Aqua Mist
     const [viewMode, setViewMode] = useState<ViewMode>('monthly');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingShift, setEditingShift] = useState<Shift | null>(null);
@@ -41,7 +41,7 @@ export default function ShiftTracker() {
     const [showInstallPrompt, setShowInstallPrompt] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
-    console.log("configs ", config)
+
     // Block overscroll when modal is open
     useEffect(() => {
         if (isModalOpen) {
@@ -111,7 +111,7 @@ export default function ShiftTracker() {
                     setHourlyRate(data.hourlyRate || 1000);
                     setLang(data.lang || 'jp');
                     setTheme(data.theme || 'light');
-                    setVariantIndex(data.variantIndex || 3);
+                    setVariantIndex(data.variantIndex !== undefined ? data.variantIndex : 0);
                 }
             } catch (e) {
                 console.warn("IndexedDB failed, trying localStorage:", e);
@@ -125,7 +125,7 @@ export default function ShiftTracker() {
                         setHourlyRate(parsedData.hourlyRate || 1000);
                         setLang(parsedData.lang || 'jp');
                         setTheme(parsedData.theme || 'light');
-                        setVariantIndex(parsedData.variantIndex || 3);
+                        setVariantIndex(parsedData.variantIndex !== undefined ? parsedData.variantIndex : 0);
 
                         // Try to migrate to IndexedDB
                         try {
@@ -372,31 +372,19 @@ export default function ShiftTracker() {
             <div className={cn("min-h-screen transition-all duration-300 ease-in-out", appClasses)}>
                 <div className={cn("min-h-screen flex flex-col items-center sm:p-6 transition-all duration-300 ease-in-out")}>
 
-                    {/* Header/Controls */}
-                    <header className="w-full max-w-4xl sticky p-4 top-0 z-40 mb-6 py-4 backdrop-blur-md bg-transparent/80">
-                        <div className="flex justify-between items-center mb-4">
-                            <h1 className={cn("text-2xl sm:text-3xl font-extrabold tracking-tight", PRIMARY_COLOR_CLASSES.text)}>
-                                Shomyn
-                            </h1>
-                            <div className="flex gap-2">
-                                <ThemeDropdown
-                                    theme={theme}
-                                    setTheme={setTheme}
-                                    variantIndex={variantIndex}
-                                    setVariantIndex={setVariantIndex}
-                                    toggleLang={toggleLang}
-                                    primaryColors={PRIMARY_COLOR_CLASSES}
-                                    lang={lang}
-                                />
-                                <button
-                                    onClick={openAddModal}
-                                    className={cn("h-10 w-10 p-0 flex items-center justify-center rounded-full cursor-pointer backdrop-blur-md border shadow-sm transition-all active:scale-95", PRIMARY_COLOR_CLASSES.bgGradient, "text-white")}
-                                    aria-label="Add new shift"
-                                >
-                                    <Plus size={18} />
-                                </button>
-                            </div>
-                        </div>
+                    {/* Header */}
+                    <Header
+                        theme={theme}
+                        setTheme={setTheme}
+                        variantIndex={variantIndex}
+                        setVariantIndex={setVariantIndex}
+                        lang={lang}
+                        toggleLang={toggleLang}
+                        primaryColors={PRIMARY_COLOR_CLASSES}
+                    />
+
+                    {/* Controls */}
+                    <div className="w-full max-w-4xl px-4 mb-6">
 
                         {/* Totals & Filters Section */}
                         <div className={cn(
@@ -420,7 +408,20 @@ export default function ShiftTracker() {
                                 />
                             </div>
                         </div>
-                    </header>
+
+                        {/* Add Shift Button */}
+                        <button
+                            onClick={openAddModal}
+                            className={cn(
+                                "mt-4 w-full px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-md flex items-center justify-center gap-2",
+                                PRIMARY_COLOR_CLASSES.bgGradient,
+                                "text-white hover:shadow-lg hover:-translate-y-0.5"
+                            )}
+                        >
+                            <Plus size={20} />
+                            {strings.addShift}
+                        </button>
+                    </div>
 
                     {/* Content Area */}
                     <main className="w-full max-w-4xl pb-16 px-4">

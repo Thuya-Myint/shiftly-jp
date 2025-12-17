@@ -131,7 +131,7 @@ export function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, 
                         </div>
 
                         <h3 className="text-xs font-bold uppercase text-gray-600 dark:text-gray-400 mb-2 px-1">Color Palette</h3>
-                        <div className={`space-y-0 flex flex-col p-2 overflow-y-auto no-scrollbar`}>
+                        <div className="space-y-0 flex flex-col p-2 overflow-y-auto max-h-[60vh] scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
                             {THEME_VARIANTS.map((variant, index) => (
                                 <div
                                     key={index}

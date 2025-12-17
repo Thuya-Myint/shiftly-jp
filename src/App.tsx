@@ -2,9 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoadingScreen } from './components/LoadingScreen';
 import ShiftTracker from './pages/shift';
+import Login from './pages/Login';
+import { useAuth } from './hooks/useAuth';
+
 
 export default function App() {
   const [showLaunchScreen, setShowLaunchScreen] = useState(true);
+  const { isAuthenticated, loading } = useAuth();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -13,14 +17,15 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (showLaunchScreen) {
+  if (showLaunchScreen || loading) {
     return <LoadingScreen />;
   }
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/shifts" replace />} />
-      <Route path="/shifts" element={<ShiftTracker />} />
+      <Route path="/" element={<Navigate to={isAuthenticated ? "/shifts" : "/login"} replace />} />
+      <Route path="/login" element={isAuthenticated ? <Navigate to="/shifts" replace /> : <Login />} />
+      <Route path="/shifts" element={isAuthenticated ? <ShiftTracker /> : <Navigate to="/login" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
