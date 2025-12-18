@@ -1,0 +1,24 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Palette, Sun, Moon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { getPrimaryColorClasses, THEME_VARIANTS } from '@/constants/themes';
+import { useTheme } from '@/contexts/ThemeContext';
+export default function Settings() {
+    const navigate = useNavigate();
+    const { theme, variantIndex, lang, setTheme, setVariantIndex, setLang } = useTheme();
+    const primaryColors = getPrimaryColorClasses(variantIndex, theme);
+    const themeVariant = THEME_VARIANTS[variantIndex];
+    const appClasses = theme === 'light' ? themeVariant.light : themeVariant.dark;
+    return (_jsx("div", { className: cn("min-h-screen", appClasses), children: _jsxs("div", { className: "max-w-2xl mx-auto p-4", children: [_jsxs("div", { className: "flex items-center gap-4 mb-6", children: [_jsx("button", { onClick: () => navigate('/shifts'), className: cn("p-2 rounded-xl border-2 transition-colors", primaryColors.border, theme === 'light' ? 'bg-white hover:bg-gray-50' : 'bg-slate-800 hover:bg-slate-700'), children: _jsx(ArrowLeft, { size: 20 }) }), _jsx("h1", { className: cn("text-2xl font-bold", primaryColors.text), children: lang === 'en' ? 'Settings' : '設定' })] }), _jsxs("div", { className: "space-y-6", children: [_jsxs("div", { className: cn("p-4 rounded-xl border", theme === 'light' ? 'bg-white border-gray-200' : 'bg-slate-800 border-slate-700'), children: [_jsx("h2", { className: "text-lg font-semibold mb-3 text-gray-900 dark:text-white", children: lang === 'en' ? 'Language' : '言語' }), _jsxs("div", { className: "flex gap-2", children: [_jsx("button", { onClick: () => setLang('en'), className: cn("px-4 py-2 rounded-lg font-medium transition-colors", lang === 'en'
+                                                ? cn(primaryColors.bgGradient, "text-white")
+                                                : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300"), children: "English" }), _jsx("button", { onClick: () => setLang('jp'), className: cn("px-4 py-2 rounded-lg font-medium transition-colors", lang === 'jp'
+                                                ? cn(primaryColors.bgGradient, "text-white")
+                                                : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300"), children: "\u65E5\u672C\u8A9E" })] })] }), _jsxs("div", { className: cn("p-4 rounded-xl border", theme === 'light' ? 'bg-white border-gray-200' : 'bg-slate-800 border-slate-700'), children: [_jsx("h2", { className: "text-lg font-semibold mb-3 text-gray-900 dark:text-white", children: lang === 'en' ? 'Theme Mode' : 'テーマモード' }), _jsxs("div", { className: "flex gap-2", children: [_jsxs("button", { onClick: () => setTheme('light'), className: cn("flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors", theme === 'light'
+                                                ? cn(primaryColors.bgGradient, "text-white")
+                                                : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300"), children: [_jsx(Sun, { size: 16 }), lang === 'en' ? 'Light' : 'ライト'] }), _jsxs("button", { onClick: () => setTheme('dark'), className: cn("flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors", theme === 'dark'
+                                                ? cn(primaryColors.bgGradient, "text-white")
+                                                : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300"), children: [_jsx(Moon, { size: 16 }), lang === 'en' ? 'Dark' : 'ダーク'] })] })] }), _jsxs("div", { className: cn("p-4 rounded-xl border", theme === 'light' ? 'bg-white border-gray-200' : 'bg-slate-800 border-slate-700'), children: [_jsxs("h2", { className: "text-lg font-semibold mb-3 text-gray-900 dark:text-white flex items-center gap-2", children: [_jsx(Palette, { size: 20 }), lang === 'en' ? 'Color Palette' : 'カラーパレット'] }), _jsx("div", { className: "grid grid-cols-2 gap-3", children: THEME_VARIANTS.map((variant, index) => (_jsxs("button", { onClick: () => setVariantIndex(index), className: cn("flex items-center justify-between p-3 rounded-lg transition-colors border-2", index === variantIndex
+                                            ? cn(primaryColors.border, primaryColors.bgLight + '/20 dark:' + primaryColors.bgDark + '/20')
+                                            : "border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700"), children: [_jsx("span", { className: "text-sm font-medium text-gray-900 dark:text-white", children: variant.name }), _jsxs("div", { className: "flex gap-1", children: [_jsx("div", { className: cn("w-4 h-4 rounded-full", variant.lightPreview) }), _jsx("div", { className: cn("w-4 h-4 rounded-full", variant.darkPreview) })] })] }, index))) })] })] })] }) }));
+}

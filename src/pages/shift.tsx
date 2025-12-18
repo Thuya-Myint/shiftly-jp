@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 
 // Types
-import type { Shift, ViewMode, AlertConfig } from '@/types/shift';
+import type { Shift, Lang, ViewMode, AlertConfig } from '@/types/shift';
 
 // Constants
 import { yen, LOCAL_STORAGE_KEY } from '@/constants';
@@ -180,7 +180,7 @@ export default function ShiftTracker() {
         setIsModalOpen(true);
     };
 
-    const toggleLang = () => setLang(prev => prev === 'en' ? 'jp' : 'en');
+
 
     // Data Aggregation and Filtering
     const sortedAndFilteredShifts = useMemo(() => {
