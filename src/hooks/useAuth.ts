@@ -9,7 +9,7 @@ export const useAuth = () => {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      // console.log("session user ", session)
+
       setUser(session?.user ?? null);
       setLoading(false);
     });
