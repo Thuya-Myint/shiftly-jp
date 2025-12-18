@@ -4,7 +4,7 @@ import { ThemeDropdown } from '@/components/shift/ThemeDropdown';
 import type { Lang } from '@/types/shift';
 import { useAuth } from '@/hooks/useAuth';
 import { logout } from '@/services/login';
-import { Settings, LogOut } from 'lucide-react';
+import { Settings, LogOut, Loader2 } from 'lucide-react';
 interface HeaderProps {
     theme: 'light' | 'dark';
     setTheme: (theme: 'light' | 'dark') => void;
@@ -26,6 +26,7 @@ export const Header = ({
 }: HeaderProps) => {
     const { user } = useAuth();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
     const userAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
@@ -41,11 +42,13 @@ export const Header = ({
     }, []);
 
     const handleLogout = async () => {
+        setIsLoggingOut(true);
         try {
             await logout();
             window.location.href = '/login';
         } catch (error) {
             console.error('Logout failed:', error);
+            setIsLoggingOut(false);
         }
     };
 
@@ -99,7 +102,7 @@ export const Header = ({
 
                             {isDropdownOpen && (
                                 <div className={cn(
-                                    "absolute right-0 top-full mt-2  rounded-xl shadow-xl border overflow-hidden z-50",
+                                    "absolute right-0 top-full mt-2 min-w-[160px] rounded-xl shadow-xl border overflow-hidden z-50",
                                     theme === 'light'
                                         ? 'bg-white border-gray-200'
                                         : 'bg-slate-800 border-slate-700'
@@ -107,30 +110,44 @@ export const Header = ({
                                     <button
                                         onClick={() => {
                                             setIsDropdownOpen(false);
-                                            // Add settings navigation here
                                         }}
                                         className={cn(
-                                            "w-full flex items-center gap-1 px-4 py-2 text-left transition-colors",
+                                            "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors",
                                             theme === 'light'
                                                 ? 'hover:bg-gray-100 text-gray-700'
                                                 : 'hover:bg-slate-700 text-gray-200'
                                         )}
                                     >
                                         <Settings size={18} />
-                                        <span className="font-medium">Settings</span>
+                                        <span className="font-medium">{lang === 'en' ? 'Settings' : '設定'}</span>
                                     </button>
+                                    <div className={cn(
+                                        "h-px",
+                                        theme === 'light' ? 'bg-gray-200' : 'bg-slate-700'
+                                    )} />
                                     <button
                                         onClick={handleLogout}
+                                        disabled={isLoggingOut}
                                         className={cn(
-                                            "w-full flex items-center gap-1 px-4 py-2 text-left transition-colors",
+                                            "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors",
                                             "text-red-600 dark:text-red-400",
                                             theme === 'light'
                                                 ? 'hover:bg-red-50'
-                                                : 'hover:bg-red-900/20'
+                                                : 'hover:bg-red-900/20',
+                                            isLoggingOut && 'opacity-70 cursor-not-allowed'
                                         )}
                                     >
-                                        <LogOut size={18} />
-                                        <span className="font-medium">Logout</span>
+                                        {isLoggingOut ? (
+                                            <Loader2 size={18} className="animate-spin" />
+                                        ) : (
+                                            <LogOut size={18} />
+                                        )}
+                                        <span className="font-medium">
+                                            {isLoggingOut 
+                                                ? (lang === 'en' ? 'Signing out...' : 'ログアウト中...')
+                                                : (lang === 'en' ? 'Logout' : 'ログアウト')
+                                            }
+                                        </span>
                                     </button>
                                 </div>
                             )}
