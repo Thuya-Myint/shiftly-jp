@@ -104,14 +104,14 @@ export default function ShiftTracker() {
                     setHourlyRate(parsedData.hourlyRate || 1000);
 
                     // Migrate to IndexedDB in background
-                    saveToIndexedDB('appData', parsedData).catch(e => 
+                    saveToIndexedDB('appData', parsedData).catch(e =>
                         console.warn("Failed to migrate to IndexedDB:", e)
                     );
                 }
             } catch (e) {
                 console.error("Failed to load from localStorage:", e);
             }
-            
+
             setIsLoading(false);
         };
         loadData();
@@ -120,13 +120,13 @@ export default function ShiftTracker() {
     // Save data when state changes
     useEffect(() => {
         if (isLoading) return;
-        
+
         const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
         const existingData = saved ? JSON.parse(saved) : {};
         const data = { ...existingData, shifts, hourlyRate };
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
-        
-        saveToIndexedDB('appData', data).catch(e => 
+
+        saveToIndexedDB('appData', data).catch(e =>
             console.warn("Failed to save to IndexedDB:", e)
         );
     }, [shifts, hourlyRate, isLoading]);
@@ -414,7 +414,7 @@ export default function ShiftTracker() {
                                                     const emptyData = { ...existingData, shifts: [], hourlyRate: 1000 };
 
                                                     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(emptyData));
-                                                    saveToIndexedDB('appData', emptyData).catch(e => 
+                                                    saveToIndexedDB('appData', emptyData).catch(e =>
                                                         console.warn('Failed to clear IndexedDB:', e)
                                                     );
                                                     setAlertConfig(null);
@@ -513,7 +513,7 @@ export default function ShiftTracker() {
                                         style={{
                                             left: `${20 + i * 30}%`,
                                             top: `${50 + i * 10}%`
-                                        }}
+                                        } as React.CSSProperties}
                                     />
                                 ))}
                             </div>

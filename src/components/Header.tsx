@@ -82,9 +82,13 @@ export const Header = ({
                                 className={cn(
                                     "flex items-center p-1 pl-4 gap-2 rounded-full transition-all cursor-pointer",
                                     " shadow-sm",
-                                    theme === 'light'
-                                        ? 'bg-white/80  hover:bg-gray-50'
-                                        : 'bg-slate-800/80  hover:bg-slate-700'
+                                    isDropdownOpen
+                                        ? theme === 'light'
+                                            ? 'bg-gray-100 ring-2 ring-blue-500/20'
+                                            : 'bg-slate-700 ring-2 ring-blue-400/20'
+                                        : theme === 'light'
+                                            ? 'bg-white/80 hover:bg-gray-50'
+                                            : 'bg-slate-800/80 hover:bg-slate-700'
                                 )}
                             >
                                 <span className="text-sm font-bold text-green-600 dark:text-green-400">
