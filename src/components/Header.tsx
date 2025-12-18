@@ -1,30 +1,23 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { ThemeDropdown } from '@/components/shift/ThemeDropdown';
 import type { Lang } from '@/types/shift';
 import { useAuth } from '@/hooks/useAuth';
 import { logout } from '@/services/login';
 import { Settings, LogOut, Loader2 } from 'lucide-react';
 interface HeaderProps {
     theme: 'light' | 'dark';
-    setTheme: (theme: 'light' | 'dark') => void;
-    variantIndex: number;
-    setVariantIndex: (index: number) => void;
     lang: Lang;
-    toggleLang: () => void;
     primaryColors: any;
 }
 
 export const Header = ({
     theme,
-    setTheme,
-    variantIndex,
-    setVariantIndex,
     lang,
-    toggleLang,
     primaryColors
 }: HeaderProps) => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -59,15 +52,6 @@ export const Header = ({
                     Shomyn
                 </h1>
                 <div className="flex items-center gap-2">
-                    <ThemeDropdown
-                        theme={theme}
-                        setTheme={setTheme}
-                        variantIndex={variantIndex}
-                        setVariantIndex={setVariantIndex}
-                        toggleLang={toggleLang}
-                        primaryColors={primaryColors}
-                        lang={lang}
-                    />
                     {user && (
                         <div className="relative" ref={dropdownRef}>
                             <button
@@ -110,6 +94,7 @@ export const Header = ({
                                     <button
                                         onClick={() => {
                                             setIsDropdownOpen(false);
+                                            navigate('/settings');
                                         }}
                                         className={cn(
                                             "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors",

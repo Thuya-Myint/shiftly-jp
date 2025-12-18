@@ -347,11 +347,7 @@ export default function ShiftTracker() {
                     {/* Header */}
                     <Header
                         theme={theme}
-                        setTheme={setTheme}
-                        variantIndex={variantIndex}
-                        setVariantIndex={setVariantIndex}
                         lang={lang}
-                        toggleLang={toggleLang}
                         primaryColors={PRIMARY_COLOR_CLASSES}
                     />
 

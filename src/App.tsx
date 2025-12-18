@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoadingScreen } from './components/LoadingScreen';
 import ShiftTracker from './pages/shift';
 import Login from './pages/Login';
+import Settings from './pages/Settings';
 import { useAuth } from './hooks/useAuth';
 
 
@@ -26,6 +27,7 @@ export default function App() {
       <Route path="/" element={<Navigate to={isAuthenticated ? "/shifts" : "/login"} replace />} />
       <Route path="/login" element={isAuthenticated ? <Navigate to="/shifts" replace /> : <Login />} />
       <Route path="/shifts" element={isAuthenticated ? <ShiftTracker /> : <Navigate to="/login" replace />} />
+      <Route path="/settings" element={isAuthenticated ? <Settings /> : <Navigate to="/login" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
