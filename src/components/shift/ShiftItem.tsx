@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, memo } from 'react';
 import { Globe, RotateCcw, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getPrimaryColorClasses } from '@/constants/themes';
@@ -7,7 +7,7 @@ import { yen } from '@/constants';
 import { getDayOfWeek } from '@/utils/time';
 import type { Shift, Lang } from '@/types/shift';
 
-export const ShiftItem = React.memo(function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate, primaryColors }: { 
+export const ShiftItem = memo(function ShiftItem({ shift, theme, baseLang, onDelete, onUpdate, primaryColors }: { 
     shift: Shift, 
     theme: 'light' | 'dark', 
     baseLang: Lang, 

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import { format, parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { getPrimaryColorClasses } from '@/constants/themes';
@@ -7,7 +7,7 @@ import { yen } from '@/constants';
 import { ShiftItem } from './ShiftItem';
 import type { Shift, Lang } from '@/types/shift';
 
-export const MonthlyGroup = React.memo(function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang, onDelete, onUpdate, primaryColors }: {
+export const MonthlyGroup = memo(function MonthlyGroup({ monthKey, totalPay, totalHours, shifts, theme, baseLang, onDelete, onUpdate, primaryColors }: {
     monthKey: string;
     totalPay: number;
     totalHours: number;

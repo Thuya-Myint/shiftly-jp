@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { X, CalendarIcon, Zap } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';

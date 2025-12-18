@@ -3,7 +3,7 @@ export const GlobalStyles = () => (
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
         
         /* Prevent FOUC and blinking */
         html {

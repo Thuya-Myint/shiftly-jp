@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { getPrimaryColorClasses, THEME_VARIANTS } from '@/constants/themes';
 import { LOCAL_STORAGE_KEY } from '@/constants';

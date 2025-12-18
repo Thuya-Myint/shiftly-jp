@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Trash2, Zap, Filter, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -82,110 +82,82 @@ export default function ShiftTracker() {
         localStorage.setItem('pwa-install-prompt-seen', 'true');
     };
 
-    // Apply theme immediately to prevent flash
-    useEffect(() => {
-        const savedTheme = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (savedTheme) {
-            try {
-                const data = JSON.parse(savedTheme);
-                if (data.theme === 'dark') {
-                    document.documentElement.classList.add('dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                }
-            } catch (e) {
-                // Ignore parsing errors
-            }
-        }
-    }, []);
+
 
     useEffect(() => {
         const loadData = async () => {
-            const startTime = Date.now();
-
             try {
-                // Try IndexedDB first
                 const data = await loadFromIndexedDB('appData');
                 if (data && typeof data === 'object') {
                     setShifts(data.shifts || []);
                     setHourlyRate(data.hourlyRate || 1000);
                     setLang(data.lang || 'jp');
                     setTheme(data.theme || 'light');
-                    setVariantIndex(data.variantIndex !== undefined ? data.variantIndex : 0);
+                    setVariantIndex(data.variantIndex ?? 0);
+                    setIsLoading(false);
+                    return;
                 }
             } catch (e) {
                 console.warn("IndexedDB failed, trying localStorage:", e);
-
-                // Fallback to localStorage
-                try {
-                    const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-                    if (savedData) {
-                        const parsedData = JSON.parse(savedData);
-                        setShifts(parsedData.shifts || []);
-                        setHourlyRate(parsedData.hourlyRate || 1000);
-                        setLang(parsedData.lang || 'jp');
-                        setTheme(parsedData.theme || 'light');
-                        setVariantIndex(parsedData.variantIndex !== undefined ? parsedData.variantIndex : 0);
-
-                        // Try to migrate to IndexedDB
-                        try {
-                            await saveToIndexedDB('appData', parsedData);
-                        } catch (e) {
-                            console.warn("Failed to migrate to IndexedDB:", e);
-                        }
-                    }
-                } catch (e) {
-                    console.error("Failed to load from localStorage:", e);
-                }
             }
 
+            // Fallback to localStorage
+            try {
+                const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+                if (savedData) {
+                    const parsedData = JSON.parse(savedData);
+                    setShifts(parsedData.shifts || []);
+                    setHourlyRate(parsedData.hourlyRate || 1000);
+                    setLang(parsedData.lang || 'jp');
+                    setTheme(parsedData.theme || 'light');
+                    setVariantIndex(parsedData.variantIndex ?? 0);
+
+                    // Migrate to IndexedDB in background
+                    saveToIndexedDB('appData', parsedData).catch(e => 
+                        console.warn("Failed to migrate to IndexedDB:", e)
+                    );
+                }
+            } catch (e) {
+                console.error("Failed to load from localStorage:", e);
+            }
+            
             setIsLoading(false);
         };
         loadData();
     }, []);
 
+    // Save data when state changes
     useEffect(() => {
-        if (isLoading) return; // Don't save during initial load
+        if (isLoading) return;
+        
+        const data = { shifts, hourlyRate, lang, theme, variantIndex };
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+        
+        saveToIndexedDB('appData', data).catch(e => 
+            console.warn("Failed to save to IndexedDB:", e)
+        );
+    }, [shifts, hourlyRate, lang, theme, variantIndex, isLoading]);
 
-        const saveData = async () => {
-            const data = { shifts, hourlyRate, lang, theme, variantIndex };
-
-            // Always save to localStorage as backup
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
-
-            // Try to save to IndexedDB
-            try {
-                await saveToIndexedDB('appData', data);
-            } catch (e) {
-                console.warn("Failed to save to IndexedDB:", e);
-            }
-        };
-        saveData();
-
-        if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-
-        // Update theme color for status bar
+    // Apply theme changes
+    useEffect(() => {
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+        
         const themeColorMeta = document.querySelector('meta[name="theme-color"]');
         if (themeColorMeta) {
             const colors = {
-                0: { light: '#0891b2', dark: '#0e7490' }, // cyan
-                1: { light: '#ea580c', dark: '#c2410c' }, // orange
-                2: { light: '#059669', dark: '#047857' }, // emerald
-                3: { light: '#7c3aed', dark: '#6d28d9' }, // violet
-                4: { light: '#2563eb', dark: '#1d4ed8' }, // blue
-                5: { light: '#dc2626', dark: '#b91c1c' }, // red
-                6: { light: '#65a30d', dark: '#4d7c0f' }, // lime
-                7: { light: '#9333ea', dark: '#7c2d12' }, // purple
+                0: { light: '#0891b2', dark: '#0e7490' },
+                1: { light: '#ea580c', dark: '#c2410c' },
+                2: { light: '#059669', dark: '#047857' },
+                3: { light: '#7c3aed', dark: '#6d28d9' },
+                4: { light: '#2563eb', dark: '#1d4ed8' },
+                5: { light: '#dc2626', dark: '#b91c1c' },
+                6: { light: '#65a30d', dark: '#4d7c0f' },
+                7: { light: '#9333ea', dark: '#7c2d12' },
             };
             const colorSet = colors[variantIndex as keyof typeof colors] || colors[3];
             themeColorMeta.setAttribute('content', theme === 'dark' ? colorSet.dark : colorSet.light);
         }
-
-    }, [shifts, hourlyRate, lang, theme, variantIndex, isLoading]);
+    }, [theme, variantIndex]);
 
     const processShiftData = useCallback((rawShift: Omit<Shift, 'hours' | 'pay' | 'dayOfWeek' | 'wage'> & { wage: number }) => {
         const hours = calculateHours(rawShift.fromTime, rawShift.toTime);
@@ -466,20 +438,15 @@ export default function ShiftTracker() {
                                                 isOpen: true,
                                                 title: strings.areYouSure,
                                                 message: strings.clearData,
-                                                onConfirm: async () => {
+                                                onConfirm: () => {
                                                     setShifts([]);
                                                     setHourlyRate(1000);
                                                     const emptyData = { shifts: [], hourlyRate: 1000, lang, theme, variantIndex };
 
-                                                    // Clear localStorage
                                                     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(emptyData));
-
-                                                    // Try to clear IndexedDB
-                                                    try {
-                                                        await saveToIndexedDB('appData', emptyData);
-                                                    } catch (e) {
-                                                        console.warn('Failed to clear IndexedDB:', e);
-                                                    }
+                                                    saveToIndexedDB('appData', emptyData).catch(e => 
+                                                        console.warn('Failed to clear IndexedDB:', e)
+                                                    );
                                                     setAlertConfig(null);
                                                 }
                                             });

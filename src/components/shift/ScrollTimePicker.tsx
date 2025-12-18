@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { getPrimaryColorClasses } from '@/constants/themes';
 import { ITEM_HEIGHT_SM, ITEM_HEIGHT_LG, CONTAINER_HEIGHT_MULTIPLIER_SM, CONTAINER_HEIGHT_MULTIPLIER_LG } from '@/constants';

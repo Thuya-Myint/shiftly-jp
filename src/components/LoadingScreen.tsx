@@ -1,20 +1,10 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { getPrimaryColorClasses, THEME_VARIANTS } from '@/constants/themes';
 import { LOCAL_STORAGE_KEY } from '@/constants';
 
-// Load Google Font
-const loadGoogleFont = () => {
-    const link = document.createElement('link');
-    link.href = 'https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap';
-    link.rel = 'stylesheet';
-    if (!document.querySelector(`link[href="${link.href}"]`)) {
-        document.head.appendChild(link);
-    }
-};
 
-loadGoogleFont();
 
 export function LoadingScreen() {
     // Get theme from localStorage

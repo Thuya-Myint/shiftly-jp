@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { ThemeDropdown } from '@/components/shift/ThemeDropdown';
 import type { Lang } from '@/types/shift';
@@ -15,7 +15,7 @@ interface HeaderProps {
     primaryColors: any;
 }
 
-export const Header: React.FC<HeaderProps> = ({
+export const Header = ({
     theme,
     setTheme,
     variantIndex,
@@ -23,7 +23,7 @@ export const Header: React.FC<HeaderProps> = ({
     lang,
     toggleLang,
     primaryColors
-}) => {
+}: HeaderProps) => {
     const { user } = useAuth();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
