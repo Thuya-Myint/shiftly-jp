@@ -5,6 +5,7 @@ import ShiftTracker from './pages/shift';
 import Login from './pages/Login';
 import Settings from './pages/Settings';
 import { useAuth } from './hooks/useAuth';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 
 export default function App() {
@@ -23,13 +24,15 @@ export default function App() {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to={isAuthenticated ? "/shifts" : "/login"} replace />} />
-      <Route path="/login" element={isAuthenticated ? <Navigate to="/shifts" replace /> : <Login />} />
-      <Route path="/shifts" element={isAuthenticated ? <ShiftTracker /> : <Navigate to="/login" replace />} />
-      <Route path="/settings" element={isAuthenticated ? <Settings /> : <Navigate to="/login" replace />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <ThemeProvider>
+      <Routes>
+        <Route path="/" element={<Navigate to={isAuthenticated ? "/shifts" : "/login"} replace />} />
+        <Route path="/login" element={isAuthenticated ? <Navigate to="/shifts" replace /> : <Login />} />
+        <Route path="/shifts" element={isAuthenticated ? <ShiftTracker /> : <Navigate to="/login" replace />} />
+        <Route path="/settings" element={isAuthenticated ? <Settings /> : <Navigate to="/login" replace />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </ThemeProvider>
   );
 }
 

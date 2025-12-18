@@ -1,53 +1,12 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Palette, Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getPrimaryColorClasses, THEME_VARIANTS } from '@/constants/themes';
-import { LOCAL_STORAGE_KEY } from '@/constants';
-import { saveToIndexedDB } from '@/utils/storage';
-import type { Lang } from '@/types/shift';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function Settings() {
     const navigate = useNavigate();
-    const [theme, setTheme] = useState<'light' | 'dark'>('light');
-    const [variantIndex, setVariantIndex] = useState(0);
-    const [lang, setLang] = useState<Lang>('jp');
-
-    useEffect(() => {
-        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (saved) {
-            const data = JSON.parse(saved);
-            setTheme(data.theme || 'light');
-            setVariantIndex(data.variantIndex || 0);
-            setLang(data.lang || 'jp');
-        }
-    }, []);
-
-    const saveSettings = async (newTheme: 'light' | 'dark', newVariantIndex: number, newLang: Lang) => {
-        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-        const data = saved ? JSON.parse(saved) : {};
-        const updatedData = { ...data, theme: newTheme, variantIndex: newVariantIndex, lang: newLang };
-        
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedData));
-        saveToIndexedDB('appData', updatedData).catch(console.warn);
-        
-        document.documentElement.classList.toggle('dark', newTheme === 'dark');
-    };
-
-    const handleThemeChange = (newTheme: 'light' | 'dark') => {
-        setTheme(newTheme);
-        saveSettings(newTheme, variantIndex, lang);
-    };
-
-    const handleVariantChange = (index: number) => {
-        setVariantIndex(index);
-        saveSettings(theme, index, lang);
-    };
-
-    const handleLangChange = (newLang: Lang) => {
-        setLang(newLang);
-        saveSettings(theme, variantIndex, newLang);
-    };
+    const { theme, variantIndex, lang, setTheme, setVariantIndex, setLang } = useTheme();
 
     const primaryColors = getPrimaryColorClasses(variantIndex, theme);
     const themeVariant = THEME_VARIANTS[variantIndex];
@@ -83,7 +42,7 @@ export default function Settings() {
                         </h2>
                         <div className="flex gap-2">
                             <button
-                                onClick={() => handleLangChange('en')}
+                                onClick={() => setLang('en')}
                                 className={cn(
                                     "px-4 py-2 rounded-lg font-medium transition-colors",
                                     lang === 'en'
@@ -94,7 +53,7 @@ export default function Settings() {
                                 English
                             </button>
                             <button
-                                onClick={() => handleLangChange('jp')}
+                                onClick={() => setLang('jp')}
                                 className={cn(
                                     "px-4 py-2 rounded-lg font-medium transition-colors",
                                     lang === 'jp'
@@ -117,7 +76,7 @@ export default function Settings() {
                         </h2>
                         <div className="flex gap-2">
                             <button
-                                onClick={() => handleThemeChange('light')}
+                                onClick={() => setTheme('light')}
                                 className={cn(
                                     "flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors",
                                     theme === 'light'
@@ -129,7 +88,7 @@ export default function Settings() {
                                 {lang === 'en' ? 'Light' : 'ライト'}
                             </button>
                             <button
-                                onClick={() => handleThemeChange('dark')}
+                                onClick={() => setTheme('dark')}
                                 className={cn(
                                     "flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors",
                                     theme === 'dark'
@@ -156,7 +115,7 @@ export default function Settings() {
                             {THEME_VARIANTS.map((variant, index) => (
                                 <button
                                     key={index}
-                                    onClick={() => handleVariantChange(index)}
+                                    onClick={() => setVariantIndex(index)}
                                     className={cn(
                                         "flex items-center justify-between p-3 rounded-lg transition-colors border-2",
                                         index === variantIndex

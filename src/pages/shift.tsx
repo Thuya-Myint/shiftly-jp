@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 
 // Types
-import type { Shift, Lang, ViewMode, AlertConfig } from '@/types/shift';
+import type { Shift, ViewMode, AlertConfig } from '@/types/shift';
 
 // Constants
 import { yen, LOCAL_STORAGE_KEY } from '@/constants';
@@ -21,18 +21,15 @@ import { saveToIndexedDB, loadFromIndexedDB } from '@/utils/storage';
 import { GlobalStyles } from '@/components/GlobalStyles';
 import { Header } from '@/components/Header';
 import { MonthFilter } from '@/components/shift/MonthFilter';
-
 import { MonthlyGroup } from '@/components/shift/MonthlyGroup';
 import { AddEditShiftModal } from '@/components/shift/AddEditShiftModal';
 import { CustomAlert } from '@/components/modals/CustomAlert';
 import { PWAInstallPrompt } from '@/components/modals/PWAInstallPrompt';
-import { config } from '@/configs/config';
+import { useTheme } from '@/contexts/ThemeContext';
 export default function ShiftTracker() {
+    const { theme, variantIndex, lang } = useTheme();
     const [shifts, setShifts] = useState<Shift[]>([]);
     const [hourlyRate, setHourlyRate] = useState(1000);
-    const [lang, setLang] = useState<Lang>('jp');
-    const [theme, setTheme] = useState<'light' | 'dark'>('light');
-    const [variantIndex, setVariantIndex] = useState(0); // Default to Aqua Mist
     const [viewMode, setViewMode] = useState<ViewMode>('monthly');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingShift, setEditingShift] = useState<Shift | null>(null);
@@ -91,9 +88,6 @@ export default function ShiftTracker() {
                 if (data && typeof data === 'object') {
                     setShifts(data.shifts || []);
                     setHourlyRate(data.hourlyRate || 1000);
-                    setLang(data.lang || 'jp');
-                    setTheme(data.theme || 'light');
-                    setVariantIndex(data.variantIndex ?? 0);
                     setIsLoading(false);
                     return;
                 }
@@ -108,9 +102,6 @@ export default function ShiftTracker() {
                     const parsedData = JSON.parse(savedData);
                     setShifts(parsedData.shifts || []);
                     setHourlyRate(parsedData.hourlyRate || 1000);
-                    setLang(parsedData.lang || 'jp');
-                    setTheme(parsedData.theme || 'light');
-                    setVariantIndex(parsedData.variantIndex ?? 0);
 
                     // Migrate to IndexedDB in background
                     saveToIndexedDB('appData', parsedData).catch(e => 
@@ -130,34 +121,15 @@ export default function ShiftTracker() {
     useEffect(() => {
         if (isLoading) return;
         
-        const data = { shifts, hourlyRate, lang, theme, variantIndex };
+        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+        const existingData = saved ? JSON.parse(saved) : {};
+        const data = { ...existingData, shifts, hourlyRate };
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
         
         saveToIndexedDB('appData', data).catch(e => 
             console.warn("Failed to save to IndexedDB:", e)
         );
-    }, [shifts, hourlyRate, lang, theme, variantIndex, isLoading]);
-
-    // Apply theme changes
-    useEffect(() => {
-        document.documentElement.classList.toggle('dark', theme === 'dark');
-        
-        const themeColorMeta = document.querySelector('meta[name="theme-color"]');
-        if (themeColorMeta) {
-            const colors = {
-                0: { light: '#0891b2', dark: '#0e7490' },
-                1: { light: '#ea580c', dark: '#c2410c' },
-                2: { light: '#059669', dark: '#047857' },
-                3: { light: '#7c3aed', dark: '#6d28d9' },
-                4: { light: '#2563eb', dark: '#1d4ed8' },
-                5: { light: '#dc2626', dark: '#b91c1c' },
-                6: { light: '#65a30d', dark: '#4d7c0f' },
-                7: { light: '#9333ea', dark: '#7c2d12' },
-            };
-            const colorSet = colors[variantIndex as keyof typeof colors] || colors[3];
-            themeColorMeta.setAttribute('content', theme === 'dark' ? colorSet.dark : colorSet.light);
-        }
-    }, [theme, variantIndex]);
+    }, [shifts, hourlyRate, isLoading]);
 
     const processShiftData = useCallback((rawShift: Omit<Shift, 'hours' | 'pay' | 'dayOfWeek' | 'wage'> & { wage: number }) => {
         const hours = calculateHours(rawShift.fromTime, rawShift.toTime);
@@ -437,7 +409,9 @@ export default function ShiftTracker() {
                                                 onConfirm: () => {
                                                     setShifts([]);
                                                     setHourlyRate(1000);
-                                                    const emptyData = { shifts: [], hourlyRate: 1000, lang, theme, variantIndex };
+                                                    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+                                                    const existingData = saved ? JSON.parse(saved) : {};
+                                                    const emptyData = { ...existingData, shifts: [], hourlyRate: 1000 };
 
                                                     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(emptyData));
                                                     saveToIndexedDB('appData', emptyData).catch(e => 

@@ -1,30 +1,12 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { getPrimaryColorClasses, THEME_VARIANTS } from '@/constants/themes';
-import { LOCAL_STORAGE_KEY } from '@/constants';
 import { loginWithGoogle } from '@/services/login';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const Login = () => {
     const [isLoading, setIsLoading] = useState(false);
-
-    // Get theme from localStorage
-    const getStoredTheme = () => {
-        try {
-            const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-            if (saved) {
-                const data = JSON.parse(saved);
-                return {
-                    theme: data.theme || 'light',
-                    variantIndex: data.variantIndex || 3
-                };
-            }
-        } catch (e) {
-            // Ignore errors
-        }
-        return { theme: 'light', variantIndex: 3 };
-    };
-
-    const { theme, variantIndex } = getStoredTheme();
+    const { theme, variantIndex } = useTheme();
     const PRIMARY_COLOR_CLASSES = getPrimaryColorClasses(variantIndex, theme);
     const themeVariant = THEME_VARIANTS[variantIndex];
     const appClasses = theme === 'light' ? themeVariant.light : themeVariant.dark;
