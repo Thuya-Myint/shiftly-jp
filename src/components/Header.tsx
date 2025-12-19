@@ -6,6 +6,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { logout } from '@/services/login';
 import { Settings, LogOut, Loader2 } from 'lucide-react';
 import { fetchUserData } from '@/services/user';
+import { getItemFromLocalStorage, setItemToLocalStorage } from '@/utils/localStorage';
+import { STORAGE_KEYS } from '@/constants';
 
 interface HeaderProps {
     theme: 'light' | 'dark';
@@ -54,17 +56,34 @@ export const Header = ({
         }
     }, [user])
 
+    useEffect(() => {
+        const userData = getItemFromLocalStorage(STORAGE_KEYS.USER_DATA);
+        if (userData?.balance !== undefined) {
+            setUserBalance(userData.balance);
+        }
+    }, []);
+
     const handleFetchUserData = async () => {
-        if (!user?.id) return console.log("no user id");
+        if (!user?.id) {
+            console.error('No user ID available for fetching user data');
+            return;
+        }
+        
+        const existingData = getItemFromLocalStorage(STORAGE_KEYS.USER_DATA);
+        if (existingData) {
+            setUserBalance(existingData?.balance || 0);
+            return;
+        }
+        
         try {
             const data = await fetchUserData(user.id);
             if (data) {
-                localStorage.setItem('userData', JSON.stringify(data));
-                setUserBalance(data?.balance)
+                setItemToLocalStorage(STORAGE_KEYS.USER_DATA, data);
+                setUserBalance(data?.balance || 0);
             }
-
         } catch (error) {
-            console.log(error)
+            console.error('Failed to fetch user data:', error);
+            setUserBalance(0);
         }
     }
 

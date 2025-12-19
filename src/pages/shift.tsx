@@ -9,7 +9,8 @@ import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from 'da
 import type { Shift, Lang, ViewMode, AlertConfig } from '@/types/shift';
 
 // Constants
-import { yen, LOCAL_STORAGE_KEY } from '@/constants';
+import { yen, LOCAL_STORAGE_KEY, STORAGE_KEYS } from '@/constants';
+import { getItemFromLocalStorage, setItemToLocalStorage } from '@/utils/localStorage';
 import { LANG_STRINGS } from '@/constants/strings';
 import { getPrimaryColorClasses, THEME_VARIANTS } from '@/constants/themes';
 
@@ -64,7 +65,7 @@ export default function ShiftTracker() {
     // Show install prompt after 3 seconds if not installed
     useEffect(() => {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-        const hasSeenPrompt = localStorage.getItem('pwa-install-prompt-seen');
+        const hasSeenPrompt = getItemFromLocalStorage(STORAGE_KEYS.PWA_INSTALL_PROMPT);
 
         if (!isStandalone && !hasSeenPrompt) {
             const timer = setTimeout(() => {
@@ -75,8 +76,12 @@ export default function ShiftTracker() {
     }, []);
 
     const handleCloseInstallPrompt = () => {
-        setShowInstallPrompt(false);
-        localStorage.setItem('pwa-install-prompt-seen', 'true');
+        try {
+            setShowInstallPrompt(false);
+            setItemToLocalStorage(STORAGE_KEYS.PWA_INSTALL_PROMPT, true);
+        } catch (error) {
+            console.error('Failed to close install prompt:', error);
+        }
     };
 
 
@@ -97,9 +102,8 @@ export default function ShiftTracker() {
 
             // Fallback to localStorage
             try {
-                const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-                if (savedData) {
-                    const parsedData = JSON.parse(savedData);
+                const parsedData = getItemFromLocalStorage(STORAGE_KEYS.SHIFTS);
+                if (parsedData) {
                     setShifts(parsedData.shifts || []);
                     setHourlyRate(parsedData.hourlyRate || 1000);
 
@@ -121,10 +125,9 @@ export default function ShiftTracker() {
     useEffect(() => {
         if (isLoading) return;
 
-        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-        const existingData = saved ? JSON.parse(saved) : {};
+        const existingData = getItemFromLocalStorage(STORAGE_KEYS.SHIFTS) || {};
         const data = { ...existingData, shifts, hourlyRate };
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+        setItemToLocalStorage(STORAGE_KEYS.SHIFTS, data);
 
         saveToIndexedDB('appData', data).catch(e =>
             console.warn("Failed to save to IndexedDB:", e)
@@ -145,39 +148,69 @@ export default function ShiftTracker() {
     }, [lang]);
 
     const addOrUpdateShift = (newShiftData: Omit<Shift, 'hours' | 'pay' | 'dayOfWeek'>) => {
-        const processedShift = processShiftData({ ...newShiftData, wage: newShiftData.wage || hourlyRate });
+        try {
+            const processedShift = processShiftData({ ...newShiftData, wage: newShiftData.wage || hourlyRate });
 
-        if (editingShift) {
-            // Update existing
-            setShifts(prev => prev.map(s => s.id === processedShift.id ? processedShift : s));
-        } else {
-            // New shift
-            setShifts(prev => [processedShift, ...prev]);
+            if (editingShift) {
+                // Update existing
+                setShifts(prev => prev.map(s => s.id === processedShift.id ? processedShift : s));
+            } else {
+                // New shift
+                setShifts(prev => [processedShift, ...prev]);
+            }
+            setEditingShift(null);
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error('Failed to add/update shift:', error);
         }
-        setEditingShift(null);
-        setIsModalOpen(false);
     };
 
     const deleteShift = (id: string) => {
-        setAlertConfig({
-            isOpen: true,
-            title: strings.areYouSure,
-            message: strings.delete,
-            onConfirm: () => {
-                setShifts(prev => prev.filter(s => s.id !== id));
-                setAlertConfig(null);
+        try {
+            if (!id) {
+                console.error('Shift ID is required for deletion');
+                return;
             }
-        });
+
+            setAlertConfig({
+                isOpen: true,
+                title: strings.areYouSure,
+                message: strings.delete,
+                onConfirm: () => {
+                    try {
+                        setShifts(prev => prev.filter(s => s.id !== id));
+                        setAlertConfig(null);
+                    } catch (error) {
+                        console.error('Failed to delete shift:', error);
+                        setAlertConfig(null);
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Failed to show delete confirmation:', error);
+        }
     };
 
     const openAddModal = () => {
-        setEditingShift(null);
-        setIsModalOpen(true);
+        try {
+            setEditingShift(null);
+            setIsModalOpen(true);
+        } catch (error) {
+            console.error('Failed to open add modal:', error);
+        }
     };
 
     const openEditModal = (shift: Shift) => {
-        setEditingShift(shift);
-        setIsModalOpen(true);
+        try {
+            if (!shift) {
+                console.error('Shift data is required for editing');
+                return;
+            }
+            setEditingShift(shift);
+            setIsModalOpen(true);
+        } catch (error) {
+            console.error('Failed to open edit modal:', error);
+        }
     };
 
 
@@ -409,11 +442,10 @@ export default function ShiftTracker() {
                                                 onConfirm: () => {
                                                     setShifts([]);
                                                     setHourlyRate(1000);
-                                                    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-                                                    const existingData = saved ? JSON.parse(saved) : {};
+                                                    const existingData = getItemFromLocalStorage(STORAGE_KEYS.SHIFTS) || {};
                                                     const emptyData = { ...existingData, shifts: [], hourlyRate: 1000 };
 
-                                                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(emptyData));
+                                                    setItemToLocalStorage(STORAGE_KEYS.SHIFTS, emptyData);
                                                     saveToIndexedDB('appData', emptyData).catch(e =>
                                                         console.warn('Failed to clear IndexedDB:', e)
                                                     );

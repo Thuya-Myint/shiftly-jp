@@ -3,6 +3,12 @@ export const DAY_NAMES_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 export const DAY_NAMES_JP = ['日', '月', '火', '水', '木', '金', '土'];
 export const LOCAL_STORAGE_KEY = 'shiftTrackerShifts';
 
+export const STORAGE_KEYS = {
+    SHIFTS: 'shiftTrackerShifts',
+    USER_DATA: 'userData',
+    PWA_INSTALL_PROMPT: 'pwa-install-prompt-seen'
+} as const;
+
 export const DB_NAME = 'ShiftTrackerDB';
 export const DB_VERSION = 1;
 export const STORE_NAME = 'shifts';

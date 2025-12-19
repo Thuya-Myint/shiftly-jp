@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { LOCAL_STORAGE_KEY } from '@/constants';
+import { STORAGE_KEYS } from '@/constants';
+import { getItemFromLocalStorage, setItemToLocalStorage } from '@/utils/localStorage';
 import type { Lang } from '@/types/shift';
 
 interface ThemeContextType {
@@ -19,42 +20,56 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>('jp');
 
   useEffect(() => {
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        if (data.theme) {
-          setThemeState(data.theme);
-          document.documentElement.classList.toggle('dark', data.theme === 'dark');
-        }
-        if (data.variantIndex !== undefined) setVariantIndexState(data.variantIndex);
-        if (data.lang) setLangState(data.lang);
-      } catch (e) {
-        console.warn('Failed to parse theme data');
+    const data = getItemFromLocalStorage(STORAGE_KEYS.SHIFTS);
+    if (data) {
+      if (data.theme) {
+        setThemeState(data.theme);
+        document.documentElement.classList.toggle('dark', data.theme === 'dark');
       }
+      if (data.variantIndex !== undefined) setVariantIndexState(data.variantIndex);
+      if (data.lang) setLangState(data.lang);
     }
   }, []);
 
   const setTheme = (newTheme: 'light' | 'dark') => {
-    setThemeState(newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
-    saveToStorage({ theme: newTheme, variantIndex, lang });
+    try {
+      setThemeState(newTheme);
+      document.documentElement.classList.toggle('dark', newTheme === 'dark');
+      saveToStorage({ theme: newTheme, variantIndex, lang });
+    } catch (error) {
+      console.error('Failed to set theme:', error);
+    }
   };
 
   const setVariantIndex = (index: number) => {
-    setVariantIndexState(index);
-    saveToStorage({ theme, variantIndex: index, lang });
+    try {
+      if (index < 0 || index >= THEME_VARIANTS.length) {
+        console.error('Invalid variant index:', index);
+        return;
+      }
+      setVariantIndexState(index);
+      saveToStorage({ theme, variantIndex: index, lang });
+    } catch (error) {
+      console.error('Failed to set variant index:', error);
+    }
   };
 
   const setLang = (newLang: Lang) => {
-    setLangState(newLang);
-    saveToStorage({ theme, variantIndex, lang: newLang });
+    try {
+      setLangState(newLang);
+      saveToStorage({ theme, variantIndex, lang: newLang });
+    } catch (error) {
+      console.error('Failed to set language:', error);
+    }
   };
 
   const saveToStorage = (themeData: { theme: 'light' | 'dark'; variantIndex: number; lang: Lang }) => {
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-    const data = saved ? JSON.parse(saved) : {};
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ ...data, ...themeData }));
+    try {
+      const data = getItemFromLocalStorage(STORAGE_KEYS.SHIFTS) || {};
+      setItemToLocalStorage(STORAGE_KEYS.SHIFTS, { ...data, ...themeData });
+    } catch (error) {
+      console.error('Failed to save theme data to storage:', error);
+    }
   };
 
   return (

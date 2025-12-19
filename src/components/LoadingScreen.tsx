@@ -2,24 +2,20 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { getPrimaryColorClasses, THEME_VARIANTS } from '@/constants/themes';
-import { LOCAL_STORAGE_KEY } from '@/constants';
+import { STORAGE_KEYS } from '@/constants';
+import { getItemFromLocalStorage } from '@/utils/localStorage';
 
 
 
 export function LoadingScreen() {
     // Get theme from localStorage
     const getStoredTheme = () => {
-        try {
-            const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-            if (saved) {
-                const data = JSON.parse(saved);
-                return {
-                    theme: data.theme || 'light',
-                    variantIndex: data.variantIndex !== undefined ? data.variantIndex : 0
-                };
-            }
-        } catch (e) {
-            // Ignore errors
+        const data = getItemFromLocalStorage(STORAGE_KEYS.SHIFTS);
+        if (data) {
+            return {
+                theme: data.theme || 'light',
+                variantIndex: data.variantIndex !== undefined ? data.variantIndex : 0
+            };
         }
         return { theme: 'light', variantIndex: 0 };
     };
