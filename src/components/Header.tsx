@@ -125,30 +125,30 @@ export const Header = ({
 
                             {isDropdownOpen && (
                                 <div className={cn(
-                                    "absolute right-0 top-full mt-2 min-w-40 rounded-xl shadow-xl border overflow-hidden z-50",
+                                    "absolute right-0 top-full mt-2 w-48 rounded-xl shadow-xl border overflow-hidden z-50",
                                     theme === 'light'
                                         ? 'bg-white border-gray-200'
                                         : 'bg-slate-800 border-slate-700'
                                 )}>
                                     <div className={cn(
-                                        "px-4 py-3 border-b flex items-center gap-3",
+                                        "px-4 py-3 border-b flex items-center gap-3 min-w-0",
                                         theme === 'light' ? 'border-gray-200' : 'border-slate-700'
                                     )}>
                                         {userAvatar ? (
                                             <img
                                                 src={userAvatar}
                                                 alt={userName}
-                                                className="w-8 h-8 rounded-full border border-gray-300 dark:border-slate-600"
+                                                className="w-8 h-8 rounded-full border border-gray-300 dark:border-slate-600 flex-shrink-0"
                                             />
                                         ) : (
                                             <div className={cn(
-                                                "w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm",
+                                                "w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0",
                                                 primaryColors.bgGradient
                                             )}>
                                                 {userName.charAt(0).toUpperCase()}
                                             </div>
                                         )}
-                                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                                        <span className="font-medium text-gray-900 dark:text-gray-100 truncate text-sm leading-tight">
                                             {userName}
                                         </span>
                                     </div>
