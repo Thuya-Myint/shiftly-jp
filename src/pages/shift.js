@@ -1,12 +1,12 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { Plus, Trash2, Zap, Filter, X } from 'lucide-react';
+import { Plus, Trash2, Zap, Filter, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 // Constants
 import { yen, STORAGE_KEYS } from '@/constants';
-import { getItemFromLocalStorage, setItemToLocalStorage } from '@/utils/localStorage';
+import { setItemToLocalStorage } from '@/utils/localStorage';
 import { LANG_STRINGS } from '@/constants/strings';
 import { getPrimaryColorClasses, THEME_VARIANTS } from '@/constants/themes';
 // Utils
@@ -20,7 +20,6 @@ import { MonthFilter } from '@/components/shift/MonthFilter';
 import { MonthlyGroup } from '@/components/shift/MonthlyGroup';
 import { AddEditShiftModal } from '@/components/shift/AddEditShiftModal';
 import { CustomAlert } from '@/components/modals/CustomAlert';
-import { PWAInstallPrompt } from '@/components/modals/PWAInstallPrompt';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
 export default function ShiftTracker() {
@@ -28,12 +27,10 @@ export default function ShiftTracker() {
     const { user } = useAuth();
     const [shifts, setShifts] = useState([]);
     const [hourlyRate, setHourlyRate] = useState(1000);
-    const [viewMode, setViewMode] = useState('monthly');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingShift, setEditingShift] = useState(null);
     const [filterMonth, setFilterMonth] = useState(new Date());
     const [alertConfig, setAlertConfig] = useState(null);
-    const [showInstallPrompt, setShowInstallPrompt] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     // console.log("user ---- ", user?.id)
     // Block overscroll when modal is open
@@ -57,26 +54,6 @@ export default function ShiftTracker() {
     const strings = LANG_STRINGS[lang];
     const themeVariant = THEME_VARIANTS[variantIndex];
     const PRIMARY_COLOR_CLASSES = useMemo(() => getPrimaryColorClasses(variantIndex, theme), [variantIndex, theme]);
-    // Show install prompt after 3 seconds if not installed
-    useEffect(() => {
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-        const hasSeenPrompt = getItemFromLocalStorage(STORAGE_KEYS.PWA_INSTALL_PROMPT);
-        if (!isStandalone && !hasSeenPrompt) {
-            const timer = setTimeout(() => {
-                setShowInstallPrompt(true);
-            }, 3000);
-            return () => clearTimeout(timer);
-        }
-    }, []);
-    const handleCloseInstallPrompt = () => {
-        try {
-            setShowInstallPrompt(false);
-            setItemToLocalStorage(STORAGE_KEYS.PWA_INSTALL_PROMPT, true);
-        }
-        catch (error) {
-            console.error('Failed to close install prompt:', error);
-        }
-    };
     const processShiftData = useCallback((rawShift) => {
         const hours = calculateHours(rawShift.start_time, rawShift.end_time);
         const pay = Math.round(hours * rawShift.wage);
@@ -99,6 +76,7 @@ export default function ShiftTracker() {
                 return;
             }
             try {
+                setIsLoading(true);
                 // Always fetch fresh user data (balance) from Supabase
                 const userData = await fetchUserData(user.id);
                 if (userData) {
@@ -148,55 +126,32 @@ export default function ShiftTracker() {
         }
     };
     const deleteShift = (id) => {
-        try {
-            if (!id || !user?.id) {
-                console.error('Shift ID and User ID are required for deletion');
-                return;
-            }
-            setAlertConfig({
-                isOpen: true,
-                title: strings.areYouSure,
-                message: strings.delete,
-                onConfirm: async () => {
-                    try {
-                        console.log('Deleting shift:', { userId: user.id, shiftId: id });
-                        await deleteUserShift(user.id, id);
-                        console.log('Shift deleted successfully');
-                        setShifts(prev => prev.filter(s => s.id !== id));
-                        setAlertConfig(null);
-                    }
-                    catch (error) {
-                        console.error('Failed to delete shift:', error);
-                        setAlertConfig(null);
-                    }
+        if (!id || !user?.id)
+            return;
+        setAlertConfig({
+            isOpen: true,
+            title: strings.areYouSure,
+            message: strings.delete,
+            onConfirm: async () => {
+                try {
+                    await deleteUserShift(user.id, id);
+                    setShifts(prev => prev.filter(s => s.id !== id));
+                    setAlertConfig(null);
                 }
-            });
-        }
-        catch (error) {
-            console.error('Failed to show delete confirmation:', error);
-        }
+                catch (error) {
+                    console.error('Failed to delete shift:', error);
+                    setAlertConfig(null);
+                }
+            }
+        });
     };
     const openAddModal = () => {
-        try {
-            setEditingShift(null);
-            setIsModalOpen(true);
-        }
-        catch (error) {
-            console.error('Failed to open add modal:', error);
-        }
+        setEditingShift(null);
+        setIsModalOpen(true);
     };
     const openEditModal = (shift) => {
-        try {
-            if (!shift) {
-                console.error('Shift data is required for editing');
-                return;
-            }
-            setEditingShift(shift);
-            setIsModalOpen(true);
-        }
-        catch (error) {
-            console.error('Failed to open edit modal:', error);
-        }
+        setEditingShift(shift);
+        setIsModalOpen(true);
     };
     // Data Aggregation and Filtering
     const sortedAndFilteredShifts = useMemo(() => {
@@ -252,7 +207,7 @@ export default function ShiftTracker() {
         : themeVariant.dark;
     return (_jsxs(_Fragment, { children: [_jsx(GlobalStyles, {}), _jsxs("div", { className: cn("min-h-screen transition-all duration-300 ease-in-out", appClasses), children: [_jsxs("div", { className: cn("min-h-screen flex flex-col items-center sm:p-6 transition-all duration-300 ease-in-out"), children: [_jsx(Header, { theme: theme, lang: lang, primaryColors: PRIMARY_COLOR_CLASSES }), _jsxs("div", { className: "w-full max-w-4xl px-4 mb-6", children: [_jsxs("div", { className: cn("p-4 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4 border", theme === 'light'
                                             ? 'bg-white/80 border-gray-200'
-                                            : 'bg-slate-900/70 border-slate-700'), children: [_jsxs("div", { className: "flex flex-col items-center sm:items-start", children: [_jsx("p", { className: "text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-400 text-center sm:text-left", children: strings.grandTotal }), _jsx("p", { className: cn("text-3xl font-black text-center sm:text-left", PRIMARY_COLOR_CLASSES.text), children: yen.format(aggregatedData.grandTotal.totalPay) }), _jsxs("p", { className: "text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left", children: [aggregatedData.grandTotal.totalHours, " ", strings.hours] })] }), _jsx("div", { className: "flex gap-3 w-full sm:w-auto flex-1 sm:flex-none min-w-0", children: _jsx(MonthFilter, { selectedMonth: filterMonth, onMonthSelect: setFilterMonth, lang: lang, primaryColors: PRIMARY_COLOR_CLASSES }) })] }), _jsxs("button", { onClick: openAddModal, className: cn("mt-4 w-full px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-md flex items-center justify-center gap-2", PRIMARY_COLOR_CLASSES.bgGradient, "text-white hover:shadow-lg hover:-translate-y-0.5"), children: [_jsx(Plus, { size: 20 }), strings.addShift] })] }), _jsx("main", { className: "w-full max-w-4xl pb-16 px-4", children: renderMonthlyView() }), _jsx("footer", { className: "w-full max-w-4xl mt-8 pt-6 pb-safe", children: _jsx("div", { className: cn("relative overflow-hidden rounded-2xl p-6 backdrop-blur-xl border shadow-xl", theme === 'light'
+                                            : 'bg-slate-900/70 border-slate-700'), children: [_jsxs("div", { className: "flex flex-col items-center sm:items-start", children: [_jsx("p", { className: "text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-400 text-center sm:text-left", children: strings.grandTotal }), _jsx("p", { className: cn("text-3xl font-black text-center sm:text-left", PRIMARY_COLOR_CLASSES.text), children: yen.format(aggregatedData.grandTotal.totalPay) }), _jsxs("p", { className: "text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left", children: [aggregatedData.grandTotal.totalHours, " ", strings.hours] })] }), _jsx("div", { className: "flex gap-3 w-full sm:w-auto flex-1 sm:flex-none min-w-0", children: _jsx(MonthFilter, { selectedMonth: filterMonth, onMonthSelect: setFilterMonth, lang: lang, primaryColors: PRIMARY_COLOR_CLASSES }) })] }), _jsxs("button", { onClick: openAddModal, className: cn("mt-4 w-full px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-md flex items-center justify-center gap-2", PRIMARY_COLOR_CLASSES.bgGradient, "text-white hover:shadow-lg hover:-translate-y-0.5"), children: [_jsx(Plus, { size: 20 }), strings.addShift] })] }), _jsx("main", { className: "w-full max-w-4xl pb-16 px-4", children: isLoading ? (_jsx("div", { className: "flex items-center justify-center py-20", children: _jsxs("div", { className: "flex flex-col items-center gap-4", children: [_jsx(Loader2, { size: 40, className: cn("animate-spin", PRIMARY_COLOR_CLASSES.text) }), _jsx("p", { className: "text-gray-600 dark:text-gray-400", children: lang === 'en' ? 'Loading shifts...' : 'シフトを読み込み中...' })] }) })) : (renderMonthlyView()) }), _jsx("footer", { className: "w-full max-w-4xl mt-8 pt-6 pb-safe", children: _jsx("div", { className: cn("relative overflow-hidden rounded-2xl p-6 backdrop-blur-xl border shadow-xl", theme === 'light'
                                         ? 'bg-white/80 border-gray-200/50'
                                         : 'bg-slate-900/60 border-slate-700/50'), children: _jsxs("div", { className: "relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4", children: [_jsx("div", { children: _jsx(Button, { variant: "outline", size: "sm", className: cn("group relative overflow-hidden px-4 py-2 rounded-xl border-2 transition-all duration-300 hover:shadow-lg", "border-red-300 dark:border-red-600 text-red-600 dark:text-red-400", "bg-white/60 dark:bg-slate-800/60 hover:bg-red-50 dark:hover:bg-red-900/20"), onClick: () => {
                                                         setAlertConfig({
@@ -262,11 +217,8 @@ export default function ShiftTracker() {
                                                             onConfirm: () => {
                                                                 setShifts([]);
                                                                 setHourlyRate(1000);
-                                                                const existingData = getItemFromLocalStorage(STORAGE_KEYS.SHIFTS) || {};
-                                                                const emptyData = { ...existingData, hourlyRate: 1000 };
-                                                                setItemToLocalStorage(STORAGE_KEYS.SHIFTS, emptyData);
                                                                 setAlertConfig(null);
                                                             }
                                                         });
-                                                    }, children: _jsxs("div", { className: "flex items-center gap-2", children: [_jsx(Trash2, { size: 16 }), _jsx("span", { className: "font-semibold", children: strings.clearData })] }) }) }), _jsxs("div", { className: "flex flex-col sm:flex-row items-center gap-3", children: [_jsx("div", { className: cn("p-2 rounded-full shadow-lg", PRIMARY_COLOR_CLASSES.bgGradient), children: _jsx(Zap, { size: 20, className: "text-white" }) }), _jsxs("div", { className: "text-center sm:text-right", children: [_jsxs("p", { className: cn("text-sm font-bold tracking-wide", PRIMARY_COLOR_CLASSES.text), children: ["\u00A9 ", new Date().getFullYear(), " Shomyn"] }), _jsxs("p", { className: "text-xs text-gray-500 dark:text-gray-400 font-medium", children: [lang === 'en' ? 'Made with' : '愛を込めて', _jsx("span", { className: "inline-block mx-1 text-red-500", children: "\u2665" }), lang === 'en' ? 'by Shomyn Team' : 'Shomynチーム'] })] })] })] }) }) })] }), _jsx(AddEditShiftModal, { isOpen: isModalOpen, onClose: () => setIsModalOpen(false), onSubmit: addOrUpdateShift, initialShift: editingShift, lang: lang, primaryColors: PRIMARY_COLOR_CLASSES }), alertConfig && (_jsx(CustomAlert, { isOpen: alertConfig.isOpen, title: alertConfig.title, message: alertConfig.message, onConfirm: alertConfig.onConfirm, onCancel: () => setAlertConfig(null) })), _jsx(PWAInstallPrompt, { isOpen: showInstallPrompt, onClose: handleCloseInstallPrompt, lang: lang })] })] }));
+                                                    }, children: _jsxs("div", { className: "flex items-center gap-2", children: [_jsx(Trash2, { size: 16 }), _jsx("span", { className: "font-semibold", children: strings.clearData })] }) }) }), _jsxs("div", { className: "flex flex-col sm:flex-row items-center gap-3", children: [_jsx("div", { className: cn("p-2 rounded-full shadow-lg", PRIMARY_COLOR_CLASSES.bgGradient), children: _jsx(Zap, { size: 20, className: "text-white" }) }), _jsxs("div", { className: "text-center sm:text-right", children: [_jsxs("p", { className: cn("text-sm font-bold tracking-wide", PRIMARY_COLOR_CLASSES.text), children: ["\u00A9 ", new Date().getFullYear(), " Shomyn"] }), _jsxs("p", { className: "text-xs text-gray-500 dark:text-gray-400 font-medium", children: [lang === 'en' ? 'Made with' : '愛を込めて', _jsx("span", { className: "inline-block mx-1 text-red-500", children: "\u2665" }), lang === 'en' ? 'by Shomyn Team' : 'Shomynチーム'] })] })] })] }) }) })] }), _jsx(AddEditShiftModal, { isOpen: isModalOpen, onClose: () => setIsModalOpen(false), onSubmit: addOrUpdateShift, initialShift: editingShift, lang: lang, primaryColors: PRIMARY_COLOR_CLASSES }), alertConfig && (_jsx(CustomAlert, { isOpen: alertConfig.isOpen, title: alertConfig.title, message: alertConfig.message, onConfirm: alertConfig.onConfirm, onCancel: () => setAlertConfig(null) }))] })] }));
 }

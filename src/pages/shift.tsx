@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { Plus, Trash2, Zap, Filter, X } from 'lucide-react';
+import { Plus, Trash2, Zap, Filter, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
@@ -8,7 +8,7 @@ import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from 'da
 import type { Shift, Lang, ViewMode, AlertConfig } from '@/types/shift';
 
 // Constants
-import { yen, LOCAL_STORAGE_KEY, STORAGE_KEYS } from '@/constants';
+import { yen, STORAGE_KEYS } from '@/constants';
 import { getItemFromLocalStorage, setItemToLocalStorage } from '@/utils/localStorage';
 import { LANG_STRINGS } from '@/constants/strings';
 import { getPrimaryColorClasses, THEME_VARIANTS } from '@/constants/themes';
@@ -25,7 +25,7 @@ import { MonthFilter } from '@/components/shift/MonthFilter';
 import { MonthlyGroup } from '@/components/shift/MonthlyGroup';
 import { AddEditShiftModal } from '@/components/shift/AddEditShiftModal';
 import { CustomAlert } from '@/components/modals/CustomAlert';
-import { PWAInstallPrompt } from '@/components/modals/PWAInstallPrompt';
+
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -34,12 +34,10 @@ export default function ShiftTracker() {
     const { user } = useAuth();
     const [shifts, setShifts] = useState<Shift[]>([]);
     const [hourlyRate, setHourlyRate] = useState(1000);
-    const [viewMode, setViewMode] = useState<ViewMode>('monthly');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingShift, setEditingShift] = useState<Shift | null>(null);
     const [filterMonth, setFilterMonth] = useState<Date | undefined>(new Date());
     const [alertConfig, setAlertConfig] = useState<AlertConfig>(null);
-    const [showInstallPrompt, setShowInstallPrompt] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
 
@@ -66,27 +64,7 @@ export default function ShiftTracker() {
     const themeVariant = THEME_VARIANTS[variantIndex];
     const PRIMARY_COLOR_CLASSES = useMemo(() => getPrimaryColorClasses(variantIndex, theme), [variantIndex, theme]);
 
-    // Show install prompt after 3 seconds if not installed
-    useEffect(() => {
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-        const hasSeenPrompt = getItemFromLocalStorage(STORAGE_KEYS.PWA_INSTALL_PROMPT);
 
-        if (!isStandalone && !hasSeenPrompt) {
-            const timer = setTimeout(() => {
-                setShowInstallPrompt(true);
-            }, 3000);
-            return () => clearTimeout(timer);
-        }
-    }, []);
-
-    const handleCloseInstallPrompt = () => {
-        try {
-            setShowInstallPrompt(false);
-            setItemToLocalStorage(STORAGE_KEYS.PWA_INSTALL_PROMPT, true);
-        } catch (error) {
-            console.error('Failed to close install prompt:', error);
-        }
-    };
 
 
 
@@ -115,6 +93,7 @@ export default function ShiftTracker() {
             }
 
             try {
+                setIsLoading(true)
                 // Always fetch fresh user data (balance) from Supabase
                 const userData = await fetchUserData(user.id);
                 if (userData) {
@@ -170,54 +149,33 @@ export default function ShiftTracker() {
     };
 
     const deleteShift = (id: string) => {
-        try {
-            if (!id || !user?.id) {
-                console.error('Shift ID and User ID are required for deletion');
-                return;
-            }
+        if (!id || !user?.id) return;
 
-            setAlertConfig({
-                isOpen: true,
-                title: strings.areYouSure,
-                message: strings.delete,
-                onConfirm: async () => {
-                    try {
-                        console.log('Deleting shift:', { userId: user.id, shiftId: id });
-                        await deleteUserShift(user.id, id);
-                        console.log('Shift deleted successfully');
-                        setShifts(prev => prev.filter(s => s.id !== id));
-                        setAlertConfig(null);
-                    } catch (error) {
-                        console.error('Failed to delete shift:', error);
-                        setAlertConfig(null);
-                    }
+        setAlertConfig({
+            isOpen: true,
+            title: strings.areYouSure,
+            message: strings.delete,
+            onConfirm: async () => {
+                try {
+                    await deleteUserShift(user.id, id);
+                    setShifts(prev => prev.filter(s => s.id !== id));
+                    setAlertConfig(null);
+                } catch (error) {
+                    console.error('Failed to delete shift:', error);
+                    setAlertConfig(null);
                 }
-            });
-        } catch (error) {
-            console.error('Failed to show delete confirmation:', error);
-        }
+            }
+        });
     };
 
     const openAddModal = () => {
-        try {
-            setEditingShift(null);
-            setIsModalOpen(true);
-        } catch (error) {
-            console.error('Failed to open add modal:', error);
-        }
+        setEditingShift(null);
+        setIsModalOpen(true);
     };
 
     const openEditModal = (shift: Shift) => {
-        try {
-            if (!shift) {
-                console.error('Shift data is required for editing');
-                return;
-            }
-            setEditingShift(shift);
-            setIsModalOpen(true);
-        } catch (error) {
-            console.error('Failed to open edit modal:', error);
-        }
+        setEditingShift(shift);
+        setIsModalOpen(true);
     };
 
 
@@ -403,7 +361,18 @@ export default function ShiftTracker() {
 
                     {/* Content Area */}
                     <main className="w-full max-w-4xl pb-16 px-4">
-                        {renderMonthlyView()}
+                        {isLoading ? (
+                            <div className="flex items-center justify-center py-20">
+                                <div className="flex flex-col items-center gap-4">
+                                    <Loader2 size={40} className={cn("animate-spin", PRIMARY_COLOR_CLASSES.text)} />
+                                    <p className="text-gray-600 dark:text-gray-400">
+                                        {lang === 'en' ? 'Loading shifts...' : 'シフトを読み込み中...'}
+                                    </p>
+                                </div>
+                            </div>
+                        ) : (
+                            renderMonthlyView()
+                        )}
                     </main>
 
                     {/* Enhanced Footer */}
@@ -435,10 +404,6 @@ export default function ShiftTracker() {
                                                 onConfirm: () => {
                                                     setShifts([]);
                                                     setHourlyRate(1000);
-                                                    const existingData = getItemFromLocalStorage(STORAGE_KEYS.SHIFTS) || {};
-                                                    const emptyData = { ...existingData, hourlyRate: 1000 };
-
-                                                    setItemToLocalStorage(STORAGE_KEYS.SHIFTS, emptyData);
                                                     setAlertConfig(null);
                                                 }
                                             });
@@ -504,11 +469,7 @@ export default function ShiftTracker() {
                     />
                 )}
 
-                <PWAInstallPrompt
-                    isOpen={showInstallPrompt}
-                    onClose={handleCloseInstallPrompt}
-                    lang={lang}
-                />
+
             </div>
         </>
     );

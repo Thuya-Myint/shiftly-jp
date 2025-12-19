@@ -48,10 +48,8 @@ export const Header = ({ theme, lang, primaryColors }) => {
         }
     }, []);
     const handleFetchUserData = async () => {
-        if (!user?.id) {
-            console.error('No user ID available for fetching user data');
+        if (!user?.id)
             return;
-        }
         try {
             const data = await fetchUserData(user.id);
             if (data) {
@@ -61,7 +59,6 @@ export const Header = ({ theme, lang, primaryColors }) => {
         }
         catch (error) {
             console.error('Failed to fetch user data:', error);
-            setUserBalance(0);
         }
     };
     return (_jsx("header", { className: "w-full max-w-4xl sticky p-4 top-0 z-40 backdrop-blur-md bg-transparent/80", children: _jsxs("div", { className: "flex justify-between items-center", children: [_jsx("h1", { className: cn("text-2xl sm:text-3xl font-extrabold tracking-tight", primaryColors.text), children: "Shomyn" }), _jsxs("div", { className: "flex items-center gap-2", children: [user && (_jsxs("div", { className: "relative", ref: dropdownRef, children: [_jsxs("button", { onClick: () => setIsDropdownOpen(!isDropdownOpen), className: cn("flex items-center p-1 pl-4 gap-2 rounded-full transition-all cursor-pointer", " shadow-sm", isDropdownOpen

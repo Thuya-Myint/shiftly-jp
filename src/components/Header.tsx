@@ -63,10 +63,7 @@ export const Header = ({
     }, []);
 
     const handleFetchUserData = async () => {
-        if (!user?.id) {
-            console.error('No user ID available for fetching user data');
-            return;
-        }
+        if (!user?.id) return;
         
         try {
             const data = await fetchUserData(user.id);
@@ -76,7 +73,6 @@ export const Header = ({
             }
         } catch (error) {
             console.error('Failed to fetch user data:', error);
-            setUserBalance(0);
         }
     }
 

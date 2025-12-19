@@ -22,15 +22,9 @@ export default function Settings() {
     const [isUpdatingBalance, setIsUpdatingBalance] = useState(false);
 
     useEffect(() => {
-        try {
-            const userData = getItemFromLocalStorage(STORAGE_KEYS.USER_DATA);
-
-            if (userData) {
-                setUserBalance(userData?.balance || 0);
-            }
-        } catch (error) {
-            console.error('Failed to load user data:', error);
-            setUserBalance(0);
+        const userData = getItemFromLocalStorage(STORAGE_KEYS.USER_DATA);
+        if (userData) {
+            setUserBalance(userData?.balance || 0);
         }
     }, []);
 
@@ -42,11 +36,7 @@ export default function Settings() {
     const appClasses = theme === 'light' ? themeVariant.light : themeVariant.dark;
 
     const toggleSection = (section: string) => {
-        try {
-            setExpandedSection(expandedSection === section ? null : section);
-        } catch (error) {
-            console.error('Failed to toggle section:', error);
-        }
+        setExpandedSection(expandedSection === section ? null : section);
     };
 
     const handleBalanceUpdate = async () => {
@@ -82,16 +72,12 @@ export default function Settings() {
     };
 
     const openBalanceModal = () => {
-        try {
-            setNewBalance(userBalance.toString());
-            setIsBalanceModalOpen(true);
-            // Scroll to top for iOS keyboard visibility
-            setTimeout(() => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }, 100);
-        } catch (error) {
-            console.error('Failed to open balance modal:', error);
-        }
+        setNewBalance(userBalance.toString());
+        setIsBalanceModalOpen(true);
+        // Scroll to top for iOS keyboard visibility
+        setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 100);
     };
 
     return (
