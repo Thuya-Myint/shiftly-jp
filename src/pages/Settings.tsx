@@ -85,6 +85,10 @@ export default function Settings() {
         try {
             setNewBalance(userBalance.toString());
             setIsBalanceModalOpen(true);
+            // Scroll to top for iOS keyboard visibility
+            setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 100);
         } catch (error) {
             console.error('Failed to open balance modal:', error);
         }
@@ -386,7 +390,7 @@ export default function Settings() {
             {/* Balance Edit Modal */}
             {isBalanceModalOpen && (
                 <div
-                    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+                    className="fixed inset-0 bg-black/50 flex items-start justify-center z-50 p-4 pt-20"
                     onClick={() => setIsBalanceModalOpen(false)}
                 >
                     <div
