@@ -13,9 +13,9 @@ import { ScrollTimePicker } from './ScrollTimePicker';
 export function AddEditShiftModal({ isOpen, onClose, onSubmit, initialShift, lang, primaryColors }) {
     const strings = LANG_STRINGS[lang];
     const initialFormState = useMemo(() => ({
-        date: initialShift ? parseISO(initialShift.date) : new Date(),
-        fromTime: initialShift ? initialShift.fromTime : '09:00',
-        toTime: initialShift ? initialShift.toTime : '17:00',
+        date: initialShift ? parseISO(initialShift.shift_date) : new Date(),
+        fromTime: initialShift ? initialShift.start_time : '09:00',
+        toTime: initialShift ? initialShift.end_time : '17:00',
         wage: initialShift ? initialShift.wage.toString() : '1000',
         id: initialShift ? initialShift.id : null,
     }), [initialShift]);
@@ -44,10 +44,10 @@ export function AddEditShiftModal({ isOpen, onClose, onSubmit, initialShift, lan
         if (!form.date || !form.fromTime || !form.toTime || !form.wage)
             return;
         onSubmit({
-            id: form.id || Date.now().toString(),
-            date: format(form.date, 'yyyy-MM-dd'),
-            fromTime: form.fromTime,
-            toTime: form.toTime,
+            id: form.id || crypto.randomUUID(),
+            shift_date: format(form.date, 'yyyy-MM-dd'),
+            start_time: form.fromTime,
+            end_time: form.toTime,
             wage: parseFloat(form.wage) || 0,
         });
         onClose();

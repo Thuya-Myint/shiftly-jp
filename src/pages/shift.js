@@ -12,7 +12,8 @@ import { LANG_STRINGS } from '@/constants/strings';
 import { getPrimaryColorClasses, THEME_VARIANTS } from '@/constants/themes';
 // Utils
 import { calculateHours, getDayOfWeek } from '@/utils/time';
-import { saveToIndexedDB, loadFromIndexedDB } from '@/utils/storage';
+import { addUserShift, updateUserShift, fetchUserShifts, deleteUserShift } from '@/services/shift';
+import { fetchUserData } from '@/services/user';
 // Components
 import { GlobalStyles } from '@/components/GlobalStyles';
 import { Header } from '@/components/Header';
@@ -22,8 +23,10 @@ import { AddEditShiftModal } from '@/components/shift/AddEditShiftModal';
 import { CustomAlert } from '@/components/modals/CustomAlert';
 import { PWAInstallPrompt } from '@/components/modals/PWAInstallPrompt';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/hooks/useAuth';
 export default function ShiftTracker() {
     const { theme, variantIndex, lang } = useTheme();
+    const { user } = useAuth();
     const [shifts, setShifts] = useState([]);
     const [hourlyRate, setHourlyRate] = useState(1000);
     const [viewMode, setViewMode] = useState('monthly');
@@ -33,6 +36,7 @@ export default function ShiftTracker() {
     const [alertConfig, setAlertConfig] = useState(null);
     const [showInstallPrompt, setShowInstallPrompt] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    console.log("user ---- ", user?.id);
     // Block overscroll when modal is open
     useEffect(() => {
         if (isModalOpen) {
@@ -74,67 +78,68 @@ export default function ShiftTracker() {
             console.error('Failed to close install prompt:', error);
         }
     };
+    const processShiftData = useCallback((rawShift) => {
+        const hours = calculateHours(rawShift.start_time, rawShift.end_time);
+        const pay = Math.round(hours * rawShift.wage);
+        const day_of_week = getDayOfWeek(rawShift.shift_date, lang);
+        return {
+            id: rawShift.id,
+            shift_date: rawShift.shift_date,
+            start_time: rawShift.start_time,
+            end_time: rawShift.end_time,
+            day_of_week,
+            hours,
+            wage: rawShift.wage,
+            pay,
+        };
+    }, [lang]);
     useEffect(() => {
         const loadData = async () => {
+            if (!user?.id) {
+                setIsLoading(false);
+                return;
+            }
             try {
-                const data = await loadFromIndexedDB('appData');
-                if (data && typeof data === 'object') {
-                    setShifts(data.shifts || []);
-                    setHourlyRate(data.hourlyRate || 1000);
-                    setIsLoading(false);
-                    return;
+                // Always fetch fresh user data (balance) from Supabase
+                const userData = await fetchUserData(user.id);
+                if (userData) {
+                    setItemToLocalStorage(STORAGE_KEYS.USER_DATA, userData);
                 }
+                // Load shifts from Supabase
+                const shiftsData = await fetchUserShifts(user.id);
+                const processedShifts = shiftsData.map(processShiftData);
+                setShifts(processedShifts);
             }
             catch (e) {
-                console.warn("IndexedDB failed, trying localStorage:", e);
-            }
-            // Fallback to localStorage
-            try {
-                const parsedData = getItemFromLocalStorage(STORAGE_KEYS.SHIFTS);
-                if (parsedData) {
-                    setShifts(parsedData.shifts || []);
-                    setHourlyRate(parsedData.hourlyRate || 1000);
-                    // Migrate to IndexedDB in background
-                    saveToIndexedDB('appData', parsedData).catch(e => console.warn("Failed to migrate to IndexedDB:", e));
-                }
-            }
-            catch (e) {
-                console.error("Failed to load from localStorage:", e);
+                console.error("Failed to load data:", e);
             }
             setIsLoading(false);
         };
         loadData();
-    }, []);
-    // Save data when state changes
-    useEffect(() => {
-        if (isLoading)
+    }, [user, processShiftData]);
+    const addOrUpdateShift = async (newShiftData) => {
+        if (!user?.id) {
+            console.error('User ID is required');
             return;
-        const existingData = getItemFromLocalStorage(STORAGE_KEYS.SHIFTS) || {};
-        const data = { ...existingData, shifts, hourlyRate };
-        setItemToLocalStorage(STORAGE_KEYS.SHIFTS, data);
-        saveToIndexedDB('appData', data).catch(e => console.warn("Failed to save to IndexedDB:", e));
-    }, [shifts, hourlyRate, isLoading]);
-    const processShiftData = useCallback((rawShift) => {
-        const hours = calculateHours(rawShift.fromTime, rawShift.toTime);
-        const pay = Math.round(hours * rawShift.wage);
-        const dayOfWeek = getDayOfWeek(rawShift.date, lang);
-        return {
-            ...rawShift,
-            hours,
-            pay,
-            dayOfWeek,
-        };
-    }, [lang]);
-    const addOrUpdateShift = (newShiftData) => {
+        }
         try {
-            const processedShift = processShiftData({ ...newShiftData, wage: newShiftData.wage || hourlyRate });
+            const shiftData = {
+                id: editingShift ? newShiftData.id : crypto.randomUUID(),
+                shift_date: newShiftData.shift_date,
+                start_time: newShiftData.start_time,
+                end_time: newShiftData.end_time,
+                wage: newShiftData.wage || hourlyRate
+            };
+            const processedShift = processShiftData(shiftData);
             if (editingShift) {
                 // Update existing
-                setShifts(prev => prev.map(s => s.id === processedShift.id ? processedShift : s));
+                const updatedShift = await updateUserShift(user.id, editingShift.id, processedShift);
+                setShifts(prev => prev.map(s => s.id === processedShift.id ? updatedShift : s));
             }
             else {
                 // New shift
-                setShifts(prev => [processedShift, ...prev]);
+                const newShift = await addUserShift(user?.id, processedShift);
+                setShifts(prev => [newShift, ...prev]);
             }
             setEditingShift(null);
             setIsModalOpen(false);
@@ -145,16 +150,17 @@ export default function ShiftTracker() {
     };
     const deleteShift = (id) => {
         try {
-            if (!id) {
-                console.error('Shift ID is required for deletion');
+            if (!id || !user?.id) {
+                console.error('Shift ID and User ID are required for deletion');
                 return;
             }
             setAlertConfig({
                 isOpen: true,
                 title: strings.areYouSure,
                 message: strings.delete,
-                onConfirm: () => {
+                onConfirm: async () => {
                     try {
+                        await deleteUserShift(user.id, id);
                         setShifts(prev => prev.filter(s => s.id !== id));
                         setAlertConfig(null);
                     }
@@ -199,14 +205,14 @@ export default function ShiftTracker() {
             const start = startOfMonth(filterMonth);
             const end = endOfMonth(filterMonth);
             try {
-                const shiftDate = parseISO(shift.date);
+                const shiftDate = parseISO(shift.shift_date);
                 return isWithinInterval(shiftDate, { start, end });
             }
             catch (e) {
                 return false;
             }
         });
-        return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        return filtered.sort((a, b) => new Date(b.shift_date).getTime() - new Date(a.shift_date).getTime());
     }, [shifts, filterMonth]);
     const aggregatedData = useMemo(() => {
         const total = sortedAndFilteredShifts.reduce((acc, shift) => ({
@@ -214,7 +220,7 @@ export default function ShiftTracker() {
             totalPay: acc.totalPay + shift.pay
         }), { totalHours: 0, totalPay: 0 });
         const monthlyGroups = sortedAndFilteredShifts.reduce((acc, shift) => {
-            const monthKey = shift.date.substring(0, 7);
+            const monthKey = shift.shift_date.substring(0, 7);
             if (!acc[monthKey]) {
                 acc[monthKey] = { totalPay: 0, totalHours: 0, shifts: [] };
             }
@@ -256,9 +262,8 @@ export default function ShiftTracker() {
                                                                     setShifts([]);
                                                                     setHourlyRate(1000);
                                                                     const existingData = getItemFromLocalStorage(STORAGE_KEYS.SHIFTS) || {};
-                                                                    const emptyData = { ...existingData, shifts: [], hourlyRate: 1000 };
+                                                                    const emptyData = { ...existingData, hourlyRate: 1000 };
                                                                     setItemToLocalStorage(STORAGE_KEYS.SHIFTS, emptyData);
-                                                                    saveToIndexedDB('appData', emptyData).catch(e => console.warn('Failed to clear IndexedDB:', e));
                                                                     setAlertConfig(null);
                                                                 }
                                                             });

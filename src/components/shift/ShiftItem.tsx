@@ -24,7 +24,7 @@ export const ShiftItem = memo(function ShiftItem({ shift, theme, baseLang, onDel
         setShiftLang(baseLang);
     }, [baseLang]);
 
-    const displayDayOfWeek = useMemo(() => getDayOfWeek(shift.date, shiftLang), [shift.date, shiftLang]);
+    const displayDayOfWeek = useMemo(() => getDayOfWeek(shift.shift_date, shiftLang), [shift.shift_date, shiftLang]);
 
     const handleDelete = () => {
         onDelete(shift.id);
@@ -65,7 +65,7 @@ export const ShiftItem = memo(function ShiftItem({ shift, theme, baseLang, onDel
                         <span
                             className="text-xs sm:text-sm font-semibold px-2 py-1 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl bg-gray-100/80 dark:bg-slate-700/60 text-gray-900 dark:text-gray-100 shadow-sm backdrop-blur-sm"
                         >
-                            {shift.date}
+                            {shift.shift_date}
                         </span>
 
                         <button
@@ -85,11 +85,11 @@ export const ShiftItem = memo(function ShiftItem({ shift, theme, baseLang, onDel
                     </div>
 
                     <div className="flex items-baseline gap-2 sm:gap-3">
-                        <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{shift.fromTime}</span>
+                        <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{shift.start_time}</span>
                         <span className={cn("text-base sm:text-lg font-medium", primaryColors.text)}>
                             →
                         </span>
-                        <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{shift.toTime}</span>
+                        <span className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{shift.end_time}</span>
                     </div>
 
                     <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium">

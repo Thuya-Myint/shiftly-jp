@@ -22,16 +22,16 @@ export function AddEditShiftModal({
 }: {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (shift: Omit<Shift, 'hours' | 'pay' | 'dayOfWeek'>) => void;
+    onSubmit: (shift: { id: string; shift_date: string; start_time: string; end_time: string; wage?: number }) => void;
     initialShift: Shift | null;
     lang: Lang;
     primaryColors: ReturnType<typeof getPrimaryColorClasses>;
 }) {
     const strings = LANG_STRINGS[lang];
     const initialFormState = useMemo<ShiftFormState>(() => ({
-        date: initialShift ? parseISO(initialShift.date) : new Date(),
-        fromTime: initialShift ? initialShift.fromTime : '09:00',
-        toTime: initialShift ? initialShift.toTime : '17:00',
+        date: initialShift ? parseISO(initialShift.shift_date) : new Date(),
+        fromTime: initialShift ? initialShift.start_time : '09:00',
+        toTime: initialShift ? initialShift.end_time : '17:00',
         wage: initialShift ? initialShift.wage.toString() : '1000',
         id: initialShift ? initialShift.id : null,
     }), [initialShift]);
@@ -66,10 +66,10 @@ export function AddEditShiftModal({
         if (!form.date || !form.fromTime || !form.toTime || !form.wage) return;
 
         onSubmit({
-            id: form.id || Date.now().toString(),
-            date: format(form.date, 'yyyy-MM-dd'),
-            fromTime: form.fromTime,
-            toTime: form.toTime,
+            id: form.id || crypto.randomUUID(),
+            shift_date: format(form.date, 'yyyy-MM-dd'),
+            start_time: form.fromTime,
+            end_time: form.toTime,
             wage: parseFloat(form.wage) || 0,
         });
         onClose();

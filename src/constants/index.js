@@ -7,9 +7,6 @@ export const STORAGE_KEYS = {
     USER_DATA: 'userData',
     PWA_INSTALL_PROMPT: 'pwa-install-prompt-seen'
 };
-export const DB_NAME = 'ShiftTrackerDB';
-export const DB_VERSION = 1;
-export const STORE_NAME = 'shifts';
 export const ITEM_HEIGHT_SM = 32;
 export const ITEM_HEIGHT_LG = 40;
 export const CONTAINER_HEIGHT_MULTIPLIER_SM = 5;

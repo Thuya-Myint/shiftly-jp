@@ -1,9 +1,9 @@
 export type Shift = {
     id: string;
-    date: string;
-    dayOfWeek: string;
-    fromTime: string;
-    toTime: string;
+    shift_date: string;
+    day_of_week: string;
+    start_time: string;
+    end_time: string;
     hours: number;
     wage: number;
     pay: number;

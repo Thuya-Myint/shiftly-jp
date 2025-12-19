@@ -9,9 +9,7 @@ export const STORAGE_KEYS = {
     PWA_INSTALL_PROMPT: 'pwa-install-prompt-seen'
 } as const;
 
-export const DB_NAME = 'ShiftTrackerDB';
-export const DB_VERSION = 1;
-export const STORE_NAME = 'shifts';
+
 
 export const ITEM_HEIGHT_SM = 32;
 export const ITEM_HEIGHT_LG = 40;
