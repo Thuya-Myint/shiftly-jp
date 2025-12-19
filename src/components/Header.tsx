@@ -186,8 +186,30 @@ export const Header = ({
                             )}
                         </div>
                     )}
+                    
+                    {/* Mobile-friendly logout button for PWA */}
+                    {user && (
+                        <button
+                            onClick={handleLogout}
+                            disabled={isLoggingOut}
+                            className={cn(
+                                "sm:hidden p-2 rounded-xl border-2 transition-colors",
+                                "border-red-300 dark:border-red-600 text-red-600 dark:text-red-400",
+                                theme === 'light' ? 'bg-white hover:bg-red-50' : 'bg-slate-800 hover:bg-red-900/20',
+                                isLoggingOut && 'opacity-70 cursor-not-allowed'
+                            )}
+                        >
+                            {isLoggingOut ? (
+                                <Loader2 size={20} className="animate-spin" />
+                            ) : (
+                                <LogOut size={20} />
+                            )}
+                        </button>
+                    )}
                 </div>
             </div>
         </header>
     );
+};
+
 };
