@@ -36,7 +36,7 @@ export default function ShiftTracker() {
     const [alertConfig, setAlertConfig] = useState(null);
     const [showInstallPrompt, setShowInstallPrompt] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    console.log("user ---- ", user?.id);
+    // console.log("user ---- ", user?.id)
     // Block overscroll when modal is open
     useEffect(() => {
         if (isModalOpen) {

@@ -24,6 +24,7 @@ export default function Settings() {
     useEffect(() => {
         try {
             const userData = getItemFromLocalStorage(STORAGE_KEYS.USER_DATA);
+            console.log("userData", userData)
             if (userData) {
                 setUserBalance(userData?.balance || 0);
             }
