@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Palette, Sun, Moon, ChevronDown, Languages, Monitor, User, Edit3, X } from 'lucide-react';
+import { ArrowLeft, Palette, Sun, Moon, ChevronDown, Languages, Monitor, User, Edit3, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getPrimaryColorClasses, THEME_VARIANTS } from '@/constants/themes';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -19,6 +19,7 @@ export default function Settings() {
     const [userBalance, setUserBalance] = useState(0);
     const [isBalanceModalOpen, setIsBalanceModalOpen] = useState(false);
     const [newBalance, setNewBalance] = useState('');
+    const [isUpdatingBalance, setIsUpdatingBalance] = useState(false);
 
     useEffect(() => {
         try {
@@ -59,24 +60,23 @@ export default function Settings() {
             return;
         }
 
+        setIsUpdatingBalance(true);
         try {
             const response = await updateUserBalance(user?.id, balance);
             if (response) {
-                // console.log("res", response)
                 setUserBalance(balance);
 
                 const userData = getItemFromLocalStorage(STORAGE_KEYS.USER_DATA) || {};
-
                 userData.balance = balance;
                 setItemToLocalStorage(STORAGE_KEYS.USER_DATA, userData);
-                console.log("user data -1", userData.balance)
 
                 setIsBalanceModalOpen(false);
                 setNewBalance('');
             }
         } catch (error) {
             console.error('Failed to update balance:', error);
-            // Keep modal open on error
+        } finally {
+            setIsUpdatingBalance(false);
         }
     };
 
@@ -420,10 +420,13 @@ export default function Settings() {
                                 </label>
                                 <input
                                     type="number"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
                                     value={newBalance}
                                     onChange={(e) => setNewBalance(e.target.value)}
+                                    onInput={(e) => setNewBalance((e.target as HTMLInputElement).value)}
                                     className={cn(
-                                        "w-full px-4 py-3 rounded-xl border-2 transition-colors",
+                                        "w-full px-4 py-3 rounded-xl border-2 transition-colors text-lg",
                                         "focus:outline-none focus:ring-0",
                                         primaryColors.border,
                                         theme === 'light'
@@ -445,9 +448,17 @@ export default function Settings() {
                                 </Button>
                                 <Button
                                     onClick={handleBalanceUpdate}
+                                    disabled={isUpdatingBalance}
                                     className={cn("flex-1 text-white", primaryColors.bgGradient)}
                                 >
-                                    {lang === 'en' ? 'Save' : '保存'}
+                                    {isUpdatingBalance ? (
+                                        <>
+                                            <Loader2 size={16} className="animate-spin mr-2" />
+                                            {lang === 'en' ? 'Saving...' : '保存中...'}
+                                        </>
+                                    ) : (
+                                        lang === 'en' ? 'Save' : '保存'
+                                    )}
                                 </Button>
                             </div>
                         </motion.div>
