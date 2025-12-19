@@ -1,5 +1,4 @@
 import { supabase } from "@/lib/supabase";
-import { clearAllLocalStorage } from "@/utils/localStorage";
 
 export const loginWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
@@ -24,5 +23,5 @@ export const logout = async () => {
     }
 
     // Clear all localStorage data
-    clearAllLocalStorage();
+    localStorage.clear();
 }
