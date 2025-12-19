@@ -18,4 +18,6 @@ export const logout = async () => {
     if (error) {
         throw new Error(`Logout failed: ${error.message}`);
     }
+    // Clear all localStorage data
+    localStorage.clear();
 };

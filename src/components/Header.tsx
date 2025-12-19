@@ -43,7 +43,8 @@ export const Header = ({
         setIsLoggingOut(true);
         try {
             await logout();
-            window.location.href = '/login';
+            // Force reload to clear all state and redirect
+            window.location.replace('/login');
         } catch (error) {
             console.error('Logout failed:', error);
             setIsLoggingOut(false);
@@ -132,9 +133,23 @@ export const Header = ({
                                         : 'bg-slate-800 border-slate-700'
                                 )}>
                                     <div className={cn(
-                                        "px-4 py-3 border-b",
+                                        "px-4 py-3 border-b flex items-center gap-3",
                                         theme === 'light' ? 'border-gray-200' : 'border-slate-700'
                                     )}>
+                                        {userAvatar ? (
+                                            <img
+                                                src={userAvatar}
+                                                alt={userName}
+                                                className="w-8 h-8 rounded-full border border-gray-300 dark:border-slate-600"
+                                            />
+                                        ) : (
+                                            <div className={cn(
+                                                "w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm",
+                                                primaryColors.bgGradient
+                                            )}>
+                                                {userName.charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
                                         <span className="font-medium text-gray-900 dark:text-gray-100">
                                             {userName}
                                         </span>
@@ -210,6 +225,4 @@ export const Header = ({
             </div>
         </header>
     );
-};
-
 };
