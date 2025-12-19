@@ -24,4 +24,8 @@ export const logout = async () => {
 
     // Clear all localStorage data
     localStorage.clear();
+    
+    // Force complete reload for mobile PWA
+    window.location.href = '/login';
+    window.location.reload();
 }

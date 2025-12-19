@@ -43,8 +43,6 @@ export const Header = ({
         setIsLoggingOut(true);
         try {
             await logout();
-            // Force reload to clear all state and redirect
-            window.location.replace('/login');
         } catch (error) {
             console.error('Logout failed:', error);
             setIsLoggingOut(false);
