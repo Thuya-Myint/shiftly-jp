@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
 import { Plus, Trash2, Zap, Filter, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -183,7 +182,9 @@ export default function ShiftTracker() {
                 message: strings.delete,
                 onConfirm: async () => {
                     try {
+                        console.log('Deleting shift:', { userId: user.id, shiftId: id });
                         await deleteUserShift(user.id, id);
+                        console.log('Shift deleted successfully');
                         setShifts(prev => prev.filter(s => s.id !== id));
                         setAlertConfig(null);
                     } catch (error) {
@@ -301,9 +302,7 @@ export default function ShiftTracker() {
         const strings = LANG_STRINGS[lang];
 
         return (
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+            <div
                 className={cn(
                     "p-8 rounded-3xl text-center backdrop-blur-md transition-colors border",
                     theme === 'light' ? 'bg-indigo-50/50 border-indigo-200' : 'bg-slate-900/60 border-slate-700'
@@ -339,7 +338,7 @@ export default function ShiftTracker() {
                         </Button>
                     </>
                 )}
-            </motion.div>
+            </div>
         );
     }
 
@@ -409,10 +408,7 @@ export default function ShiftTracker() {
 
                     {/* Enhanced Footer */}
                     <footer className="w-full max-w-4xl mt-8 pt-6 pb-safe">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.2 }}
+                        <div
                             className={cn(
                                 "relative overflow-hidden rounded-2xl p-6 backdrop-blur-xl border shadow-xl",
                                 theme === 'light'
@@ -420,18 +416,9 @@ export default function ShiftTracker() {
                                     : 'bg-slate-900/60 border-slate-700/50'
                             )}
                         >
-                            {/* Animated background gradient */}
-                            <div className={cn(
-                                "absolute inset-0 opacity-20 animate-gradient-x",
-                                PRIMARY_COLOR_CLASSES.bgGradient
-                            )} />
-
                             <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4">
                                 {/* Left side - Clear Data Button */}
-                                <motion.div
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                >
+                                <div>
                                     <Button
                                         variant="outline"
                                         size="sm"
@@ -457,102 +444,44 @@ export default function ShiftTracker() {
                                             });
                                         }}
                                     >
-                                        <motion.div
-                                            className="flex items-center gap-2"
-                                            whileHover={{ x: 2 }}
-                                        >
-                                            <motion.div
-                                                animate={{ rotate: [0, 10, -10, 0] }}
-                                                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                                            >
-                                                <Trash2 size={16} />
-                                            </motion.div>
+                                        <div className="flex items-center gap-2">
+                                            <Trash2 size={16} />
                                             <span className="font-semibold">{strings.clearData}</span>
-                                        </motion.div>
+                                        </div>
                                     </Button>
-                                </motion.div>
+                                </div>
 
                                 {/* Right side - Copyright & Branding */}
                                 <div className="flex flex-col sm:flex-row items-center gap-3">
-                                    {/* Animated logo/icon */}
-                                    <motion.div
-                                        animate={{
-                                            rotate: [0, 5, -5, 0],
-                                            scale: [1, 1.05, 1]
-                                        }}
-                                        transition={{
-                                            duration: 3,
-                                            repeat: Infinity,
-                                            ease: "easeInOut"
-                                        }}
+                                    {/* Logo/icon */}
+                                    <div
                                         className={cn(
                                             "p-2 rounded-full shadow-lg",
                                             PRIMARY_COLOR_CLASSES.bgGradient
                                         )}
                                     >
                                         <Zap size={20} className="text-white" />
-                                    </motion.div>
+                                    </div>
 
                                     {/* Copyright text */}
                                     <div className="text-center sm:text-right">
-                                        <motion.p
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            transition={{ delay: 0.5 }}
+                                        <p
                                             className={cn(
                                                 "text-sm font-bold tracking-wide",
                                                 PRIMARY_COLOR_CLASSES.text
                                             )}
                                         >
                                             © {new Date().getFullYear()} Shomyn
-                                        </motion.p>
-                                        <motion.p
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            transition={{ delay: 0.7 }}
-                                            className="text-xs text-gray-500 dark:text-gray-400 font-medium"
-                                        >
+                                        </p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                                             {lang === 'en' ? 'Made with' : '愛を込めて'}
-                                            <motion.span
-                                                animate={{ scale: [1, 1.2, 1] }}
-                                                transition={{ duration: 1.5, repeat: Infinity }}
-                                                className="inline-block mx-1 text-red-500"
-                                            >
-                                                ♥
-                                            </motion.span>
+                                            <span className="inline-block mx-1 text-red-500">♥</span>
                                             {lang === 'en' ? 'by Shomyn Team' : 'Shomynチーム'}
-                                        </motion.p>
+                                        </p>
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Floating particles animation */}
-                            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                                {[...Array(3)].map((_, i) => (
-                                    <motion.div
-                                        key={i}
-                                        className={cn(
-                                            "absolute w-2 h-2 rounded-full opacity-30",
-                                            PRIMARY_COLOR_CLASSES.bgLight
-                                        )}
-                                        animate={{
-                                            x: [0, 100, 0],
-                                            y: [0, -50, 0],
-                                            opacity: [0.3, 0.7, 0.3]
-                                        }}
-                                        transition={{
-                                            duration: 4 + i,
-                                            repeat: Infinity,
-                                            delay: i * 0.5
-                                        }}
-                                        style={{
-                                            left: `${20 + i * 30}%`,
-                                            top: `${50 + i * 10}%`
-                                        } as React.CSSProperties}
-                                    />
-                                ))}
-                            </div>
-                        </motion.div>
+                        </div>
                     </footer>
                 </div>
 

@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { getPrimaryColorClasses, THEME_VARIANTS } from '@/constants/themes';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
-import { motion, AnimatePresence } from 'framer-motion';
+
 import { Button } from '@/components/ui/button';
 import { updateUserBalance } from '@/services/user';
 import { getItemFromLocalStorage, setItemToLocalStorage } from '@/utils/localStorage';
@@ -384,25 +384,18 @@ export default function Settings() {
             </div>
 
             {/* Balance Edit Modal */}
-            <AnimatePresence>
-                {isBalanceModalOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-                        onClick={() => setIsBalanceModalOpen(false)}
+            {isBalanceModalOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+                    onClick={() => setIsBalanceModalOpen(false)}
+                >
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        className={cn(
+                            "w-full max-w-md rounded-2xl p-6 shadow-xl",
+                            theme === 'light' ? 'bg-white' : 'bg-slate-800'
+                        )}
                     >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            onClick={(e) => e.stopPropagation()}
-                            className={cn(
-                                "w-full max-w-md rounded-2xl p-6 shadow-xl",
-                                theme === 'light' ? 'bg-white' : 'bg-slate-800'
-                            )}
-                        >
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">
                                     {lang === 'en' ? 'Edit Balance' : '残高を編集'}
@@ -462,10 +455,9 @@ export default function Settings() {
                                     )}
                                 </Button>
                             </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

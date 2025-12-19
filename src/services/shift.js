@@ -27,13 +27,18 @@ export const deleteUserShift = async (userId, shiftId) => {
         throw new Error('Shift ID is required');
     }
     try {
-        const { error } = await supabase
+        const { data, error, count } = await supabase
             .from("user_shift")
             .delete()
             .eq('id', shiftId)
-            .eq('user_id', userId);
+            .eq('user_id', userId)
+            .select();
         if (error) {
             throw new Error(`Failed to delete user shift: ${error.message}`);
+        }
+        console.log('Delete result:', { data, count, deletedRows: data?.length });
+        if (!data || data.length === 0) {
+            throw new Error('No rows were deleted. Check if the shift exists and belongs to the user.');
         }
     }
     catch (error) {
