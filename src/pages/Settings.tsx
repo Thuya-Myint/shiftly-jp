@@ -24,7 +24,7 @@ export default function Settings() {
     useEffect(() => {
         try {
             const userData = getItemFromLocalStorage(STORAGE_KEYS.USER_DATA);
-            console.log("userData", userData)
+
             if (userData) {
                 setUserBalance(userData?.balance || 0);
             }
@@ -396,65 +396,65 @@ export default function Settings() {
                             theme === 'light' ? 'bg-white' : 'bg-slate-800'
                         )}
                     >
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                                    {lang === 'en' ? 'Edit Balance' : '残高を編集'}
-                                </h3>
-                                <button
-                                    onClick={() => setIsBalanceModalOpen(false)}
-                                    className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700"
-                                >
-                                    <X size={20} className="text-gray-500" />
-                                </button>
-                            </div>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                                {lang === 'en' ? 'Edit Balance' : '残高を編集'}
+                            </h3>
+                            <button
+                                onClick={() => setIsBalanceModalOpen(false)}
+                                className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700"
+                            >
+                                <X size={20} className="text-gray-500" />
+                            </button>
+                        </div>
 
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    {lang === 'en' ? 'New Balance (¥)' : '新しい残高 (¥)'}
-                                </label>
-                                <input
-                                    type="number"
-                                    inputMode="numeric"
-                                    pattern="[0-9]*"
-                                    value={newBalance}
-                                    onChange={(e) => setNewBalance(e.target.value)}
-                                    onInput={(e) => setNewBalance((e.target as HTMLInputElement).value)}
-                                    className={cn(
-                                        "w-full px-4 py-3 rounded-xl border-2 transition-colors text-lg",
-                                        "focus:outline-none focus:ring-0",
-                                        primaryColors.border,
-                                        theme === 'light'
-                                            ? 'bg-white text-gray-900'
-                                            : 'bg-slate-700 text-white border-slate-600'
-                                    )}
-                                    placeholder="0"
-                                    autoFocus
-                                />
-                            </div>
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                {lang === 'en' ? 'New Balance (¥)' : '新しい残高 (¥)'}
+                            </label>
+                            <input
+                                type="number"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                value={newBalance}
+                                onChange={(e) => setNewBalance(e.target.value)}
+                                onInput={(e) => setNewBalance((e.target as HTMLInputElement).value)}
+                                className={cn(
+                                    "w-full px-4 py-3 rounded-xl border-2 transition-colors text-lg",
+                                    "focus:outline-none focus:ring-0",
+                                    primaryColors.border,
+                                    theme === 'light'
+                                        ? 'bg-white text-gray-900'
+                                        : 'bg-slate-700 text-white border-slate-600'
+                                )}
+                                placeholder="0"
+                                autoFocus
+                            />
+                        </div>
 
-                            <div className="flex gap-3">
-                                <Button
-                                    onClick={() => setIsBalanceModalOpen(false)}
-                                    variant="outline"
-                                    className="flex-1"
-                                >
-                                    {lang === 'en' ? 'Cancel' : 'キャンセル'}
-                                </Button>
-                                <Button
-                                    onClick={handleBalanceUpdate}
-                                    disabled={isUpdatingBalance}
-                                    className={cn("flex-1 text-white", primaryColors.bgGradient)}
-                                >
-                                    {isUpdatingBalance ? (
-                                        <>
-                                            <Loader2 size={16} className="animate-spin mr-2" />
-                                            {lang === 'en' ? 'Saving...' : '保存中...'}
-                                        </>
-                                    ) : (
-                                        lang === 'en' ? 'Save' : '保存'
-                                    )}
-                                </Button>
-                            </div>
+                        <div className="flex gap-3">
+                            <Button
+                                onClick={() => setIsBalanceModalOpen(false)}
+                                variant="outline"
+                                className="flex-1"
+                            >
+                                {lang === 'en' ? 'Cancel' : 'キャンセル'}
+                            </Button>
+                            <Button
+                                onClick={handleBalanceUpdate}
+                                disabled={isUpdatingBalance}
+                                className={cn("flex-1 text-white", primaryColors.bgGradient)}
+                            >
+                                {isUpdatingBalance ? (
+                                    <>
+                                        <Loader2 size={16} className="animate-spin mr-2" />
+                                        {lang === 'en' ? 'Saving...' : '保存中...'}
+                                    </>
+                                ) : (
+                                    lang === 'en' ? 'Save' : '保存'
+                                )}
+                            </Button>
+                        </div>
                     </div>
                 </div>
             )}
