@@ -30,8 +30,6 @@ export const Header = ({ theme, lang, primaryColors }) => {
         setIsLoggingOut(true);
         try {
             await logout();
-            // Force reload to clear all state and redirect
-            window.location.replace('/login');
         }
         catch (error) {
             console.error('Logout failed:', error);
