@@ -69,12 +69,6 @@ export const Header = ({
             return;
         }
         
-        const existingData = getItemFromLocalStorage(STORAGE_KEYS.USER_DATA);
-        if (existingData) {
-            setUserBalance(existingData?.balance || 0);
-            return;
-        }
-        
         try {
             const data = await fetchUserData(user.id);
             if (data) {

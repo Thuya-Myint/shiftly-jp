@@ -41,3 +41,11 @@ export const removeItemFromLocalStorage = (key: string): void => {
         console.error(`Failed to remove localStorage item '${key}':`, error);
     }
 };
+
+export const clearAllLocalStorage = (): void => {
+    try {
+        localStorage.clear();
+    } catch (error) {
+        console.error('Failed to clear localStorage:', error);
+    }
+};
