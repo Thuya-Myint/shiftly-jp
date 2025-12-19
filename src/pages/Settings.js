@@ -1,0 +1,99 @@
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Palette, Sun, Moon, ChevronDown, Languages, Monitor, User, Edit3, X, Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { getPrimaryColorClasses, THEME_VARIANTS } from '@/constants/themes';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/hooks/useAuth';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { updateUserBalance } from '@/services/user';
+import { getItemFromLocalStorage, setItemToLocalStorage } from '@/utils/localStorage';
+import { STORAGE_KEYS } from '@/constants';
+export default function Settings() {
+    const navigate = useNavigate();
+    const { user } = useAuth();
+    const { theme, variantIndex, lang, setTheme, setVariantIndex, setLang } = useTheme();
+    const [expandedSection, setExpandedSection] = useState(null);
+    const [userBalance, setUserBalance] = useState(0);
+    const [isBalanceModalOpen, setIsBalanceModalOpen] = useState(false);
+    const [newBalance, setNewBalance] = useState('');
+    const [isUpdatingBalance, setIsUpdatingBalance] = useState(false);
+    useEffect(() => {
+        try {
+            const userData = getItemFromLocalStorage(STORAGE_KEYS.USER_DATA);
+            if (userData) {
+                setUserBalance(userData?.balance || 0);
+            }
+        }
+        catch (error) {
+            console.error('Failed to load user data:', error);
+            setUserBalance(0);
+        }
+    }, []);
+    const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+    const userAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
+    const primaryColors = getPrimaryColorClasses(variantIndex, theme);
+    const themeVariant = THEME_VARIANTS[variantIndex];
+    const appClasses = theme === 'light' ? themeVariant.light : themeVariant.dark;
+    const toggleSection = (section) => {
+        try {
+            setExpandedSection(expandedSection === section ? null : section);
+        }
+        catch (error) {
+            console.error('Failed to toggle section:', error);
+        }
+    };
+    const handleBalanceUpdate = async () => {
+        if (!user?.id) {
+            console.error('No user ID available');
+            return;
+        }
+        const balance = parseInt(newBalance) || 0;
+        if (balance < 0) {
+            console.error('Invalid balance amount');
+            return;
+        }
+        setIsUpdatingBalance(true);
+        try {
+            const response = await updateUserBalance(user?.id, balance);
+            if (response) {
+                setUserBalance(balance);
+                const userData = getItemFromLocalStorage(STORAGE_KEYS.USER_DATA) || {};
+                userData.balance = balance;
+                setItemToLocalStorage(STORAGE_KEYS.USER_DATA, userData);
+                setIsBalanceModalOpen(false);
+                setNewBalance('');
+            }
+        }
+        catch (error) {
+            console.error('Failed to update balance:', error);
+        }
+        finally {
+            setIsUpdatingBalance(false);
+        }
+    };
+    const openBalanceModal = () => {
+        try {
+            setNewBalance(userBalance.toString());
+            setIsBalanceModalOpen(true);
+        }
+        catch (error) {
+            console.error('Failed to open balance modal:', error);
+        }
+    };
+    return (_jsxs("div", { className: cn("min-h-screen", appClasses), children: [_jsxs("div", { className: "max-w-2xl mx-auto p-4", children: [_jsxs("div", { className: "flex items-center gap-4 mb-6", children: [_jsx("button", { onClick: () => navigate('/shifts'), className: cn("p-2 rounded-xl border-2 transition-colors", primaryColors.border, theme === 'light' ? 'bg-white hover:bg-gray-50' : 'bg-slate-800 hover:bg-slate-700'), children: _jsx(ArrowLeft, { size: 20 }) }), _jsx("h1", { className: cn("text-2xl font-bold", primaryColors.text), children: lang === 'en' ? 'Settings' : '設定' })] }), _jsxs("div", { className: "space-y-4", children: [_jsxs("div", { className: cn("rounded-xl border overflow-hidden", theme === 'light' ? 'bg-white border-gray-200' : 'bg-slate-800 border-slate-700'), children: [_jsxs("button", { onClick: () => toggleSection('user'), className: cn("w-full flex items-center justify-between p-4 text-left transition-colors", theme === 'light' ? 'hover:bg-gray-50' : 'hover:bg-slate-700'), children: [_jsxs("div", { className: "flex items-center gap-3", children: [_jsx(User, { size: 20, className: primaryColors.text }), _jsx("span", { className: "text-lg font-semibold text-gray-900 dark:text-white", children: lang === 'en' ? 'User Information' : 'ユーザー情報' })] }), _jsx(ChevronDown, { size: 20, className: cn("transition-transform text-gray-500", expandedSection === 'user' && 'rotate-180') })] }), expandedSection === 'user' && (_jsx("div", { className: cn("p-4 border-t", theme === 'light' ? 'border-gray-200 bg-gray-50' : 'border-slate-700 bg-slate-700/50'), children: _jsxs("div", { className: "space-y-4", children: [_jsxs("div", { className: "flex items-center gap-4", children: [userAvatar ? (_jsx("img", { src: userAvatar, alt: userName, className: "w-16 h-16 rounded-full border-2 border-white dark:border-slate-600" })) : (_jsx("div", { className: cn("w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl", primaryColors.bgGradient), children: userName.charAt(0).toUpperCase() })), _jsxs("div", { children: [_jsx("h3", { className: "font-semibold text-gray-900 dark:text-white", children: userName }), _jsx("p", { className: "text-sm text-gray-600 dark:text-gray-400", children: user?.email })] })] }), _jsxs("div", { className: "grid grid-cols-2 gap-4", children: [_jsxs("div", { className: cn("p-3 rounded-lg", theme === 'light' ? 'bg-white' : 'bg-slate-600'), children: [_jsx("p", { className: "text-xs text-gray-500 dark:text-gray-400", children: lang === 'en' ? 'Login Method' : 'ログイン方法' }), _jsxs("div", { className: "flex items-center gap-2", children: [_jsxs("svg", { className: "w-4 h-4", viewBox: "0 0 24 24", children: [_jsx("path", { fill: "#4285F4", d: "M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" }), _jsx("path", { fill: "#34A853", d: "M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" }), _jsx("path", { fill: "#FBBC05", d: "M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" }), _jsx("path", { fill: "#EA4335", d: "M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" })] }), _jsx("span", { className: "font-medium text-gray-900 dark:text-white", children: "Google" })] })] }), _jsx("button", { onClick: openBalanceModal, className: cn("p-3 rounded-lg transition-colors hover:opacity-80 group", theme === 'light' ? 'bg-white hover:bg-gray-50' : 'bg-slate-600 hover:bg-slate-500'), children: _jsxs("div", { className: "flex items-center justify-between", children: [_jsxs("div", { className: "text-left", children: [_jsx("p", { className: "text-xs text-gray-500 dark:text-gray-400", children: lang === 'en' ? 'Balance' : '残高' }), _jsxs("p", { className: "font-bold text-green-600 dark:text-green-400", children: ["\u00A5", userBalance.toLocaleString()] })] }), _jsx(Edit3, { size: 16, className: "text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" })] }) })] })] }) }))] }), _jsxs("div", { className: cn("rounded-xl border overflow-hidden", theme === 'light' ? 'bg-white border-gray-200' : 'bg-slate-800 border-slate-700'), children: [_jsxs("button", { onClick: () => toggleSection('language'), className: cn("w-full flex items-center justify-between p-4 text-left transition-colors", theme === 'light' ? 'hover:bg-gray-50' : 'hover:bg-slate-700'), children: [_jsxs("div", { className: "flex items-center gap-3", children: [_jsx(Languages, { size: 20, className: primaryColors.text }), _jsx("span", { className: "text-lg font-semibold text-gray-900 dark:text-white", children: lang === 'en' ? 'Language' : '言語' })] }), _jsx(ChevronDown, { size: 20, className: cn("transition-transform text-gray-500", expandedSection === 'language' && 'rotate-180') })] }), expandedSection === 'language' && (_jsx("div", { className: cn("p-4 border-t", theme === 'light' ? 'border-gray-200 bg-gray-50' : 'border-slate-700 bg-slate-700/50'), children: _jsxs("div", { className: "flex gap-2", children: [_jsx("button", { onClick: () => setLang('en'), className: cn("px-4 py-2 rounded-lg font-medium transition-colors", lang === 'en'
+                                                        ? cn(primaryColors.bgGradient, "text-white")
+                                                        : "bg-gray-100 dark:bg-slate-600 text-gray-700 dark:text-gray-300"), children: "English" }), _jsx("button", { onClick: () => setLang('jp'), className: cn("px-4 py-2 rounded-lg font-medium transition-colors", lang === 'jp'
+                                                        ? cn(primaryColors.bgGradient, "text-white")
+                                                        : "bg-gray-100 dark:bg-slate-600 text-gray-700 dark:text-gray-300"), children: "\u65E5\u672C\u8A9E" })] }) }))] }), _jsxs("div", { className: cn("rounded-xl border overflow-hidden", theme === 'light' ? 'bg-white border-gray-200' : 'bg-slate-800 border-slate-700'), children: [_jsxs("button", { onClick: () => toggleSection('theme'), className: cn("w-full flex items-center justify-between p-4 text-left transition-colors", theme === 'light' ? 'hover:bg-gray-50' : 'hover:bg-slate-700'), children: [_jsxs("div", { className: "flex items-center gap-3", children: [_jsx(Monitor, { size: 20, className: primaryColors.text }), _jsx("span", { className: "text-lg font-semibold text-gray-900 dark:text-white", children: lang === 'en' ? 'Appearance' : 'テーマ' })] }), _jsx(ChevronDown, { size: 20, className: cn("transition-transform text-gray-500", expandedSection === 'theme' && 'rotate-180') })] }), expandedSection === 'theme' && (_jsx("div", { className: cn("p-4 border-t", theme === 'light' ? 'border-gray-200 bg-gray-50' : 'border-slate-700 bg-slate-700/50'), children: _jsxs("div", { className: "flex gap-2", children: [_jsxs("button", { onClick: () => setTheme('light'), className: cn("flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors", theme === 'light'
+                                                        ? cn(primaryColors.bgGradient, "text-white")
+                                                        : "bg-gray-100 dark:bg-slate-600 text-gray-700 dark:text-gray-300"), children: [_jsx(Sun, { size: 16 }), lang === 'en' ? 'Light' : 'ライト'] }), _jsxs("button", { onClick: () => setTheme('dark'), className: cn("flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors", theme === 'dark'
+                                                        ? cn(primaryColors.bgGradient, "text-white")
+                                                        : "bg-gray-100 dark:bg-slate-600 text-gray-700 dark:text-gray-300"), children: [_jsx(Moon, { size: 16 }), lang === 'en' ? 'Dark' : 'ダーク'] })] }) }))] }), _jsxs("div", { className: cn("rounded-xl border overflow-hidden", theme === 'light' ? 'bg-white border-gray-200' : 'bg-slate-800 border-slate-700'), children: [_jsxs("button", { onClick: () => toggleSection('colors'), className: cn("w-full flex items-center justify-between p-4 text-left transition-colors", theme === 'light' ? 'hover:bg-gray-50' : 'hover:bg-slate-700'), children: [_jsxs("div", { className: "flex items-center gap-3", children: [_jsx(Palette, { size: 20, className: primaryColors.text }), _jsx("span", { className: "text-lg font-semibold text-gray-900 dark:text-white", children: lang === 'en' ? 'Color Palette' : 'カラーパレット' })] }), _jsx(ChevronDown, { size: 20, className: cn("transition-transform text-gray-500", expandedSection === 'colors' && 'rotate-180') })] }), expandedSection === 'colors' && (_jsx("div", { className: cn("p-4 border-t", theme === 'light' ? 'border-gray-200 bg-gray-50' : 'border-slate-700 bg-slate-700/50'), children: _jsx("div", { className: "grid grid-cols-2 gap-3", children: THEME_VARIANTS.map((variant, index) => (_jsxs("button", { onClick: () => setVariantIndex(index), className: cn("flex items-center justify-between p-3 rounded-lg transition-colors border-2", index === variantIndex
+                                                    ? cn(primaryColors.border, primaryColors.bgLight + '/20 dark:' + primaryColors.bgDark + '/20')
+                                                    : "border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-600"), children: [_jsx("span", { className: "text-sm font-medium text-gray-900 dark:text-white", children: variant.name }), _jsxs("div", { className: "flex gap-1", children: [_jsx("div", { className: cn("w-4 h-4 rounded-full", variant.lightPreview) }), _jsx("div", { className: cn("w-4 h-4 rounded-full", variant.darkPreview) })] })] }, index))) }) }))] })] })] }), _jsx(AnimatePresence, { children: isBalanceModalOpen && (_jsx(motion.div, { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, className: "fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4", onClick: () => setIsBalanceModalOpen(false), children: _jsxs(motion.div, { initial: { scale: 0.9, opacity: 0 }, animate: { scale: 1, opacity: 1 }, exit: { scale: 0.9, opacity: 0 }, onClick: (e) => e.stopPropagation(), className: cn("w-full max-w-md rounded-2xl p-6 shadow-xl", theme === 'light' ? 'bg-white' : 'bg-slate-800'), children: [_jsxs("div", { className: "flex items-center justify-between mb-4", children: [_jsx("h3", { className: "text-lg font-bold text-gray-900 dark:text-white", children: lang === 'en' ? 'Edit Balance' : '残高を編集' }), _jsx("button", { onClick: () => setIsBalanceModalOpen(false), className: "p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700", children: _jsx(X, { size: 20, className: "text-gray-500" }) })] }), _jsxs("div", { className: "mb-6", children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2", children: lang === 'en' ? 'New Balance (¥)' : '新しい残高 (¥)' }), _jsx("input", { type: "number", inputMode: "numeric", pattern: "[0-9]*", value: newBalance, onChange: (e) => setNewBalance(e.target.value), onInput: (e) => setNewBalance(e.target.value), className: cn("w-full px-4 py-3 rounded-xl border-2 transition-colors text-lg", "focus:outline-none focus:ring-0", primaryColors.border, theme === 'light'
+                                            ? 'bg-white text-gray-900'
+                                            : 'bg-slate-700 text-white border-slate-600'), placeholder: "0", autoFocus: true })] }), _jsxs("div", { className: "flex gap-3", children: [_jsx(Button, { onClick: () => setIsBalanceModalOpen(false), variant: "outline", className: "flex-1", children: lang === 'en' ? 'Cancel' : 'キャンセル' }), _jsx(Button, { onClick: handleBalanceUpdate, disabled: isUpdatingBalance, className: cn("flex-1 text-white", primaryColors.bgGradient), children: isUpdatingBalance ? (_jsxs(_Fragment, { children: [_jsx(Loader2, { size: 16, className: "animate-spin mr-2" }), lang === 'en' ? 'Saving...' : '保存中...'] })) : (lang === 'en' ? 'Save' : '保存') })] })] }) })) })] }));
+}

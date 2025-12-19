@@ -1,0 +1,16 @@
+export const yen = new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' });
+export const DAY_NAMES_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+export const DAY_NAMES_JP = ['日', '月', '火', '水', '木', '金', '土'];
+export const LOCAL_STORAGE_KEY = 'shiftTrackerShifts';
+export const STORAGE_KEYS = {
+    SHIFTS: 'shiftTrackerShifts',
+    USER_DATA: 'userData',
+    PWA_INSTALL_PROMPT: 'pwa-install-prompt-seen'
+};
+export const DB_NAME = 'ShiftTrackerDB';
+export const DB_VERSION = 1;
+export const STORE_NAME = 'shifts';
+export const ITEM_HEIGHT_SM = 32;
+export const ITEM_HEIGHT_LG = 40;
+export const CONTAINER_HEIGHT_MULTIPLIER_SM = 5;
+export const CONTAINER_HEIGHT_MULTIPLIER_LG = 3;

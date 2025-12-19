@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { STORAGE_KEYS } from '@/constants';
+import { THEME_VARIANTS } from '@/constants/themes';
 import { getItemFromLocalStorage, setItemToLocalStorage } from '@/utils/localStorage';
 import type { Lang } from '@/types/shift';
 
