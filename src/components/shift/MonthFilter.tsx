@@ -31,15 +31,18 @@ export function MonthFilter({
   primaryColors: ReturnType<typeof getPrimaryColorClasses>;
 }) {
   const strings = LANG_STRINGS[lang];
+
   const [year, setYear] = useState(
     selectedMonth?.getFullYear() ?? new Date().getFullYear()
   );
+
+  const [open, setOpen] = useState(false);
 
   const months = lang === "en" ? MONTHS_EN : MONTHS_JP;
 
   return (
     <div className="flex-1 min-w-0">
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -105,7 +108,10 @@ export function MonthFilter({
                 <Button
                   key={label}
                   variant="ghost"
-                  onClick={() => onMonthSelect(date)}
+                  onClick={() => {
+                    onMonthSelect(date);
+                    setOpen(false); // ✅ CLOSE ON SELECT
+                  }}
                   className={cn(
                     "h-9 text-sm rounded-lg",
                     isSelected

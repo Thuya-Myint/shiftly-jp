@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { X, CalendarIcon, Zap } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-import * as Slider from '@radix-ui/react-slider';
 
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
@@ -13,27 +12,7 @@ import { yen } from '@/constants';
 import { calculateHours } from '@/utils/time';
 import type { Shift, Lang, ShiftFormState } from '@/types/shift';
 
-/* =========================
-   Time helpers (added only)
-========================= */
-
-const STEP = 15;
-const DAY_MINUTES = 24 * 60;
-
-const toMinutes = (t: string) => {
-  const [h, m] = t.split(':').map(Number);
-  return h * 60 + m;
-};
-
-const toTime = (m: number) => {
-  const h = Math.floor(m / 60).toString().padStart(2, '0');
-  const mm = (m % 60).toString().padStart(2, '0');
-  return `${h}:${mm}`;
-};
-
-/* =========================
-   Component
-========================= */
+const TIME_STEP_SECONDS = 15 * 60; // 15 minutes
 
 export function AddEditShiftModal({
   isOpen,
@@ -45,10 +24,16 @@ export function AddEditShiftModal({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (shift: { id: string; shift_date: string; start_time: string; end_time: string; wage?: number }) => void;
+  onSubmit: (shift: {
+    id: string;
+    shift_date: string;
+    start_time: string;
+    end_time: string;
+    wage?: number;
+  }) => void;
   initialShift: Shift | null;
   lang: Lang;
-  primaryColors: ReturnType<typeof getPrimaryColorClasses>
+  primaryColors: ReturnType<typeof getPrimaryColorClasses>;
 }) {
   const strings = LANG_STRINGS[lang];
 
@@ -72,9 +57,6 @@ export function AddEditShiftModal({
   const hours = calculateHours(form.fromTime, form.toTime);
   const pay = Math.round(hours * (parseFloat(form.wage) || 0));
 
-  const startMin = toMinutes(form.fromTime);
-  const endMin = toMinutes(form.toTime);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -90,11 +72,12 @@ export function AddEditShiftModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[10000] bg-black/50 flex items-center justify-center p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-[10000] bg-black/50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
       <div
-        className={cn(
-          "w-full max-w-md rounded-3xl p-6 relative bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700/80 shadow-2xl"
-        )}
+        className="w-full max-w-md rounded-3xl p-6 relative bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700/80 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className={cn("text-2xl font-extrabold mb-6", primaryColors.text)}>
@@ -110,7 +93,7 @@ export function AddEditShiftModal({
 
         <form onSubmit={handleSubmit} className="space-y-6">
 
-          {/* Date Picker (UNCHANGED) */}
+          {/* Date Picker */}
           <div>
             <label className="block text-sm font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2">
               {lang === 'en' ? 'Date' : '日付'}
@@ -141,76 +124,36 @@ export function AddEditShiftModal({
             </Popover>
           </div>
 
-          {/* =========================
-              Time Range Slider (NEW)
-          ========================= */}
-
+          {/* Time Pickers (NATIVE HTML) */}
           <div>
             <label className="block text-sm font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-3">
               {strings.start} – {strings.end}
             </label>
 
-            <Slider.Root
-              value={[startMin, endMin]}
-              min={0}
-              max={DAY_MINUTES}
-              step={STEP}
-              minStepsBetweenThumbs={1}
-              onValueChange={([s, e]) =>
-                setForm(p => ({
-                  ...p,
-                  fromTime: toTime(s),
-                  toTime: toTime(e),
-                }))
-              }
-              className="relative flex items-center h-8"
-            >
-              <Slider.Track
-                className={cn(
-                  "relative grow h-2 rounded-full",
-                  primaryColors.bgLight + "/40"
-                )}
-              >
-                <Slider.Range
-                  className={cn(
-                    "absolute h-full rounded-full",
-                    primaryColors.bgGradient
-                  )}
-                />
-              </Slider.Track>
-
-              <Slider.Thumb
-                className={cn(
-                  "block w-5 h-5 rounded-full border-2 bg-white dark:bg-slate-900 shadow-md",
-                  primaryColors.border
-                )}
-              />
-              <Slider.Thumb
-                className={cn(
-                  "block w-5 h-5 rounded-full border-2 bg-white dark:bg-slate-900 shadow-md",
-                  primaryColors.border
-                )}
-              />
-            </Slider.Root>
-
-            {/* Manual time inputs (kept for precision) */}
-            <div className="flex gap-2 mt-4">
+            <div className="flex gap-2">
               <Input
                 type="time"
-                step={STEP * 60}
+                step={TIME_STEP_SECONDS}
                 value={form.fromTime}
-                onChange={(e) => setForm(p => ({ ...p, fromTime: e.target.value }))}
+                onChange={(e) =>
+                  setForm(p => ({ ...p, fromTime: e.target.value }))
+                }
+                className={cn("h-12", primaryColors.border)}
               />
+
               <Input
                 type="time"
-                step={STEP * 60}
+                step={TIME_STEP_SECONDS}
                 value={form.toTime}
-                onChange={(e) => setForm(p => ({ ...p, toTime: e.target.value }))}
+                onChange={(e) =>
+                  setForm(p => ({ ...p, toTime: e.target.value }))
+                }
+                className={cn("h-12", primaryColors.border)}
               />
             </div>
           </div>
 
-          {/* Wage (UNCHANGED) */}
+          {/* Wage */}
           <div>
             <label className="block text-sm font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2">
               <span className="flex items-center">
@@ -224,26 +167,42 @@ export function AddEditShiftModal({
                 type="number"
                 step="100"
                 value={form.wage}
-                onChange={(e) => setForm(p => ({ ...p, wage: e.target.value }))}
+                onChange={(e) =>
+                  setForm(p => ({ ...p, wage: e.target.value }))
+                }
                 className={cn("pl-10", primaryColors.border)}
               />
-              <span className={cn("absolute left-3 top-1/2 -translate-y-1/2 font-bold", primaryColors.text)}>
+              <span
+                className={cn(
+                  "absolute left-3 top-1/2 -translate-y-1/2 font-bold",
+                  primaryColors.text
+                )}
+              >
                 ¥
               </span>
             </div>
           </div>
 
-          {/* Summary (UNCHANGED) */}
-          <div className={cn(
-            "p-4 rounded-xl flex justify-between items-center shadow-md",
-            primaryColors.bgLight + "/50 dark:" + primaryColors.bgDark
-          )}>
+          {/* Summary */}
+          <div
+            className={cn(
+              "p-4 rounded-xl flex justify-between items-center shadow-md",
+              primaryColors.bgLight + "/50 dark:" + primaryColors.bgDark
+            )}
+          >
             <div>
-              <p className="text-sm text-gray-700 dark:text-gray-400">{strings.totalHours}</p>
-              <p className={cn("text-2xl font-black", primaryColors.text)}>{hours}</p>
+              <p className="text-sm text-gray-700 dark:text-gray-400">
+                {strings.totalHours}
+              </p>
+              <p className={cn("text-2xl font-black", primaryColors.text)}>
+                {hours}
+              </p>
             </div>
+
             <div>
-              <p className="text-sm text-gray-700 dark:text-gray-400">{strings.totalPay}</p>
+              <p className="text-sm text-gray-700 dark:text-gray-400">
+                {strings.totalPay}
+              </p>
               <p className={cn("text-2xl font-black", primaryColors.text)}>
                 {yen.format(pay)}
               </p>
