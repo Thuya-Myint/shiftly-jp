@@ -26,3 +26,9 @@ export type AlertConfig = {
     message: string;
     onConfirm: () => void;
 } | null;
+
+export type LastShiftDefaults={
+  fromTime:string,
+  toTime:string,
+  wage:string
+}

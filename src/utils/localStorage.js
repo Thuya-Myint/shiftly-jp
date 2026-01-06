@@ -1,3 +1,4 @@
+import { StorageKey } from '../configs/localStorage';
 export const setItemToLocalStorage = (key, value) => {
     if (!key) {
         console.error('Key is required for localStorage operation');
@@ -45,5 +46,24 @@ export const clearAllLocalStorage = () => {
     }
     catch (error) {
         console.error('Failed to clear localStorage:', error);
+    }
+};
+export const getLastShiftDefaults = () => {
+    try {
+        const raw = localStorage.getItem(StorageKey.LAST_SHIFT_DEFAULTS);
+        if (!raw)
+            return null;
+        return JSON.parse(raw);
+    }
+    catch {
+        return null;
+    }
+};
+export const setLastShiftDefaults = (data) => {
+    try {
+        localStorage.setItem(StorageKey.LAST_SHIFT_DEFAULTS, JSON.stringify(data));
+    }
+    catch {
+        // ignore
     }
 };
