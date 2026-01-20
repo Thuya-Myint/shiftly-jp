@@ -57,6 +57,14 @@ export function AddEditShiftModal({
   const hours = calculateHours(form.fromTime, form.toTime);
   const pay = Math.round(hours * (parseFloat(form.wage) || 0));
 
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    // Scroll the input into view when focused, with a slight delay to allow the keyboard to appear
+    const target = e.target;
+    setTimeout(() => {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -73,11 +81,11 @@ export function AddEditShiftModal({
 
   return (
     <div
-      className="fixed inset-0 z-[10000] bg-black/50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[10000] bg-black/50 flex items-start sm:items-center justify-center p-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-3xl p-6 relative bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700/80 shadow-2xl"
+        className="w-full max-w-md my-auto rounded-3xl p-6 relative bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700/80 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className={cn("text-2xl font-extrabold mb-6", primaryColors.text)}>
@@ -135,6 +143,7 @@ export function AddEditShiftModal({
                 type="time"
                 step={TIME_STEP_SECONDS}
                 value={form.fromTime}
+                onFocus={handleFocus}
                 onChange={(e) =>
                   setForm(p => ({ ...p, fromTime: e.target.value }))
                 }
@@ -145,6 +154,7 @@ export function AddEditShiftModal({
                 type="time"
                 step={TIME_STEP_SECONDS}
                 value={form.toTime}
+                onFocus={handleFocus}
                 onChange={(e) =>
                   setForm(p => ({ ...p, toTime: e.target.value }))
                 }
@@ -167,6 +177,7 @@ export function AddEditShiftModal({
                 type="number"
                 step="100"
                 value={form.wage}
+                onFocus={handleFocus}
                 onChange={(e) =>
                   setForm(p => ({ ...p, wage: e.target.value }))
                 }
