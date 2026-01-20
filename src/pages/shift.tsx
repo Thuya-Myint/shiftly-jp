@@ -93,15 +93,21 @@ export default function ShiftTracker() {
       }
 
       try {
-        setIsLoading(true)
+        setIsLoading(true);
         // Always fetch fresh user data (balance) from Supabase
         const userData = await fetchUserData(user.id);
         if (userData) {
           setItemToLocalStorage(STORAGE_KEYS.USER_DATA, userData);
         }
 
-        // Load shifts from Supabase
-        const shiftsData = await fetchUserShifts(user.id);
+        // Load shifts from Supabase with date range filtering if a month is selected
+        let startDate, endDate;
+        if (filterMonth) {
+          startDate = format(startOfMonth(filterMonth), 'yyyy-MM-dd');
+          endDate = format(endOfMonth(filterMonth), 'yyyy-MM-dd');
+        }
+
+        const shiftsData = await fetchUserShifts(user.id, startDate, endDate);
         const processedShifts = shiftsData.map(processShiftData);
         setShifts(processedShifts);
       } catch (e) {
@@ -111,7 +117,7 @@ export default function ShiftTracker() {
       setIsLoading(false);
     };
     loadData();
-  }, [user, processShiftData]);
+  }, [user, processShiftData, filterMonth]);
 
 
 
@@ -168,15 +174,19 @@ export default function ShiftTracker() {
     });
   };
 
-  const openAddModal = () => {
+  const openAddModal = useCallback(() => {
     setEditingShift(null);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const openEditModal = (shift: Shift) => {
+  const openEditModal = useCallback((shift: Shift) => {
     setEditingShift(shift);
     setIsModalOpen(true);
-  };
+  }, []);
+
+  const handleDeleteShift = useCallback((id: string) => {
+    deleteShift(id);
+  }, [deleteShift]);
 
 
 
@@ -240,7 +250,7 @@ export default function ShiftTracker() {
             shifts={monthData.shifts}
             theme={theme}
             baseLang={lang}
-            onDelete={deleteShift}
+            onDelete={handleDeleteShift}
             onUpdate={openEditModal}
             primaryColors={PRIMARY_COLOR_CLASSES}
           />

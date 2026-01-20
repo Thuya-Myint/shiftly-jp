@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoadingScreen } from './components/LoadingScreen';
-import ShiftTracker from './pages/shift';
-import Login from './pages/Login';
-import Settings from './pages/Settings';
 import { useAuth } from './hooks/useAuth';
 import { ThemeProvider } from './contexts/ThemeContext';
 
+// Lazy load pages for better initial load performance
+const ShiftTracker = lazy(() => import('./pages/shift'));
+const Login = lazy(() => import('./pages/Login'));
+const Settings = lazy(() => import('./pages/Settings'));
 
 export default function App() {
   const [showLaunchScreen, setShowLaunchScreen] = useState(true);
@@ -25,13 +26,15 @@ export default function App() {
 
   return (
     <ThemeProvider>
-      <Routes>
-        <Route path="/" element={<Navigate to={isAuthenticated ? "/shifts" : "/login"} replace />} />
-        <Route path="/login" element={isAuthenticated ? <Navigate to="/shifts" replace /> : <Login />} />
-        <Route path="/shifts" element={isAuthenticated ? <ShiftTracker /> : <Navigate to="/login" replace />} />
-        <Route path="/settings" element={isAuthenticated ? <Settings /> : <Navigate to="/login" replace />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <Suspense fallback={<LoadingScreen />}>
+        <Routes>
+          <Route path="/" element={<Navigate to={isAuthenticated ? "/shifts" : "/login"} replace />} />
+          <Route path="/login" element={isAuthenticated ? <Navigate to="/shifts" replace /> : <Login />} />
+          <Route path="/shifts" element={isAuthenticated ? <ShiftTracker /> : <Navigate to="/login" replace />} />
+          <Route path="/settings" element={isAuthenticated ? <Settings /> : <Navigate to="/login" replace />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </ThemeProvider>
   );
 }

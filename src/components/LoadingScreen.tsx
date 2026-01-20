@@ -1,119 +1,152 @@
 import { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Zap, Coins, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getPrimaryColorClasses, THEME_VARIANTS } from '@/constants/themes';
 import { STORAGE_KEYS } from '@/constants';
 import { getItemFromLocalStorage } from '@/utils/localStorage';
 
-
-
 export function LoadingScreen() {
-    // Get theme from localStorage
-    const getStoredTheme = () => {
-        const data = getItemFromLocalStorage(STORAGE_KEYS.SHIFTS);
-        if (data) {
-            return {
-                theme: data.theme || 'light',
-                variantIndex: data.variantIndex !== undefined ? data.variantIndex : 0
-            };
-        }
-        return { theme: 'light', variantIndex: 0 };
-    };
-
-    const { theme, variantIndex } = getStoredTheme();
-
-    // Apply theme class immediately before render
-    if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
-    } else {
-        document.documentElement.classList.remove('dark');
+  // Get theme from localStorage
+  const getStoredTheme = () => {
+    const data = getItemFromLocalStorage(STORAGE_KEYS.SHIFTS);
+    if (data) {
+      return {
+        theme: data.theme || 'light',
+        variantIndex: data.variantIndex !== undefined ? data.variantIndex : 0
+      };
     }
-    const PRIMARY_COLOR_CLASSES = getPrimaryColorClasses(variantIndex, theme);
-    const themeVariant = THEME_VARIANTS[variantIndex];
+    return { theme: 'light', variantIndex: 0 };
+  };
 
-    const appClasses = theme === 'light' ? themeVariant.light : themeVariant.dark;
+  const { theme, variantIndex } = getStoredTheme();
 
-    // Get actual color values for spinner
-    const getSpinnerColor = () => {
-        const colorMap = {
-            0: '#06b6d4', // cyan
-            1: '#f97316', // orange  
-            2: '#10b981', // emerald
-            3: '#8b5cf6', // violet
-            4: '#3b82f6', // blue
-            5: '#ef4444', // red
-            6: '#84cc16', // lime
-            7: '#a855f7', // purple
-        };
-        return colorMap[variantIndex as keyof typeof colorMap] || '#8b5cf6';
+  // Apply theme class immediately before render
+  if (theme === 'dark') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+  const PRIMARY_COLOR_CLASSES = getPrimaryColorClasses(variantIndex, theme);
+  const themeVariant = THEME_VARIANTS[variantIndex];
+
+  const appClasses = theme === 'light' ? themeVariant.light : themeVariant.dark;
+
+  // Get actual color values for spinner
+  const getSpinnerColor = () => {
+    const colorMap = {
+      0: '#06b6d4', // cyan
+      1: '#f97316', // orange  
+      2: '#10b981', // emerald
+      3: '#8b5cf6', // violet
+      4: '#3b82f6', // blue
+      5: '#ef4444', // red
+      6: '#84cc16', // lime
+      7: '#a855f7', // purple
     };
+    return colorMap[variantIndex as keyof typeof colorMap] || '#8b5cf6';
+  };
 
-    const spinnerColor = getSpinnerColor();
+  const spinnerColor = getSpinnerColor();
 
-    return (
-        <div 
-            className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
-            style={{
-                background: theme === 'light' 
-                    ? 'linear-gradient(to bottom right, rgb(248 250 252), rgb(241 245 249), rgb(255 255 255))'
-                    : 'linear-gradient(to bottom right, rgb(15 23 42), rgb(30 41 59), rgb(51 65 85))'
+  const backgroundIcons = [
+    { Icon: Zap, x: "10%", y: "15%", size: 40 },
+    { Icon: Clock, x: "85%", y: "20%", size: 35 },
+    { Icon: Coins, x: "15%", y: "75%", size: 45 },
+    { Icon: Zap, x: "80%", y: "80%", size: 30 },
+    { Icon: Clock, x: "50%", y: "10%", size: 25 },
+    { Icon: Coins, x: "90%", y: "50%", size: 35 },
+  ];
+
+  return (
+    <div
+      className={cn(
+        "min-h-screen flex flex-col items-center justify-center relative overflow-hidden",
+        PRIMARY_COLOR_CLASSES.bgGradient
+      )}
+    >
+      {/* Floating Background Icons (Static Position, Floating Animation) */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {backgroundIcons.map(({ Icon, x, y, size }, i) => (
+          <motion.div
+            key={i}
+            className="absolute text-white/10"
+            style={{ left: x, top: y }}
+            animate={{
+              y: [0, -15, 0],
+              rotate: [0, 10, -10, 0],
             }}
-        >
-            {/* Subtle background */}
-            <div className="absolute inset-0 opacity-5">
-                <div className={cn("absolute inset-0", PRIMARY_COLOR_CLASSES.bgGradient)} />
-            </div>
+            transition={{
+              duration: 5 + i,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <Icon size={size} />
+          </motion.div>
+        ))}
 
-            <div className="text-center relative z-10 px-8">
-                {/* Clock with Yen icon */}
-                <div className="mb-8 flex justify-center">
-                    <div className={cn("relative w-24 h-24 rounded-full flex items-center justify-center shadow-lg", PRIMARY_COLOR_CLASSES.bgGradient)}>
-                        <div className="absolute inset-2 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center">
-                            <span className={cn("text-4xl font-bold", PRIMARY_COLOR_CLASSES.text)}>¥</span>
-                        </div>
-                        <motion.div
-                            className={cn("absolute w-1 h-8 rounded-full top-6 left-1/2 -translate-x-1/2 origin-bottom")}
-                            style={{ background: spinnerColor }}
-                            animate={{ rotate: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360] }}
-                            transition={{
-                                duration: 2.4,
-                                repeat: Infinity,
-                                ease: "linear",
-                                times: [0, 0.083, 0.166, 0.25, 0.333, 0.416, 0.5, 0.583, 0.666, 0.75, 0.833, 0.916, 1]
-                            }}
-                        />
-                    </div>
-                </div>
+        {/* Floating Yen Symbols */}
+        {[...Array(4)].map((_, i) => (
+          <motion.div
+            key={`yen-${i}`}
+            className="absolute font-black text-white/10"
+            style={{
+              left: `${(i * 29 + 10) % 100}%`,
+              top: `${(i * 31 + 15) % 100}%`,
+              fontSize: `${40 + (i * 5)}px`
+            }}
+            animate={{
+              y: [0, 15, 0],
+              rotate: [0, -15, 15, 0],
+            }}
+            transition={{
+              duration: 6 + i,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            ¥
+          </motion.div>
+        ))}
+      </div>
 
-                <h1
-                    className={cn("text-5xl font-bold mb-3", PRIMARY_COLOR_CLASSES.text)}
-                    style={{ fontFamily: 'Fredoka, sans-serif' }}
-                >
-                    Shomyn
-                </h1>
-
-                <p className="text-gray-600 dark:text-gray-400 text-lg mb-8">
-                    Track shifts, save smarter
-                </p>
-
-                <div className="flex justify-center gap-2">
-                    {[...Array(3)].map((_, i) => (
-                        <motion.div
-                            key={i}
-                            className={cn("w-2 h-2 rounded-full", PRIMARY_COLOR_CLASSES.bg)}
-                            animate={{
-                                scale: [1, 1.3, 1],
-                                opacity: [0.4, 1, 0.4]
-                            }}
-                            transition={{
-                                duration: 1.2,
-                                repeat: Infinity,
-                                delay: i * 0.15
-                            }}
-                        />
-                    ))}
-                </div>
-            </div>
+      <div className="text-center relative z-10 px-8">
+        <div className="mb-8 flex justify-center">
+          <div className="w-32 h-32 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center shadow-2xl border border-white/30">
+            <span className="text-7xl font-black text-white drop-shadow-lg">¥</span>
+          </div>
         </div>
-    );
+
+        <h1
+          className="text-6xl font-black tracking-tighter mb-2 text-white drop-shadow-md"
+          style={{ fontFamily: 'Fredoka, sans-serif' }}
+        >
+          Shomyn
+        </h1>
+
+        <p className="text-white/90 text-xl font-medium mb-12 drop-shadow-sm">
+          Track shifts, <span className="font-bold">save smarter</span>
+        </p>
+
+        {/* Simple Progress Bar */}
+        <div className="relative w-48 h-1.5 bg-white/20 rounded-full mx-auto overflow-hidden backdrop-blur-sm">
+          <motion.div
+            className="absolute inset-y-0 left-0 rounded-full bg-white"
+            initial={{ width: "0%" }}
+            animate={{ width: "100%" }}
+            transition={{
+              duration: 2.5,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+        </div>
+
+        <div className="mt-6 text-xs font-black uppercase tracking-[0.3em] text-white/60">
+          Loading...
+        </div>
+      </div>
+    </div>
+  );
 }
