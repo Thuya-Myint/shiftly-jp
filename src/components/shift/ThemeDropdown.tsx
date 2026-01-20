@@ -71,11 +71,11 @@ export function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, 
       {isOpen && (
         <div
           className={cn(
-            `absolute right-0 top-full mt-4 w-72 rounded-[2rem] p-6 shadow-2xl border z-[9999]`,
+            `absolute right-0 top-full mt-4 w-72 rounded-[2rem] p-4 sm:p-6 shadow-2xl border z-[9999]`,
             isLight ? 'bg-white border-gray-100' : 'bg-slate-900 border-white/5 backdrop-blur-2xl'
           )}
         >
-          <div className={`flex justify-between items-center mb-6 p-1.5 rounded-2xl ${isLight ? 'bg-gray-50' : 'bg-white/5'}  `}>
+          <div className={`flex justify-between items-center mb-4 sm:mb-6 p-1.5 rounded-2xl ${isLight ? 'bg-gray-50' : 'bg-white/5'}  `}>
             <button
               onClick={() => handleToggleTheme('light')}
               disabled={isThemeChanging}
@@ -102,13 +102,13 @@ export function ThemeDropdown({ theme, setTheme, variantIndex, setVariantIndex, 
             </button>
           </div>
 
-          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 mb-4 px-1">Color Palette</h3>
+          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 mb-3 sm:mb-4 px-1">Color Palette</h3>
           <div className="space-y-2 flex flex-col overflow-y-auto max-h-[50vh] pr-2 -mr-2">
             {THEME_VARIANTS.map((variant, index) => (
               <div
                 key={index}
                 onClick={() => handleSelectVariant(index)}
-                className={cn("flex items-center justify-between p-3 rounded-2xl cursor-pointer border-2",
+                className={cn("flex items-center justify-between p-2.5 sm:p-3 rounded-2xl cursor-pointer border-2",
                   index === variantIndex
                     ? cn(primaryColors.border, isLight ? 'bg-gray-50' : 'bg-white/5')
                     : 'border-transparent hover:bg-gray-50 dark:hover:bg-white/5'

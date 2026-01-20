@@ -83,11 +83,11 @@ export function AddEditShiftModal({
 
   return (
     <div
-      className="fixed inset-0 z-[10000] bg-black/60 backdrop-blur-sm flex items-start sm:items-center justify-center p-4 overflow-y-auto"
+      className="fixed inset-0 z-[10000] bg-black/60 backdrop-blur-sm flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md my-auto rounded-3xl p-6 relative bg-white dark:bg-slate-900 border border-gray-100 dark:border-white/5 shadow-2xl"
+        className="w-full max-w-md my-auto rounded-3xl p-5 sm:p-6 relative bg-white dark:bg-slate-900 border border-gray-100 dark:border-white/5 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className={cn("text-2xl font-bold tracking-tight mb-6 uppercase", primaryColors.text)}>
@@ -201,7 +201,7 @@ export function AddEditShiftModal({
           {/* Summary */}
           <div
             className={cn(
-              "p-5 rounded-2xl flex justify-between items-center shadow-lg border",
+              "p-4 sm:p-5 rounded-2xl flex justify-between items-center shadow-lg border",
               theme === 'light' ? 'bg-gray-50 border-gray-100' : 'bg-white/5 border-white/5'
             )}
           >

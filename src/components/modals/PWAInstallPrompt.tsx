@@ -45,17 +45,17 @@ export function PWAInstallPrompt({ isOpen, onClose, lang }: { isOpen: boolean; o
 
   return (
     <div
-      className="fixed bottom-6 left-6 right-6 z-[99999] bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-2xl border border-gray-100 dark:border-white/5 backdrop-blur-2xl"
+      className="fixed bottom-4 sm:bottom-6 left-4 sm:left-6 right-4 sm:right-6 z-[99999] bg-white dark:bg-slate-900 rounded-3xl sm:rounded-[2rem] p-4 sm:p-6 shadow-2xl border border-gray-100 dark:border-white/5 backdrop-blur-2xl"
     >
-      <div className="flex items-start gap-4">
-        <div className={cn("p-3 rounded-2xl bg-violet-50 dark:bg-violet-900/20")}>
-          <Plus className="text-violet-600 dark:text-violet-400" size={24} strokeWidth={3} />
+      <div className="flex items-start gap-3 sm:gap-4">
+        <div className={cn("p-2.5 sm:p-3 rounded-2xl bg-violet-50 dark:bg-violet-900/20 flex-shrink-0")}>
+          <Plus className="text-violet-600 dark:text-violet-400 w-5 h-5 sm:w-6 sm:h-6" strokeWidth={3} />
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white mb-1 uppercase">
+          <h3 className="text-base sm:text-lg font-bold tracking-tight text-gray-900 dark:text-white mb-0.5 sm:mb-1 uppercase">
             {lang === 'en' ? 'Add to Home Screen' : 'ホーム画面に追加'}
           </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 font-medium leading-relaxed">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-3 sm:mb-4 font-medium leading-relaxed">
             {lang === 'en'
               ? 'Install Shomyn for quick access and a better experience.'
               : 'より良い体験のためにShomynをインストールしてください。'

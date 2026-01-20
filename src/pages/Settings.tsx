@@ -82,24 +82,24 @@ export default function Settings() {
 
   return (
     <div className={cn("min-h-screen", appClasses)}>
-      <div className="max-w-2xl mx-auto p-6">
-        <div className="flex items-center gap-4 mb-8">
+      <div className="max-w-2xl mx-auto p-3 sm:p-6">
+        <div className="flex items-center gap-3 sm:gap-4 mb-5 sm:mb-8">
           <button
             onClick={() => navigate('/shifts')}
             className={cn(
-              "p-2 rounded-xl border-2",
+              "p-1.5 sm:p-2 rounded-xl border-2",
               primaryColors.border,
               theme === 'light' ? 'bg-white' : 'bg-slate-800'
             )}
           >
-            <ArrowLeft size={20} strokeWidth={2.5} />
+            <ArrowLeft size={18} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
           </button>
-          <h1 className={cn("text-2xl font-bold tracking-tight", primaryColors.text)}>
+          <h1 className={cn("text-xl sm:text-2xl font-bold tracking-tight", primaryColors.text)}>
             {lang === 'en' ? 'SETTINGS' : '設定'}
           </h1>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-3 sm:space-y-6">
           {/* User Information */}
           <div className={cn(
             "rounded-3xl border overflow-hidden shadow-xl",
@@ -108,15 +108,15 @@ export default function Settings() {
             <button
               onClick={() => toggleSection('user')}
               className={cn(
-                "w-full flex items-center justify-between p-6 text-left",
+                "w-full flex items-center justify-between p-3 sm:p-6 text-left",
                 theme === 'light' ? 'hover:bg-gray-50' : 'hover:bg-white/5'
               )}
             >
-              <div className="flex items-center gap-4">
-                <div className={cn("p-2.5 rounded-xl", theme === 'light' ? 'bg-gray-50' : 'bg-white/5')}>
-                  <User size={22} className={primaryColors.text} strokeWidth={2} />
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className={cn("p-2 sm:p-2.5 rounded-xl", theme === 'light' ? 'bg-gray-50' : 'bg-white/5')}>
+                  <User size={20} className={cn("sm:w-[22px] sm:h-[22px]", primaryColors.text)} strokeWidth={2} />
                 </div>
-                <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+                <span className="text-lg sm:text-xl font-bold tracking-tight text-gray-900 dark:text-white">
                   {lang === 'en' ? 'User Profile' : 'ユーザー情報'}
                 </span>
               </div>
@@ -130,20 +130,20 @@ export default function Settings() {
             </button>
             {expandedSection === 'user' && (
               <div className={cn(
-                "p-4 border-t",
+                "p-2.5 sm:p-4 border-t",
                 theme === 'light' ? 'border-gray-200 bg-gray-50' : 'border-slate-700 bg-slate-700/50'
               )}>
                 <div className="space-y-4">
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 sm:gap-4">
                     {userAvatar ? (
                       <img
                         src={userAvatar}
                         alt={userName}
-                        className="w-16 h-16 rounded-full border-2 border-white dark:border-slate-600"
+                        className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 border-white dark:border-slate-600"
                       />
                     ) : (
                       <div className={cn(
-                        "w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl",
+                        "w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-white font-bold text-lg sm:text-xl",
                         primaryColors.bgGradient
                       )}>
                         {userName.charAt(0).toUpperCase()}
@@ -204,15 +204,15 @@ export default function Settings() {
             <button
               onClick={() => toggleSection('language')}
               className={cn(
-                "w-full flex items-center justify-between p-6 text-left",
+                "w-full flex items-center justify-between p-3 sm:p-6 text-left",
                 theme === 'light' ? 'hover:bg-gray-50' : 'hover:bg-white/5'
               )}
             >
-              <div className="flex items-center gap-4">
-                <div className={cn("p-2.5 rounded-xl", theme === 'light' ? 'bg-gray-50' : 'bg-white/5')}>
-                  <Languages size={22} className={primaryColors.text} strokeWidth={2} />
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className={cn("p-2 sm:p-2.5 rounded-xl", theme === 'light' ? 'bg-gray-50' : 'bg-white/5')}>
+                  <Languages size={20} className={cn("sm:w-[22px] sm:h-[22px]", primaryColors.text)} strokeWidth={2} />
                 </div>
-                <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+                <span className="text-lg sm:text-xl font-bold tracking-tight text-gray-900 dark:text-white">
                   {lang === 'en' ? 'Language' : '言語'}
                 </span>
               </div>
@@ -226,7 +226,7 @@ export default function Settings() {
             </button>
             {expandedSection === 'language' && (
               <div className={cn(
-                "p-4 border-t",
+                "p-2.5 sm:p-4 border-t",
                 theme === 'light' ? 'border-gray-200 bg-gray-50' : 'border-slate-700 bg-slate-700/50'
               )}>
                 <div className="flex gap-2">
@@ -265,15 +265,15 @@ export default function Settings() {
             <button
               onClick={() => toggleSection('theme')}
               className={cn(
-                "w-full flex items-center justify-between p-6 text-left",
+                "w-full flex items-center justify-between p-3 sm:p-6 text-left",
                 theme === 'light' ? 'hover:bg-gray-50' : 'hover:bg-white/5'
               )}
             >
-              <div className="flex items-center gap-4">
-                <div className={cn("p-2.5 rounded-xl", theme === 'light' ? 'bg-gray-50' : 'bg-white/5')}>
-                  <Monitor size={22} className={primaryColors.text} strokeWidth={2} />
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className={cn("p-2 sm:p-2.5 rounded-xl", theme === 'light' ? 'bg-gray-50' : 'bg-white/5')}>
+                  <Monitor size={20} className={cn("sm:w-[22px] sm:h-[22px]", primaryColors.text)} strokeWidth={2} />
                 </div>
-                <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+                <span className="text-lg sm:text-xl font-bold tracking-tight text-gray-900 dark:text-white">
                   {lang === 'en' ? 'Appearance' : 'テーマ'}
                 </span>
               </div>
@@ -287,7 +287,7 @@ export default function Settings() {
             </button>
             {expandedSection === 'theme' && (
               <div className={cn(
-                "p-4 border-t",
+                "p-2.5 sm:p-4 border-t",
                 theme === 'light' ? 'border-gray-200 bg-gray-50' : 'border-slate-700 bg-slate-700/50'
               )}>
                 <div className="flex gap-2">
@@ -328,15 +328,15 @@ export default function Settings() {
             <button
               onClick={() => toggleSection('colors')}
               className={cn(
-                "w-full flex items-center justify-between p-6 text-left",
+                "w-full flex items-center justify-between p-3 sm:p-6 text-left",
                 theme === 'light' ? 'hover:bg-gray-50' : 'hover:bg-white/5'
               )}
             >
-              <div className="flex items-center gap-4">
-                <div className={cn("p-2.5 rounded-xl", theme === 'light' ? 'bg-gray-50' : 'bg-white/5')}>
-                  <Palette size={22} className={primaryColors.text} strokeWidth={2} />
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className={cn("p-2 sm:p-2.5 rounded-xl", theme === 'light' ? 'bg-gray-50' : 'bg-white/5')}>
+                  <Palette size={20} className={cn("sm:w-[22px] sm:h-[22px]", primaryColors.text)} strokeWidth={2} />
                 </div>
-                <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+                <span className="text-lg sm:text-xl font-bold tracking-tight text-gray-900 dark:text-white">
                   {lang === 'en' ? 'Color Palette' : 'カラーパレット'}
                 </span>
               </div>
@@ -350,7 +350,7 @@ export default function Settings() {
             </button>
             {expandedSection === 'colors' && (
               <div className={cn(
-                "p-4 border-t",
+                "p-2.5 sm:p-4 border-t",
                 theme === 'light' ? 'border-gray-200 bg-gray-50' : 'border-slate-700 bg-slate-700/50'
               )}>
                 <div className="grid grid-cols-2 gap-3">
@@ -390,7 +390,7 @@ export default function Settings() {
           <div
             onClick={(e) => e.stopPropagation()}
             className={cn(
-              "w-full max-w-md rounded-2xl p-6 shadow-xl",
+              "w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-xl",
               theme === 'light' ? 'bg-white' : 'bg-slate-800'
             )}
           >

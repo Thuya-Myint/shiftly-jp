@@ -18,7 +18,7 @@ export function CustomAlert({ isOpen, onConfirm, onCancel, title, message }: {
       onClick={onCancel}
     >
       <div
-        className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl border border-gray-100 dark:border-white/5"
+        className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-gray-100 dark:border-white/5"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex flex-col items-center text-center">

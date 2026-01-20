@@ -77,21 +77,21 @@ export const Header = ({
   }
 
   return (
-    <header className="w-full max-w-4xl sticky p-4 sm:p-6 top-0 z-40 backdrop-blur-xl bg-transparent/60">
+    <header className="w-full max-w-4xl sticky p-3 sm:p-6 top-0 z-40 backdrop-blur-xl bg-transparent/60">
       <div className="flex justify-between items-center">
         <div className="flex flex-col">
-          <h1 className={cn("text-2xl sm:text-3xl font-bold tracking-tight leading-none", primaryColors.text)}>
+          <h1 className={cn("text-xl sm:text-3xl font-bold tracking-tight leading-none", primaryColors.text)}>
             SHOMYN
           </h1>
           <div className={cn("h-1 w-8 rounded-full mt-1.5", primaryColors.bg)} />
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {user && (
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className={cn(
-                  "flex items-center p-1.5 pl-4 gap-3 rounded-xl cursor-pointer",
+                  "flex items-center p-1 sm:p-1.5 pl-3 sm:pl-4 gap-2 sm:gap-3 rounded-xl cursor-pointer",
                   "shadow-lg border",
                   isDropdownOpen
                     ? theme === 'light'
@@ -104,7 +104,7 @@ export const Header = ({
               >
                 <div className="flex flex-col items-end">
                   <span className="text-[8px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 leading-none mb-0.5">BALANCE</span>
-                  <span className="text-sm font-bold text-green-600 dark:text-green-400 leading-none">
+                  <span className="text-xs sm:text-sm font-bold text-green-600 dark:text-green-400 leading-none">
                     ¥{userBalance.toLocaleString()}
                   </span>
                 </div>
@@ -112,12 +112,12 @@ export const Header = ({
                   <img
                     src={userAvatar}
                     alt={userName}
-                    className="w-9 h-9 rounded-lg border-2 border-white dark:border-white/10 shadow-sm object-cover"
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg border-2 border-white dark:border-white/10 shadow-sm object-cover"
                   />
                 ) : (
                   <div className={cn(
-                    "w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold",
-                    "text-base",
+                    "w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-white font-bold",
+                    "text-sm sm:text-base",
                     primaryColors.bgGradient
                   )}>
                     {userName.charAt(0).toUpperCase()}

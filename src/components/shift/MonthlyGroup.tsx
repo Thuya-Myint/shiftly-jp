@@ -28,13 +28,13 @@ export const MonthlyGroup = memo(function MonthlyGroup({ monthKey, totalPay, tot
   return (
     <div className="mb-10">
       <div className={cn(
-        "flex justify-between items-center mb-5 p-5 sm:p-6 rounded-3xl z-10 shadow-xl border",
+        "flex justify-between items-center mb-5 p-4 sm:p-6 rounded-3xl z-10 shadow-xl border",
         theme === 'light'
           ? "bg-white border-gray-100"
           : "bg-slate-900/40 border-white/5 backdrop-blur-2xl"
       )}>
         <div className="flex flex-col">
-          <h2 className={cn("text-xl sm:text-2xl font-bold tracking-tight", primaryColors.text)}>
+          <h2 className={cn("text-lg sm:text-2xl font-bold tracking-tight", primaryColors.text)}>
             {monthName.toUpperCase()}
           </h2>
           <div className={cn("h-1 w-10 rounded-full mt-1.5", primaryColors.bg)} />
@@ -44,7 +44,7 @@ export const MonthlyGroup = memo(function MonthlyGroup({ monthKey, totalPay, tot
             <div className={cn("w-1.5 h-1.5 rounded-full", primaryColors.bg)} />
             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">{totalHours} {strings.hours.toUpperCase()}</p>
           </div>
-          <p className={cn("text-2xl sm:text-3xl font-bold tracking-tight", primaryColors.text)}>{yen.format(totalPay)}</p>
+          <p className={cn("text-xl sm:text-3xl font-bold tracking-tight", primaryColors.text)}>{yen.format(totalPay)}</p>
         </div>
       </div>
       <div className="space-y-4">

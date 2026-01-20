@@ -325,7 +325,7 @@ export default function ShiftTracker() {
     <>
       <GlobalStyles />
       <div className={cn("min-h-screen", appClasses)}>
-        <div className={cn("min-h-screen flex flex-col items-center sm:p-6")}>
+        <div className={cn("min-h-screen flex flex-col items-center p-0 sm:p-6")}>
 
           {/* Header */}
           <Header
@@ -335,11 +335,11 @@ export default function ShiftTracker() {
           />
 
           {/* Controls */}
-          <div className="w-full max-w-4xl px-4 mb-8">
+          <div className="w-full max-w-4xl px-3 sm:px-4 mb-8">
 
             {/* Totals & Filters Section */}
             <div className={cn(
-              "p-8 rounded-[2rem] shadow-2xl flex flex-col sm:flex-row justify-between items-center gap-8 border relative overflow-hidden",
+              "p-5 sm:p-8 rounded-3xl sm:rounded-[2rem] shadow-2xl flex flex-col sm:flex-row justify-between items-center gap-6 sm:gap-8 border relative overflow-hidden",
               theme === 'light'
                 ? 'bg-white border-gray-100'
                 : 'bg-slate-900/40 border-white/5 backdrop-blur-2xl'
@@ -351,7 +351,7 @@ export default function ShiftTracker() {
               <div className="flex flex-col items-center sm:items-start relative z-10">
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 mb-1">{strings.grandTotal}</p>
                 <div className="flex items-baseline gap-1">
-                  <p className={cn("text-4xl font-bold tracking-tight", PRIMARY_COLOR_CLASSES.text)}>{yen.format(aggregatedData.grandTotal.totalPay)}</p>
+                  <p className={cn("text-3xl sm:text-4xl font-bold tracking-tight", PRIMARY_COLOR_CLASSES.text)}>{yen.format(aggregatedData.grandTotal.totalPay)}</p>
                 </div>
                 <div className="flex items-center gap-2 mt-1">
                   <div className={cn("w-1 h-1 rounded-full", PRIMARY_COLOR_CLASSES.bg)} />
@@ -385,7 +385,7 @@ export default function ShiftTracker() {
           </div>
 
           {/* Content Area */}
-          <main className="w-full max-w-4xl pb-16 px-4">
+          <main className="w-full max-w-4xl pb-16 px-3 sm:px-4">
             {isLoading ? (
               <div className="flex items-center justify-center py-20">
                 <div className="flex flex-col items-center gap-4">
