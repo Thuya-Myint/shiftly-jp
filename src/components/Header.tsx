@@ -77,41 +77,47 @@ export const Header = ({
   }
 
   return (
-    <header className="w-full max-w-4xl sticky p-4 top-0 z-40 backdrop-blur-md bg-transparent/80">
+    <header className="w-full max-w-4xl sticky p-4 sm:p-6 top-0 z-40 backdrop-blur-xl bg-transparent/60">
       <div className="flex justify-between items-center">
-        <h1 className={cn("text-2xl sm:text-3xl font-extrabold tracking-tight", primaryColors.text)}>
-          Shomyn
-        </h1>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col">
+          <h1 className={cn("text-2xl sm:text-3xl font-bold tracking-tight leading-none", primaryColors.text)}>
+            SHOMYN
+          </h1>
+          <div className={cn("h-1 w-8 rounded-full mt-1.5", primaryColors.bg)} />
+        </div>
+        <div className="flex items-center gap-3">
           {user && (
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className={cn(
-                  "flex items-center p-1 pl-4 gap-2 rounded-full transition-all cursor-pointer",
-                  " shadow-sm",
+                  "flex items-center p-1.5 pl-4 gap-3 rounded-xl cursor-pointer",
+                  "shadow-lg border",
                   isDropdownOpen
                     ? theme === 'light'
-                      ? 'bg-gray-100 ring-2 ring-blue-500/20'
-                      : 'bg-slate-700 ring-2 ring-blue-400/20'
+                      ? 'bg-white border-gray-200 ring-4 ring-gray-50'
+                      : 'bg-slate-900 border-white/10 ring-4 ring-white/5'
                     : theme === 'light'
-                      ? 'bg-white/80 hover:bg-gray-50'
-                      : 'bg-slate-800/80 hover:bg-slate-700'
+                      ? 'bg-white border-gray-100'
+                      : 'bg-slate-900 border-white/5'
                 )}
               >
-                <span className="text-sm font-bold text-green-600 dark:text-green-400">
-                  ¥{userBalance.toLocaleString()}
-                </span>
+                <div className="flex flex-col items-end">
+                  <span className="text-[8px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 leading-none mb-0.5">BALANCE</span>
+                  <span className="text-sm font-bold text-green-600 dark:text-green-400 leading-none">
+                    ¥{userBalance.toLocaleString()}
+                  </span>
+                </div>
                 {userAvatar ? (
                   <img
                     src={userAvatar}
                     alt={userName}
-                    className="w-10 h-10  rounded-full border-2 border-white dark:border-slate-600"
+                    className="w-9 h-9 rounded-lg border-2 border-white dark:border-white/10 shadow-sm object-cover"
                   />
                 ) : (
                   <div className={cn(
-                    "w-10 h-10 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-white font-bold",
-                    "text-sm sm:text-xs",
+                    "w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold",
+                    "text-base",
                     primaryColors.bgGradient
                   )}>
                     {userName.charAt(0).toUpperCase()}

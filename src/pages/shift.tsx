@@ -272,37 +272,42 @@ export default function ShiftTracker() {
     return (
       <div
         className={cn(
-          "p-8 rounded-3xl text-center backdrop-blur-md transition-colors border",
-          theme === 'light' ? 'bg-indigo-50/50 border-indigo-200' : 'bg-slate-900/60 border-slate-700'
+          "p-12 rounded-[2rem] text-center border",
+          theme === 'light' ? 'bg-white border-gray-100 shadow-xl' : 'bg-slate-900/40 border-white/5 backdrop-blur-xl shadow-2xl'
         )}
       >
         {hasFilter ? (
           <>
-            <Filter size={40} className={cn("mx-auto mb-4", PRIMARY_COLOR_CLASSES.text)} />
-            <h3 className="text-xl font-bold mb-2 text-gray-800 dark:text-gray-200">{strings.noShiftsMonth}</h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-4">{strings.tryDifferentMonth}</p>
+            <div className={cn("w-20 h-20 mx-auto mb-6 rounded-3xl flex items-center justify-center", theme === 'light' ? 'bg-gray-50' : 'bg-white/5')}>
+              <Filter size={32} className={PRIMARY_COLOR_CLASSES.text} />
+            </div>
+            <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white tracking-tight">{strings.noShiftsMonth}</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-8 font-medium">{strings.tryDifferentMonth}</p>
             <Button
               onClick={onClearFilter}
               variant="outline"
               className={cn(
+                "h-12 px-8 rounded-xl font-bold border-2",
                 PRIMARY_COLOR_CLASSES.border,
                 PRIMARY_COLOR_CLASSES.text,
-                "hover:bg-indigo-50/20 dark:hover:bg-violet-900/30"
+                "hover:bg-gray-50 dark:hover:bg-white/5"
               )}
             >
-              <X size={16} className="mr-2" /> {lang === 'en' ? 'Current Month' : '今月'}
+              <X size={18} className="mr-2" /> {lang === 'en' ? 'CURRENT MONTH' : '今月'}
             </Button>
           </>
         ) : (
           <>
-            <Zap size={40} className={cn("mx-auto mb-4", PRIMARY_COLOR_CLASSES.text)} />
-            <h3 className="text-xl font-bold mb-2 text-gray-800 dark:text-gray-200">{strings.noShiftsYet}</h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-4">{strings.startTracking}</p>
+            <div className={cn("w-20 h-20 mx-auto mb-6 rounded-3xl flex items-center justify-center", theme === 'light' ? 'bg-gray-50' : 'bg-white/5')}>
+              <Zap size={32} className={PRIMARY_COLOR_CLASSES.text} />
+            </div>
+            <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white tracking-tight">{strings.noShiftsYet}</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-8 font-medium">{strings.startTracking}</p>
             <Button
               onClick={openAddModal}
-              className={cn("text-white font-bold", PRIMARY_COLOR_CLASSES.bgGradient)}
+              className={cn("h-14 px-10 rounded-2xl text-white font-bold text-lg shadow-lg", PRIMARY_COLOR_CLASSES.bgGradient)}
             >
-              <Plus size={16} className="mr-2" /> {strings.addShift}
+              <Plus size={20} className="mr-2" strokeWidth={3} /> {strings.addShift.toUpperCase()}
             </Button>
           </>
         )}
@@ -319,8 +324,8 @@ export default function ShiftTracker() {
   return (
     <>
       <GlobalStyles />
-      <div className={cn("min-h-screen transition-all duration-300 ease-in-out", appClasses)}>
-        <div className={cn("min-h-screen flex flex-col items-center sm:p-6 transition-all duration-300 ease-in-out")}>
+      <div className={cn("min-h-screen", appClasses)}>
+        <div className={cn("min-h-screen flex flex-col items-center sm:p-6")}>
 
           {/* Header */}
           <Header
@@ -330,27 +335,37 @@ export default function ShiftTracker() {
           />
 
           {/* Controls */}
-          <div className="w-full max-w-4xl px-4 mb-6">
+          <div className="w-full max-w-4xl px-4 mb-8">
 
             {/* Totals & Filters Section */}
             <div className={cn(
-              "p-4 rounded-2xl shadow-xl flex flex-col sm:flex-row justify-between items-center gap-4 border",
+              "p-8 rounded-[2rem] shadow-2xl flex flex-col sm:flex-row justify-between items-center gap-8 border relative overflow-hidden",
               theme === 'light'
-                ? 'bg-white/80 border-gray-200'
-                : 'bg-slate-900/70 border-slate-700'
+                ? 'bg-white border-gray-100'
+                : 'bg-slate-900/40 border-white/5 backdrop-blur-2xl'
             )}>
-              <div className="flex flex-col items-center sm:items-start">
-                <p className="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-gray-400 text-center sm:text-left">{strings.grandTotal}</p>
-                <p className={cn("text-3xl font-black text-center sm:text-left", PRIMARY_COLOR_CLASSES.text)}>{yen.format(aggregatedData.grandTotal.totalPay)}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left">{aggregatedData.grandTotal.totalHours} {strings.hours}</p>
+              {/* Decorative background glow */}
+              <div className={cn("absolute -right-12 -top-12 w-40 h-40 blur-[80px] opacity-30 rounded-full", PRIMARY_COLOR_CLASSES.bg)} />
+              <div className={cn("absolute -left-12 -bottom-12 w-40 h-40 blur-[80px] opacity-10 rounded-full", PRIMARY_COLOR_CLASSES.bg)} />
+
+              <div className="flex flex-col items-center sm:items-start relative z-10">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 mb-1">{strings.grandTotal}</p>
+                <div className="flex items-baseline gap-1">
+                  <p className={cn("text-4xl font-bold tracking-tight", PRIMARY_COLOR_CLASSES.text)}>{yen.format(aggregatedData.grandTotal.totalPay)}</p>
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className={cn("w-1 h-1 rounded-full", PRIMARY_COLOR_CLASSES.bg)} />
+                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400">{aggregatedData.grandTotal.totalHours} {strings.hours.toUpperCase()}</p>
+                </div>
               </div>
 
-              <div className="flex gap-3 w-full sm:w-auto flex-1 sm:flex-none min-w-0">
+              <div className="flex gap-3 w-full sm:w-auto flex-1 sm:flex-none min-w-0 relative z-10">
                 <MonthFilter
                   selectedMonth={filterMonth}
                   onMonthSelect={setFilterMonth}
                   lang={lang}
                   primaryColors={PRIMARY_COLOR_CLASSES}
+                  theme={theme}
                 />
               </div>
             </div>
@@ -359,13 +374,13 @@ export default function ShiftTracker() {
             <button
               onClick={openAddModal}
               className={cn(
-                "mt-4 w-full px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-md flex items-center justify-center gap-2",
+                "mt-6 w-full px-6 py-4 rounded-xl font-bold text-lg shadow-xl flex items-center justify-center gap-3",
                 PRIMARY_COLOR_CLASSES.bgGradient,
-                "text-white hover:shadow-lg hover:-translate-y-0.5"
+                "text-white active:scale-[0.98] border-t border-white/10"
               )}
             >
-              <Plus size={20} />
-              {strings.addShift}
+              <Plus size={24} strokeWidth={2.5} />
+              {strings.addShift.toUpperCase()}
             </button>
           </div>
 
@@ -467,6 +482,7 @@ export default function ShiftTracker() {
           initialShift={editingShift}
           lang={lang}
           primaryColors={PRIMARY_COLOR_CLASSES}
+          theme={theme}
         />
 
         {alertConfig && (

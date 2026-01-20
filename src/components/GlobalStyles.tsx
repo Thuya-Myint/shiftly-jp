@@ -1,5 +1,5 @@
 export const GlobalStyles = () => (
-    <style>{`
+  <style>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -21,16 +21,6 @@ export const GlobalStyles = () => (
         }
         
 
-        @keyframes gradient-x {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        
-        .animate-gradient-x {
-          background-size: 200% 200%;
-          animation: gradient-x 20s ease infinite;
-        }
         
        
     `}</style>

@@ -24,11 +24,13 @@ export function MonthFilter({
   onMonthSelect,
   lang,
   primaryColors,
+  theme,
 }: {
   selectedMonth: Date | undefined;
   onMonthSelect: (date: Date | undefined) => void;
   lang: Lang;
   primaryColors: ReturnType<typeof getPrimaryColorClasses>;
+  theme: "light" | "dark";
 }) {
   const strings = LANG_STRINGS[lang];
 
@@ -47,28 +49,33 @@ export function MonthFilter({
           <Button
             variant="outline"
             className={cn(
-              "w-full h-10 sm:h-12 px-3 sm:px-4 flex items-center justify-between rounded-xl border-2 font-medium text-sm",
+              "w-full h-12 px-4 flex items-center justify-between rounded-xl border-2 font-bold text-sm shadow-md",
               selectedMonth
-                ? cn(primaryColors.border, primaryColors.text)
-                : "border-gray-300 dark:border-slate-600 text-gray-500"
+                ? cn(primaryColors.border, primaryColors.text, "bg-white dark:bg-slate-900")
+                : "border-gray-200 dark:border-white/5 text-gray-400 bg-white dark:bg-slate-900/40"
             )}
           >
             <div className="flex items-center truncate">
-              <CalendarIcon size={16} className="mr-2" />
-              {selectedMonth
-                ? format(selectedMonth, lang === "en" ? "MMM yyyy" : "yyyy年M月")
-                : strings.filterByMonth}
+              <div className={cn("p-1.5 rounded-lg mr-3", selectedMonth ? (theme === 'light' ? 'bg-gray-50' : 'bg-white/5') : "bg-gray-50 dark:bg-white/5")}>
+                <CalendarIcon size={18} className={selectedMonth ? primaryColors.text : "text-gray-400"} strokeWidth={2} />
+              </div>
+              <span className="tracking-tight text-xs">
+                {selectedMonth
+                  ? format(selectedMonth, lang === "en" ? "MMM yyyy" : "yyyy年M月")
+                  : strings.filterByMonth.toUpperCase()}
+              </span>
             </div>
 
             {selectedMonth && (
-              <X
-                size={16}
-                className="opacity-50"
+              <div
+                className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg"
                 onClick={(e) => {
                   e.stopPropagation();
                   onMonthSelect(undefined);
                 }}
-              />
+              >
+                <X size={16} className="text-gray-400" strokeWidth={2.5} />
+              </div>
             )}
           </Button>
         </PopoverTrigger>

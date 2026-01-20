@@ -20,7 +20,8 @@ export function AddEditShiftModal({
   onSubmit,
   initialShift,
   lang,
-  primaryColors
+  primaryColors,
+  theme,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -34,6 +35,7 @@ export function AddEditShiftModal({
   initialShift: Shift | null;
   lang: Lang;
   primaryColors: ReturnType<typeof getPrimaryColorClasses>;
+  theme: "light" | "dark";
 }) {
   const strings = LANG_STRINGS[lang];
 
@@ -81,30 +83,30 @@ export function AddEditShiftModal({
 
   return (
     <div
-      className="fixed inset-0 z-[10000] bg-black/50 flex items-start sm:items-center justify-center p-4 overflow-y-auto"
+      className="fixed inset-0 z-[10000] bg-black/60 backdrop-blur-sm flex items-start sm:items-center justify-center p-4 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md my-auto rounded-3xl p-6 relative bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700/80 shadow-2xl"
+        className="w-full max-w-md my-auto rounded-3xl p-6 relative bg-white dark:bg-slate-900 border border-gray-100 dark:border-white/5 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className={cn("text-2xl font-extrabold mb-6", primaryColors.text)}>
+        <h2 className={cn("text-2xl font-bold tracking-tight mb-6 uppercase", primaryColors.text)}>
           {initialShift ? strings.editShift : strings.addShift}
         </h2>
 
         <button
-          className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-lg text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+          className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors bg-gray-50 dark:bg-white/5"
           onClick={onClose}
         >
-          <X size={20} />
+          <X size={20} strokeWidth={2.5} />
         </button>
 
         <form onSubmit={handleSubmit} className="space-y-6">
 
           {/* Date Picker */}
           <div>
-            <label className="block text-sm font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2">
-              {lang === 'en' ? 'Date' : '日付'}
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2">
+              {lang === 'en' ? 'DATE' : '日付'}
             </label>
 
             <Popover open={isDatePopoverOpen} onOpenChange={setIsDatePopoverOpen}>
@@ -112,17 +114,19 @@ export function AddEditShiftModal({
                 <button
                   type="button"
                   className={cn(
-                    "w-full justify-start text-left font-normal h-12 rounded-xl border-2 items-center flex px-3",
-                    "text-gray-800 dark:text-gray-200 bg-white dark:bg-slate-900",
+                    "w-full justify-start text-left font-bold h-12 rounded-xl border-2 items-center flex px-4 shadow-sm",
+                    "text-gray-900 dark:text-white bg-white dark:bg-slate-900",
                     primaryColors.border
                   )}
                 >
-                  <CalendarIcon className={cn("mr-2 h-4 w-4", primaryColors.text)} />
-                  {format(form.date, lang === 'en' ? 'PPP' : 'yyyy年M月d日(EEE)')}
+                  <CalendarIcon className={cn("mr-3 h-4 w-4", primaryColors.text)} strokeWidth={2} />
+                  <span className="tracking-tight text-sm">
+                    {format(form.date, lang === 'en' ? 'PPP' : 'yyyy年M月d日(EEE)')}
+                  </span>
                 </button>
               </PopoverTrigger>
 
-              <PopoverContent className="w-full md:w-auto p-0 z-[10001]">
+              <PopoverContent className="w-full md:w-auto p-0 z-[10001] rounded-xl shadow-2xl border-gray-100 dark:border-white/5">
                 <Calendar
                   mode="single"
                   selected={form.date}
@@ -134,11 +138,11 @@ export function AddEditShiftModal({
 
           {/* Time Pickers (NATIVE HTML) */}
           <div>
-            <label className="block text-sm font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-3">
-              {strings.start} – {strings.end}
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2">
+              {strings.start.toUpperCase()} – {strings.end.toUpperCase()}
             </label>
 
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <Input
                 type="time"
                 step={TIME_STEP_SECONDS}
@@ -147,7 +151,7 @@ export function AddEditShiftModal({
                 onChange={(e) =>
                   setForm(p => ({ ...p, fromTime: e.target.value }))
                 }
-                className={cn("h-12", primaryColors.border)}
+                className={cn("h-12 rounded-xl border-2 font-bold text-base", primaryColors.border)}
               />
 
               <Input
@@ -158,17 +162,17 @@ export function AddEditShiftModal({
                 onChange={(e) =>
                   setForm(p => ({ ...p, toTime: e.target.value }))
                 }
-                className={cn("h-12", primaryColors.border)}
+                className={cn("h-12 rounded-xl border-2 font-bold text-base", primaryColors.border)}
               />
             </div>
           </div>
 
           {/* Wage */}
           <div>
-            <label className="block text-sm font-bold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-2">
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2">
               <span className="flex items-center">
-                <Zap size={14} className="inline mr-1" />
-                {strings.hourlyRate}
+                <Zap size={14} className="inline mr-1.5" strokeWidth={2} />
+                {strings.hourlyRate.toUpperCase()}
               </span>
             </label>
 
@@ -181,11 +185,11 @@ export function AddEditShiftModal({
                 onChange={(e) =>
                   setForm(p => ({ ...p, wage: e.target.value }))
                 }
-                className={cn("pl-10", primaryColors.border)}
+                className={cn("h-12 pl-10 rounded-xl border-2 font-bold text-base", primaryColors.border)}
               />
               <span
                 className={cn(
-                  "absolute left-3 top-1/2 -translate-y-1/2 font-bold",
+                  "absolute left-4 top-1/2 -translate-y-1/2 font-bold text-lg",
                   primaryColors.text
                 )}
               >
@@ -197,24 +201,24 @@ export function AddEditShiftModal({
           {/* Summary */}
           <div
             className={cn(
-              "p-4 rounded-xl flex justify-between items-center shadow-md",
-              primaryColors.bgLight + "/50 dark:" + primaryColors.bgDark
+              "p-5 rounded-2xl flex justify-between items-center shadow-lg border",
+              theme === 'light' ? 'bg-gray-50 border-gray-100' : 'bg-white/5 border-white/5'
             )}
           >
             <div>
-              <p className="text-sm text-gray-700 dark:text-gray-400">
-                {strings.totalHours}
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-0.5">
+                {strings.totalHours.toUpperCase()}
               </p>
-              <p className={cn("text-2xl font-black", primaryColors.text)}>
+              <p className={cn("text-2xl font-bold tracking-tight", primaryColors.text)}>
                 {hours}
               </p>
             </div>
 
-            <div>
-              <p className="text-sm text-gray-700 dark:text-gray-400">
-                {strings.totalPay}
+            <div className="text-right">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-0.5">
+                {strings.totalPay.toUpperCase()}
               </p>
-              <p className={cn("text-2xl font-black", primaryColors.text)}>
+              <p className={cn("text-2xl font-bold tracking-tight", primaryColors.text)}>
                 {yen.format(pay)}
               </p>
             </div>
@@ -223,11 +227,11 @@ export function AddEditShiftModal({
           <button
             type="submit"
             className={cn(
-              "w-full h-12 rounded-xl text-lg font-bold text-white shadow-lg",
+              "w-full h-14 rounded-xl text-lg font-bold text-white shadow-xl active:scale-[0.98] border-t border-white/10",
               primaryColors.bgGradient
             )}
           >
-            {initialShift ? strings.save : strings.addShift}
+            {(initialShift ? strings.save : strings.addShift).toUpperCase()}
           </button>
         </form>
       </div>
