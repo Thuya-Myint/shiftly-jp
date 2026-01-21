@@ -79,23 +79,27 @@ export function LoadingScreen() {
 
       <div className="text-center relative z-10 px-8">
         <div className="mb-10 flex justify-center">
-          <div className="w-40 h-40 rounded-[2.5rem] bg-white/10 backdrop-blur-2xl flex items-center justify-center shadow-2xl border border-white/20">
-            <span className="text-8xl font-bold text-white">¥</span>
+          <div className="w-40 h-40 rounded-[2.5rem] bg-white/10 backdrop-blur-2xl flex items-center justify-center shadow-2xl border border-white/20 overflow-hidden">
+            <img
+              src="/shomynLogo-7FEuR7Ac.png"
+              alt="Shomyn Logo"
+              className="w-28 h-28 object-contain"
+            />
           </div>
         </div>
 
         <h1
-          className="text-7xl font-bold tracking-tight mb-4 text-white uppercase"
+          className="text-4xl tracking-[0.4rem] mb-4 text-white uppercase"
         >
           SHOMYN
         </h1>
 
-        <p className="text-white/80 text-xl font-bold uppercase tracking-[0.2em] mb-16">
+        {/* <p className="text-white/80 text-xl font-bold uppercase tracking-[0.2em] mb-16">
           Track shifts • <span className="text-white">Save smarter</span>
-        </p>
+        </p> */}
 
         {/* Progress Bar with simple CSS animation for performance */}
-        <div className="relative w-64 h-2 bg-white/10 rounded-full mx-auto overflow-hidden backdrop-blur-sm border border-white/10">
+        {/* <div className="relative w-64 h-2 bg-white/10 rounded-full mx-auto overflow-hidden backdrop-blur-sm border border-white/10">
           <div
             className="absolute inset-y-0 left-0 rounded-full bg-white animate-progress-fast"
             style={{ width: '40%' }}
@@ -111,7 +115,7 @@ export function LoadingScreen() {
             position: absolute;
             animation: progress-fast 1.5s linear infinite;
           }
-        `}</style>
+        `}</style> */}
 
         <div className="mt-8 text-[10px] font-bold uppercase tracking-[0.4em] text-white/40">
           INITIALIZING SYSTEM

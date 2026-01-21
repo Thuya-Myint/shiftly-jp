@@ -389,8 +389,15 @@ export default function ShiftTracker() {
             {isLoading ? (
               <div className="flex items-center justify-center py-20">
                 <div className="flex flex-col items-center gap-4">
-                  <Loader2 size={40} className={cn("animate-spin", PRIMARY_COLOR_CLASSES.text)} />
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <div className="relative">
+                    <div className="absolute inset-0 rounded-full border-2 border-white/20 animate-ping" />
+                    <img
+                      src="/shomynLogo-7FEuR7Ac.png"
+                      alt="Loading..."
+                      className="w-12 h-12 object-contain animate-pulse"
+                    />
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-400 font-medium">
                     {lang === 'en' ? 'Loading shifts...' : 'シフトを読み込み中...'}
                   </p>
                 </div>

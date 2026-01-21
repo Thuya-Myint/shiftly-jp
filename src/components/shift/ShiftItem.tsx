@@ -82,11 +82,11 @@ export const ShiftItem = memo(function ShiftItem({ shift, theme, baseLang, onDel
               <Clock size={18} className="sm:w-5 sm:h-5" strokeWidth={2} />
             </div>
             <div className="flex items-baseline gap-1.5 sm:gap-2 overflow-hidden">
-              <span className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">{shift.start_time}</span>
+              <span className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">{shift.start_time.slice(0, 5)}</span>
               <span className={cn("text-base sm:text-lg font-medium opacity-30", primaryColors.text)}>
                 →
               </span>
-              <span className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">{shift.end_time}</span>
+              <span className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">{shift.end_time.slice(0, 5)}</span>
             </div>
           </div>
 
