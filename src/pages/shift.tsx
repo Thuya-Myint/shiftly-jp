@@ -21,6 +21,7 @@ import { fetchUserData } from '@/services/user';
 // Components
 import { GlobalStyles } from '@/components/GlobalStyles';
 import { Header } from '@/components/Header';
+import { BottomTabBar } from '@/components/BottomTabBar';
 import { MonthFilter } from '@/components/shift/MonthFilter';
 import { MonthlyGroup } from '@/components/shift/MonthlyGroup';
 import { AddEditShiftModal } from '@/components/shift/AddEditShiftModal';
@@ -385,7 +386,7 @@ export default function ShiftTracker() {
           </div>
 
           {/* Content Area */}
-          <main className="w-full max-w-4xl pb-16 px-3 sm:px-4">
+          <main className="w-full max-w-4xl pb-28 px-3 sm:px-4">
             {isLoading ? (
               <div className="flex items-center justify-center py-20">
                 <div className="flex flex-col items-center gap-4">
@@ -503,6 +504,7 @@ export default function ShiftTracker() {
         )}
 
 
+        <BottomTabBar theme={theme} primaryColors={PRIMARY_COLOR_CLASSES} />
       </div>
     </>
   );

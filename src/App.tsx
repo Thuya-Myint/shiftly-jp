@@ -5,6 +5,7 @@ import { useAuth } from './hooks/useAuth';
 import { ThemeProvider } from './contexts/ThemeContext';
 
 // Lazy load pages for better initial load performance
+const Dashboard = lazy(() => import('./pages/Dashboard'));
 const ShiftTracker = lazy(() => import('./pages/shift'));
 const Login = lazy(() => import('./pages/Login'));
 const Settings = lazy(() => import('./pages/Settings'));
@@ -20,21 +21,22 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (showLaunchScreen || loading) {
-    return <LoadingScreen />;
-  }
-
   return (
     <ThemeProvider>
-      <Suspense fallback={<LoadingScreen />}>
-        <Routes>
-          <Route path="/" element={<Navigate to={isAuthenticated ? "/shifts" : "/login"} replace />} />
-          <Route path="/login" element={isAuthenticated ? <Navigate to="/shifts" replace /> : <Login />} />
-          <Route path="/shifts" element={isAuthenticated ? <ShiftTracker /> : <Navigate to="/login" replace />} />
-          <Route path="/settings" element={isAuthenticated ? <Settings /> : <Navigate to="/login" replace />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
+      {showLaunchScreen || loading ? (
+        <LoadingScreen />
+      ) : (
+        <Suspense fallback={<LoadingScreen />}>
+          <Routes>
+            <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />
+            <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
+            <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" replace />} />
+            <Route path="/shifts" element={isAuthenticated ? <ShiftTracker /> : <Navigate to="/login" replace />} />
+            <Route path="/settings" element={isAuthenticated ? <Settings /> : <Navigate to="/login" replace />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      )}
     </ThemeProvider>
   );
 }
